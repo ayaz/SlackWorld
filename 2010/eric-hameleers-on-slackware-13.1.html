@@ -1,0 +1,431 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World. Interview with Eric Hameleers</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2010 The Slack World">
+ <meta name="author" content="The Slack World">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware Linux 13.1 Eric Hameleers developer KDE">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+ <h2>Eric Hameleers: Slackware does exactly what I want it to do.<br>
+ 13.1 questions to AlienBOB on the occasion of Slackware 13.1 release (with answers :-)
+ </h2>
+
+ <p>
+  Published: June 11, 2010
+ </p>
+
+<p>Dear fellow Slackers! We are happy to publish an interview with
+another Slackware developer, <a href="http://alien.slackbook.org/blog/about/">Eric Hameleers</a>,
+he has kindly given us on the occasion of the Slackware-13.1 release. Enjoy!
+</p>
+
+<p><em>
+Dear Eric:<br>
+Many congratulations on the release of Slackware 13.1, and thank you for
+the hard-work and time you have spent to making it all possible. This time
+around, in light of the release of Slackware 13.1, we have prepared a
+list of "13.1" questions that we would be happy to ask you.
+These are essentially the same questions (but .1 :-) that we have already
+<a href="./robby-workman-on-slackware-13.1.html">asked Robby&nbsp;Workman</a>
+and we are interested in another look on the same subject.
+</em></p>
+
+<p><em>
+1. One can read in README.TXT and PACKAGES.TXT which programs are
+included in any release of Slackware. We believe words like gcc-4.4.4
+do not say much if anything for a mere mortal Slacker though. Thus,
+our first question is: what do you think are the most remarkable
+features of Slackware-13.1 and what do they bring to a "home Slacker"
+and to a guru of the visible Slackverse?  
+</em></p>
+<p>
+Looking back at the the months before the release of Slackware 13.1, I
+would say that we wanted to improve 13.0 in a number of aspects and make
+13.1 a fairly short development cycle&mdash;make it a "bug fix release" as it
+were. Obviously things went a bit different. There are several exciting
+updates in Slackware 13.1 which could have justified a 14.0 release
+instead of the 13.1 point release. A big and visible change is of course
+the update to KDE Software Compilation 4.4.3 which uses ConsoleKit and
+PolicyKit. The combination with a very recent kernel and X.Org allow many
+people to have a pleasant out-of-the-box experience with modern hardware.
+When you look at the <a href="http://www.linuxquestions.org/questions/slackware-14/slackware-13-1-first-impressions-810094/">testimonials
+in the Slackware forum of LinuxQuestions.org</a>, you find that Slackware
+ 13.1 feels a lot faster than
+13.0 on bootup, uses less hardware resources (KDE 4.2 was a resource hog)
+and KDE 4.4.3 is as least as good, if not better than, the KDE 3.5.10
+that came with Slackware 12.2. Our new KDE is speedy, has beautiful
+graphics, and enhances your productivity.
+</p>
+<p><em>
+2. There were an incredible number of updates since release 13.0: the
+kernel evolved from version 2.6.29.6 to 2.6.33.4, gcc changed from
+4.3.3 to 4.4.4, gtk+2 updated from version 2.14.7 to 2.18.9, the
+X.org system passed through a huge update, there were multiple
+updates in KDE and other applications and libraries.  A number of new
+packages were added. With all these immense updates of the
+distribution since release 13.0, what was the most difficult part of
+preparing Slack-13.1 personally for you?  
+</em></p>
+<p>
+I think the previous development cycle (leading to the 13.0 release) was
+a lot harder for me, since I had to create Slackware64 from scratch and
+keep it in sync with Patrick Volkerding's process on the 32-bit side. I
+have a day job, and Pat's build computers are a lot faster than mine, so
+it was exhausting at times to keep up with his pace. Working toward 13.1
+felt more relaxed, the hardest part being my own personal goal of getting
+KDE 4.4 included. It took some persuasion, but what helped a lot were the
+reports from people running my KDE 4.4 packages (including some of the
+Slackware team) documenting that 4.4.x was so much better than
+Slackware's KDE 4.3. Having PolicyKit as a requirement for KDE 4.4 was
+the big hurdle actually, because PolicyKit did not support Slackware's
+shadow authentication backend, only PAM was supported. And since PAM is
+still off-limits in Slackware, there was a joint effort by several of the
+Slackware team plus Andrew Psaltis from the WICD team to get Slackware
+supported in PolicyKit.
+</p>
+<p><em>
+3. Can you tell us about your personal duties/impact in the development
+of Slackware-13.1
+</em></p>
+<p>
+There are no real "duties" of course. The cycle of package updates is
+quite a natural process. Everyone in the team has a special interest in
+parts of the distro but there is a lot of synergy.
+</p><p>
+Things I care about most are the initial impressions of the Slackware
+user. Once lost, never regained. So, I do a lot of test-installations. I
+keep working on the Slackware installer, together with Stuart&nbsp;Winter (who
+uses the identical installer in <a href="http://www.armedslack.org/">ARMedslack</a>),
+and on the <b>mkinitrd</b> package,
+where a lot of under-the-hood enhancements went in.
+</p><p>
+I have been tracking the KDE 4.4 development of course, using
+<a href="http://alien.slackbook.org/blog/">my blog</a>
+for the announcements and using feedback to tune the builds. All of this "out
+of tree" testing finally led to inclusion of the KDE Software Compilation
+4.4.3 into Slackware, something I am very happy with because it is such
+an improvement over 4.3. I grew fond of KDE4 when I was building
+slackware64&mdash;at that time, Slackware still used KDE3 while KDE 4.1 was
+available in the testing area. I decided against building KDE3 for
+64-bit, anticipating that KDE4 would have matured sufficiently by the
+time&mdash;if ever&mdash;Slackware64 would go public (something which was not at
+all certain at that time). And I think that with KDE 4.4.3 we have
+finally reached a level of stability and useability that equals the old
+KDE 3.5.10. It looks much better too. Behind all the eye candy is a
+tightly integrated desktop environment which gives me a lot more power
+than KDE3 ever did. Many of the complaints about KDE4 are adjustment
+problems, it takes a while to develop a mind set that fits with KDE4
+after you switch from KDE3. But it will pay off if you invest in
+discovering the many new features.
+</p>
+<p><em>
+4. Is there anything you had meant to implement in Slack-13.1 but had to
+postpone for the future? If yes, what was that and why was it postponed?
+</em></p>
+<p>
+There are a number of items on my TODO list that I simply did not have
+the time to implement or "defend". <a href="http://piterpunk.unitednerds.org/">PiterPUNK</a>
+and I have written an
+updated <b>liloconfig</b> even before 13.0 was released, which automates the
+process of creating an <b>initrd.gz</b> to be used with the generic kernel. As
+you may know, the huge kernel is primarily used for installation of
+Slackware but our recommendation is to switch to the combination of
+generic kernel plus initrd as soon as possible. This switch-over is still
+not a trivial procedure, although I have tried to document it as well as
+I could in the README_LVM.TXT. The new <b>liloconfig</b> was vetoed because it
+was written too close to the 13.0 release. After 13.0 was released, I
+have just been too busy with my KDE and VLC builds and further develpment
+on liloconfig was pushed to the background. This is really something I
+want to pick up in the near future.
+</p>
+<p>
+Another thing I want to do, not necessarily for inclusion into Slackware
+itself, is to investigate into the possibility to write a script that
+takes a Slackware DVD ISO (or a package tree) and create a live DVD image
+out of that, for promotion purposes.
+The <a href="http://www.linux-live.org/">linux-live scripts</a>
+are nice, but
+too complex for my needs, plus it requires that you already have a
+running system. Having a script that I can throw at a development tree
+and gives me back a live DVD would be very nice to have. And finally, I
+have ideas for a modified <b>initrd.gz</b> (this is the file on the Slackware
+boot disk that contains the installer) which lets you start a PXE server
+running right off the installation DVD. That would make it easy to
+install Slackware over a network on other computers that lack a DVD
+drive. I may have some time for all that, hopefully in the next few
+months. From a historical perspective there is always a short period of
+relative inactivity in Slackware's development right after a release&nbsp;&#8230;
+room for some hobbying.
+</p>
+<p><em>
+5. What sort of hardware do you have there running under the hood? The
+"-j7" flag in many of the SlackBuild scripts hints of the use of a fast
+machine. It would be very interesting to know what kind of hardware you
+guys use. Do you employ multi-boot machines?
+</em></p>
+<p>
+I have nothing fancy really&nbsp;&#8230; the parallellization flag in the
+SlackBuilds is mainly beneficial to Patrick's build cluster. I have
+compiled all my packages (including Slackware64 up to the moment that it
+went public) on a home-built computer with single-core AMD Athlon64 3200+
+and 2GB of internal RAM. That computer is ageing and has squeaking fans
+but it does the job, and I can leave it running upstairs with the door
+closed while I work in the living room&nbsp;&#8230; It is multi-boot naturally. At
+the moment, it has six different OS-es installed on it, five of which are
+Slackware 13.X and -current. I have virtual images of older releases
+which I can access using QEMU.
+</p><p>
+It's not the only computer I own of course. But it is the fastest one. I
+have an IBM T43 laptop and an Asus eeepc 1000H which I use a lot, and my
+employer's Lenovo T400 is a dual-boot system with Windows and
+Slackware64-current.
+</p><p>
+The team members have a varied collection of hardware, which is good
+because there is a lot of software that we have to test under different
+conditions. Think of programs and scripts to use bluetooth, wireless and
+graphics drivers!
+</p>
+<p><em>
+6. Is there anything in Slack you would like to change significantly? If
+yes, what is this and why do you want this?
+</em></p>
+<p>
+This is an easy question with a short answer: Slackware does exactly what
+I want it to do. The contributions I have made which are mentioned in the
+ChangeLog (not everything is mentioned there) are mostly related to
+useability (expanding networking capabilites, enhancing the functionality
+of Slackware's installer and boot scripts, things like that). Before I
+became part of the team, I used to apply these customizations to my own
+computer, but as a member of the Slackware team, I was able to add all of
+that to the distro itself. It has come to a point where I am very pleased
+with the distro as it is, and more effort can go in maintaining the
+packages in <a href="http://connie.slackware.com/~alien/slackbuilds/">my own repository</a>,
+writing <a href="http://alien.slackbook.org/blog/">blog</a> and
+<a href="http://alien.slackbook.org/dokuwiki/doku.php">wiki articles</a>. You know,
+all the things around Slackware that make it such a nice ecosystem.
+</p><p>
+There, I thought the answer would be simple, but I still managed to make
+it long.
+</p>
+<p><em>
+7. Do you ever try any distributions based on Slackware, e.g., Zenwalk or
+Salix? Do you like any of the ideas implemented there (for example,
+automated package management)?
+</em></p>
+<p>
+I keep an eye on the forum messages and ChangeLogs of several of the
+distros that are derived from Slackware. I have never installed and tried
+any of them. Of all the spin-offs there are really only two that I like
+enough to care about. Those are <a href="http://www.slax.org/">SLAX</a>&mdash;because
+it is not really
+Slackware, but an original product based on the linux-live scripts and
+using Slackware; and <a href="http://www.kongoni.co.za/">Kongoni Linux</a>,
+which prides itself that it only
+includes software under a license approved by the Free Software
+Foundation while remaining compatible with Slackware. It also uses a
+ports package build system derived from BSD's.
+</p><p>
+Slackware itself has a good package manager of course. I believe that it
+is a strength of Slackware that the administrator is responsible for
+managing the software on his computer. It increases your awareness of how
+the packages interact and does not give you a false sense of security.
+The <b>slapt-get</b> and <b>netpkg</b> and whatever else are nice tools for these
+distros that allow them to stand out. After all, if they kept looking too
+much like Slackware, what would be the point of ever using them?
+</p>
+<p><em>
+8. In reviews that appear after any new release of Slackware, one can
+often find complaints about missing dependency hell in the existing
+system of package management in Slack.  Just of curiosity, have you ever
+discussed a possibility of implementing an optional check of package
+dependencies? With a tool like <b>depfinder</b>, this doesn't seem very
+difficult to implement.
+</em></p>
+<p>
+Automated dependency management&mdash;is something that will not be added to
+Slackware under my watch :-) If this topic comes up in discussions at
+all, it is not to see if Slackware should add it, but rather to dismiss
+yet another email asking for dependency checking.
+</p><p>
+Dependency information is not part of the Slackware package
+specification, and will not be added either. Not having this capability
+allows us to have a very lean package management tool which can be
+written in shell script. You would have a hard time finding a
+Slackware-specific tool that needs compilation.
+</p>
+<p><em>
+9. Do you personally use Slackware on laptops? Do you think Slackware is
+suited well for running on laptops? The major issues we are aware of seem
+to revolve around WiFi and resume/suspend/hibernate support. How well do
+you think Slackware fares with regards to these and other overall
+challenges that any Linux distribution faces when run on a laptop?
+</em></p>
+<p>
+The first laptop which I installed Slackware on did not even have
+wireless! When I joined IBM in 1997 I was given a laptop to do my work,
+and one of the first things I did with it was to insert a Slackware CD.
+Using Slackware on laptops has been a strong motivator to enhance
+Slackware's network scripts with wireless support. The old PCMCIA
+subsystem in Linux had wireless support already, but that only supports
+obsolete 16-bit network cards. The market moved to 32-bit PC-card which
+is basically a PCI interface, and I had to buy such a card in order to
+test my new rc.wireless script. Nowadays, the <b>WICD</b> application in
+Slackware's <tt>/extra</tt> directory makes life of the mobile Slacker a lot
+easier, but there are still things it cannot do like supporting more than
+two network interfaces. Still, I think that Slackware is very
+well-equipped for use on laptops. The kernel of Slackware 13.1 supports a
+lot of wireless cards, we added a graphical bluetooth manager, and
+suspend/hibernate support requires almost no configuration these days.
+KDE has a "netbook" workspace interface which has been optimized for
+small screens. I get more hours out of a laptop's battery charge in
+Slackware than in MS Windows.
+</p>
+<p><em>
+10. The Slackware Package Browser, hosted at packages.slackware.it, is
+going through an overhaul for a while now. Are there any updates on the
+progress? When do you think it will be available for the public to use?
+</em></p>
+<p>
+Unfortunately, the guy responsible for the Slackware web site and the
+package browser as well&mdash;fizban&mdash;has a lot going on, so the progress on
+the new package browser has stalled. <a href="http://twitter.com/slackwarelinux">His
+twitter page</a> where he was documenting his efforts
+has not seen a lot of activity recently. People in need of a package
+browser can use this one instead: <a href="http://slackfind.net/en/">http://slackfind.net/en/</a>
+created by Anton&nbsp;Kolechkin.
+</p>
+<p><em>
+11. Why do you think relics like <b>amp</b> and <b>xv</b> are still kept in Slack? Is
+there a text editor you would like to see included in Slack?
+</em></p>
+<p>
+I think Slackware is slow to let go of old software. Especially if it
+still works. The <b>xv</b> program is the only piece of "shareware" in
+Slackware, and there are better alternatives nowadays, but Pat&nbsp;Volkerding
+knows the author personally so that may well be a reason to keep it. I
+don't touch a lot of software in Slackware, and I had my share of
+surprises when I had to build every individual package for our new x86_64
+platform. Lots of obscure but cool stuff in there!
+</p><p>
+Funny that you ask about an editor I want to see included. I'll let you
+in on a little secret&nbsp;&#8230; I never had the need to add an editor, instead
+there is one that I never even install. And that's <b>Emacs</b>. I am a <b>vi</b> user
+to the core. Usually <b>elvis</b>, sometimes <b>vim</b> and I use <b>gvim</b> when I need an
+editor in X Window (and even in MS Windows!).
+</p>
+<p><em>
+12. What do you think about the way Linux in general is evolving? Is
+there anything you miss or are not satisfied with?
+</em></p>
+<p>
+I think the biggest issue I have is not with Linux (the kernel) but with
+GNU/Linux (the operating system). The kernel keeps growing and getting
+fatter but still manages to get better and faster, with expanding
+hardware support. On the other hand, distro development is largely
+dictated by what the "big guys", Redhat, Novell and Ubuntu see as
+"improvements". It is getting more and more obvious that the smaller
+distros like our own Slackware are going to suffer. The decisions that
+are being made with regards to software requirements and development
+goals are made so that the big ones profit (for they are the ones who
+spend big money on code development). You surely remember the year-long
+fiasco with releases of <b>X.Org</b>, <b>mesa</b> and the Intel graphics driver that
+did not play well together, resulting in a lot of disappointed Linux
+users. And still, today, the state of X Window is in such flux that it is
+very hard to assemble a coherent set of software that will make everybody
+happy. It's true for Slackware as much as any other distro. And look at
+how we were forced to adopt PolicyKit/ConsoleKit just to ship a
+non-crippled KDE desktop; we had to apply a non-sanctioned patch to
+PolicyKit so that it would work with Slackware. The continuous push
+coming especially from Redhat to get their software accepted before they
+reach maturity (like polkit, and upower, udisks and more to come) is very
+much worrying me. Look at <b>polkit</b>&mdash;it evolved in several incompatible
+steps but still has to reach a level of maturity, and it is becoming a
+core component in every distro's authentication stack. It is amazing that
+Pat&nbsp;Volkerding manages to release stable versions of Slackware despite
+all this.
+</p>
+<p><em>
+Out of order: question 13.1. Eric, personal question to you: why "Alien BOB"? :-)
+</em></p>
+<p>
+Meh. I have been using the "alien" nick long before there was Internet. I
+never experienced name clashes until I created my own repository on
+slackware.com and (as a return favour) I decided to show myself in
+Slackware forums and IRC channels to help other people. But there were
+lots of aliens out there! In order to register an unique nick, I had to
+make a fast decision. I looked at my screen, and saw my command prompt
+"alien@bob$"&nbsp;&#8230; et voila!
+</p>
+<p><em>
+13. And, in the end, is there anything you'd like to tell Slackers
+about that we didn't dare ask?
+</em></p>
+<p>
+People tell me how much they appreciate the nicely commented scripts, and
+all the documentation on Slackware I have available in several places.
+But you know, writing all that stuff down is a life-saver for me. I am
+very forgetful&mdash;and by writing down very precisely how I work, I do not
+have to keep re-inventing everything. 
+My <a href="http://connie.slackware.com/~alien/slackbuilds/">SlackBuild repository</a>
+was born out of frustration. I used to compile all my stuff manually, and every 
+time I needed to upgrade my system, I would have forgotten completely how
+I had added all the extra software. I hated that so much that I decided
+to keep journals, start writing build scripts and make my work public (so
+that I would not lose it in case of a hard disk crash).
+</p><p>
+I also want to add that&mdash;even though Slackware no longer ships with
+Gnome&mdash;there is a 3rd-party Gnome add-on that can be installed on top of
+Slackware 13.1 with very little disturbance. 
+The <a href="http://gnomeslackbuild.org/">GnomeSlackBuild</a> (or GSB)
+project even has two releases available at
+this moment: Gnome 2.28 which does not replace any original Slackware
+package, and the 2.30 release which replaces as little as two packages.
+Definitely worth checking out. And even if you are not a Gnome fan,
+installing GSB allows you to compile or use a whole lot of other software
+that has strong gnome dependencies (like the Lotus Notes I use at work).
+The GSB also comes with a source-compiled OpenOffice.org package tuned
+for Slackware.
+</p><p>
+Well, that's it. Thanks guys for allowing me to ramble on for so long.
+</p>
+<p><em>Thank you very much for the exciting interview, Eric! You are always welcome!</em></p>
+
+<hr>
+<p style="text-align: right;"><tt>http://slackworld.berlios.de/2010/eric-hameleers-on-slackware-13.1.html</tt></p>
+
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005&ndash;2010 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+<p></p>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

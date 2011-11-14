@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 3, 2005. Adding sound to a custom 2.4 kernel</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="author" content="Mikhail Zotov">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, kernel,
+  sound, upgrade, compile, ALSA, OSS, alsa-driver">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+
+ <link rel="first" href="kuac.html" title="KUAC Guide">
+ <link rel="last" href="acks.html" title="Acknowledgments">
+
+ <link rel="previous" href="howto.html" title="HOWTO: update kernel 2.6.12">
+ <link rel="next" href="refs.html" title="References">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue #3, July 2005
+  </p>
+  <h2>
+   SlackNotes: Adding sound to a custom 2.4 kernel
+  </h2>
+
+  <p>
+   <b>Author:</b> Mikhail Zotov
+  </p>
+
+  <p>
+   OK, <a href="./kuac.html">silly</a> doesn't have a soundcard (aka
+   noisegenerator) yet.  This is probably not a typical situation for a
+   home PC these days.  Let's take a look how one can enable sound when
+   compiling a custom kernel for a machine with a sound card (assuming
+   the card works with the stock Slackware kernel <em>and</em> uses ALSA).
+   We shall use the same <tt class="verb">EXTRAVERSION = a</tt> as
+   in the <a href="./kuac.html">KUAC Guide</a>.
+  </p>
+
+  <p>
+   Following the scheme used above, let's figure out which sound
+   card is present in our machine:
+  </p>
+
+  <pre class="listing">
+   ~$ /sbin/lspci | grep -i audio
+   00:1f.5 Multimedia audio controller: Intel Corp. 82801BA/BAM AC'97 Audio (rev 05)</pre>
+
+  <p>
+   and which driver is used:
+  </p>
+
+  <pre class="listing">
+   ~$ lsmod | grep snd | grep -v oss
+   snd-intel8x0           19808   0
+   snd-ac97-codec         66012   0 [snd-intel8x0]
+   snd-timer              14948   0 [snd-pcm]
+   soundcore               3652   4 [snd]</pre>
+
+  <p>   
+   As is clear from the above output, the key driver is called "snd-intel8x0".
+   Unfortunately, the 2.4.31 kernel doesn't have this driver in the source tree:
+  </p>
+  
+  <pre class="listing">
+   linux-2.4.31$ find . -name "intel8x0*" -ls
+   linux-2.4.31$</pre>
+
+  <p>
+   Thus we need to recompile the <b>alsa-driver</b> package (if we are not
+   satisfied with OSS).  Prior to this, for the sound system to work, it
+   must be enabled in the kernel, e.g., this way:
+
+  <pre class="listing">
+   &lt;M&gt; Sound card support
+   &lt;M&gt; Intel ICH (i8xx), SiS 7012, NVidia nForce Audio or AMD 768/811x
+   &lt;M&gt; OSS sound modules</pre>
+
+  <p>
+   <em>Remark 1.</em>
+    Feel free to drop "OSS sound modules" support if you are not going 
+    to use OSS.</p>
+
+  <p>
+   Surely, one can just grab the original <tt class="verb">alsa-driver.SlackBuild</tt>
+   script available in <tt class="verb">/path/to/slackware-current/source/l/alsa-driver</tt>,
+   edit the string</p>
+
+  <pre class="listing">
+   KVERSION=${KVERSION:-2.4.29}</pre>
+
+  <p>
+   to reflect that we are going to use our brand new kernel:</p>
+
+  <pre class="listing">
+   KVERSION=${KVERSION:-2.4.31a}</pre>
+
+  <p>
+   and blindly execute the script.  This is not <em>our</em> way though
+   because we don't need <em>all</em> available sound drivers but only those
+   necessary for our machine.</p>
+
+  <p>  
+   <em>Remark 2.</em> Notice that we intentionally didn't use dash in
+   <tt class="verb">EXTRAVERSION</tt>.  A dash
+   would have broken the Slackware scheme of naming packages!</p>
+
+  <p>   
+   Now, let's unpack the alsa-driver source tar ball and figure out how we
+   can modify the build script to compile only the driver(s) we need:</p>
+
+  <pre class="listing">
+   ~$ tar xjvf alsa-driver-1.0.8.tar.bz2
+   ~$ cd alsa-driver-1.0.8
+   ~$ ./configure --help</pre>
+
+  <p>
+   (It may be convenient to redirect
+   "<tt class="verb">./configure --help > configure.help</tt>".)</p>
+
+  <p>
+   The stock <tt class="verb">alsa-driver.SlackBuild</tt> script runs
+   <tt class="verb">./configure</tt> with the following options:</p>
+
+  <pre class="listing">
+    ./configure \
+     --with-isapnp=yes \
+     --with-sequencer=yes \
+     --with-oss=yes</pre>
+
+  <p>
+   and thus all possible drivers are built. A brief look at the output
+   of "<tt class="verb">./configure --help</tt>" reveals that we need to
+   run <tt class="verb">./configure</tt> with the option
+   "<tt class="verb">--with-cards=intel8x0</tt>".  We can also
+   disable isapnp (since we don't have ISA cards) and sequencer.  We
+   also need to indicate explicitly the path to the kernel source since we
+   have used a custom directory instead of the
+   <tt class="verb">/usr/src/linux</tt> assumed by
+   default.  Thus, the <tt class="verb">./configure</tt> section
+   of our custom SlackBuild script may look this way:</p>
+
+  <pre class="listing">
+    ./configure \
+     --with-kernel=/path/to/linux/kernel/source \
+     --with-cards=intel8x0 \
+     --with-isapnp=no \
+     --with-sequencer=no \
+     --with-oss=yes</pre>
+
+  <p>
+   Disable oss (<tt class="verb">--with-oss=no</tt>)
+   if you don't need it, see Remark&nbsp;1 above. :-)</p>
+
+  <p>
+   Now, run our new <tt class="verb">alsa-driver.SlackBuild</tt> script
+   and&nbsp;... don't go far away. The build time will be reduced by an
+   order of magnitude in comparison with the stock script.</p>
+
+  <p>
+   A moment later we have alsa-driver-1.0.8_2.4.31a-i486-1.tgz package. 
+   The next step is to upgrade the package we have.  NO! NO!! NO!!! 
+   Don't upgrade because this will delete the stock drivers present in
+   <tt class="verb">/lib/modules/2.4.31</tt> (and other drivers if you
+   have already built any kernels with alsa-drivers). The right command is:</p>
+
+  <pre class="listing">
+   # installpkg alsa-driver-1.0.8_2.4.31a-i486-1.tgz</pre>
+
+  <p>
+   Voila!  Now we are ready to reboot and enjoy sound with our brand new kernel.
+  </p>   
+
+  <p>
+   <em>Remark 3.</em> Does one have to compile alsa-driver in case
+   she/he is satisfied with OSS?  Surely, not.  One can just build a
+   kernel with OSS built in:</p>
+
+  <pre class="listing">
+   &lt;*&gt; Sound card support
+   &lt;*&gt; Intel ICH (i8xx), SiS 7012, NVidia nForce Audio or AMD 768/811x
+   &lt;*&gt; OSS sound modules</pre>
+
+  <p>
+   and forget about ALSA completely.  Just run, say,</p>
+   
+  <pre class="listing">
+   # chmod -x /etc/rc.d/rc.alsa</pre>
+
+  <p>
+   or edit <tt class="verb">rc.M</tt> in an appropriate way.</p>
+
+  <p>
+   <em>Remark 4.</em> A good thing with 2.6 kernels is that one doesn't need to compile
+   an alsa-driver package, at least not in the case considered above because the
+   kernel source already contains the necessary driver and thus it can be
+   compiled during the kernel build.</p>
+
+<!-- invariant part -->
+ <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address><br>
+ </div>
+
+ <p class="menu">
+  <a class="menu" href="kuac.html" title="2.4.x KUAC Guide"><b>KUAC Guide</b></a>
+  <a class="menu" href="howto.html" title="HOWTO: update kernel 2.6.12 to 2.6.12.3"><b>HOWTO</b></a>
+  <a class="menu" href="sound.html" title="Adding sound"><b>Sound</b></a>
+  <a class="menu" href="refs.html" title="References"><b>References</b></a>
+  <a class="menu" href="summer.html" title="Summertime..."><b>Slack Summer</b></a>
+  <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+ </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

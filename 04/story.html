@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 4, 2005. Slack Story</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents, abuse, ssh, attack">
+ <meta name="description" content="Slack Story">
+ <meta name="author" content="Sylvain Robitaille">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+ <link rel="first" href="editorial.html" title="Editorial">
+
+ <link rel="previous" href="tips.html" title="Slack Tips">
+ <link rel="next" href="notes.html" title="Slack Notes">
+ <link rel="last" href="acks.html" title="Acknowledgments">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #4, November 2005
+  </p>
+
+  <h2>Slack Story: Reporting Abuse</h2>
+  <p>
+   <b>Author:</b> Sylvain Robitaille
+  </p>
+
+  <p><em>
+   Newsgroups: alt.os.linux.slackware<br>
+   Date: Wed, 12 Oct 2005 05:01:40<br>
+   Subject: Re: ssh attacks</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/ecdac0e74f9012ee">Original Post</a>)<br>
+  </p>
+
+
+<pre class="quest">
+Shannon Lloyd wrote:
+> I typically used to get upwards of 6000 failed ssh login attempts on
+> a single machine every day. The solution, of course, was just to move
+> sshd onto an obscure port so that the scripts wouldn't find it. If I
+> determined to report all of the ip addresses that tried to get into
+> my systems, I'd go crazy.  ...  Reporting failed login attempts (even
+> if there are hundreds of them per ip) won't really achieve anything,
+> other than waste your time. Most of the attempts are probably just
+> scripts on zombie boxes anyway, and in the time it takes you to report 
+> one ip address, you'll probably get a hundred more failed attempts
+> from other ip addresses in your logs.
+</pre>
+
+  <p>
+   At some point (last year? year before?) I was seeing a lot (hundreds
+   per day) of attempted connections to a couple of systems I manage at
+   work from IP addresses belonging to a local (though relatively large)
+   commercial ISP.  The systems would actually refuse (and log to a central
+   logging server, where it was easy to gather log extracts from multiple
+   systems at once) the connections, thanks to TCP_Wrappers, but the sheer
+   number of them from a small number of source addresses all belonging to
+   the same ISP made it worth reporting.
+  </p><p>
+   On a regular basis, usually every few days, sometimes at weekly
+   intervals, I would gather the logs into a report, which I would submit
+   to the ISP using their web interface (note that it's more work to do
+   that than it is to fire off an email to abuse@, but the email approach
+   only caused an autoreply that requested complainants to use their nifty
+   web-based submission form).  Each time I would receive acknowledgement
+   of my submission, and most times a few days later I would receive
+   notification that their user had been warned and that further activity
+   of the same sort "may cause the account to be suspended."
+  </p><p>
+   This carried on for months, without my knowing whether any accounts ever
+   got suspended, and after a while I started to wonder if any of their
+   users had even been notified that the activity had been reported.  It
+   just didn't seem likely to me that a large number of their users would
+   have suddenly started targetting our systems, but only from a single
+   source at any given time.
+  </p><p>
+   I wrote a perl script to watch my log file.  For every refused
+   connection from an IP address in this ISP's address block, the script
+   was to submit a completed form to the ISP's web-based abuse reporting
+   system.  I let the script loose on the logs I had collected so far that
+   same day, and then set it to watch the log in real time (restarting it
+   every night when the log is rotated).
+  </p><p>
+   The very next day, I received a telephone call from someone claiming
+   to work for this ISP.  He explained that he had received 380 abuse
+   reports from me the previous day and wanted to know what the problem was.
+   I checked my logs, corrected him that I had sent 384 reports the previous
+   day, and that the "problem" was that my systems were clearly being
+   targeted by one or more of his users, which I believed to be contrary
+   to their acceptable usage policy.
+  </p><p>
+   I let him know that my attempts at submitting consolidated logs for the
+   previous months had clearly been ineffective, therefore I had arranged to
+   now submit a report (in near-real-time) every time his users targetted
+   my systems, and that If he wanted the reports to stop, he would need to
+   address the problem at the source.
+  </p><p>
+   The following day, I received 380 (not 384!) separate notifications that
+   the ISP's user(s) had been warned and that further activity "may" lead
+   to suspension of the account(s).  There were a small number of repeated
+   attempts afterwards, nowhere nearly as frequently as they had been in
+   the months prior, and they ultimately trickled off.  I don't recall the
+   last time my script submitted a report to this ISP, but it still runs,
+   watching the logs from the central logging server.
+  </p><p>
+   Submitting abuse reports does (sometimes) work, though it can make a
+   difference if you know how to be "persuasive".&nbsp;:-)
+  </p><p>
+   --<br>
+   Sylvain Robitaille
+  </p>
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="essence-1.html" title="Essence-1"><b>Essence-1</b></a>
+    <a class="menu" href="essence-2.html" title="Essence-2"><b>Essence-2</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="story.html" title="Slack Story"><b>Story</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

@@ -1,0 +1,49 @@
+#!/bin/sh
+TMP=/var/log/setup/tmp
+if [ ! -d $TMP ]; then
+  mkdir -p $TMP
+fi
+REDIR=/dev/tty4
+NDIR=/dev/null
+
+dialog --title "XFree86 Configuration" \
+       --menu "Now we will attempt to configure XFree86. This will be your \
+graphical environment. We will try to set good default values, if you later \
+would like to change something you should edit /etc/X11/XF86Config. Which \
+resolution do you want?" 15 60 5 \
+1600x1200 "Good for 21 inch TFT monitors" \
+1280x1024 "Good for 20 inch CRT monitors" \
+1024x768 "Good for 17 inch monitors" \
+800x600 "Good for 14 inch monitors" \
+640x480 "Who would want to use this?" 2> $TMP/SeTresolution
+
+(get-edid | parse-edid | grep -A1 HorizSync) 1> $TMP/SeTmonitor 2> $NDIR
+
+if [ ! $? = 0 ]; then
+while [ 0 ]; do
+  dialog --title "Monitor configuration, step 1" \
+    --inputbox "Unable to get automatic monitor info, you will have to find \
+this information in your manual. The HorizSync is given in kHz and has a \
+range like 24-80 for multisync monitors or a comma separated list for fixed \
+frequency monitors. Please enter HorizSync" \
+    14 54 "24-80" 2> $TMP/horz
+  cat $TMP/horz |  egrep [0-9,.-] |\
+      egrep -v [a-zA-Z] 1> $NDIR
+  if [ $? = 0 ]; then
+    break;
+  fi
+done
+while [ 0 ]; do
+  dialog --title "Monitor configuration, step 2" \
+    --inputbox "The VertRefresh is given in MHz. Please enter VertRefresh" \
+    10 54 "50-75" 2> $TMP/vert
+  cat $TMP/vert |  egrep [0-9,.-] |\
+      egrep -v [a-zA-Z] 1> $NDIR
+  if [ $? = 0 ]; then
+    break;
+  fi
+done
+echo HorizSync `cat $TMP/horz` > $TMP/SeTmonitor
+echo VertRefresh `cat $TMP/vert` >> $TMP/SeTmonitor
+rm $TMP/horz $TMP/vert
+fi

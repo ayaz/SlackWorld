@@ -1,0 +1,1422 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 3, 2005. A 2.4.x KUAC Guide</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="author" content="Grant Coady">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, kernel,
+  compile, compilation, upgrade, 2.4">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+
+ <link rel="next" href="howto.html" title="Kernel 2.6.12 update HOWTO">
+ <link rel="last" href="acks.html" title="Acknowledgments">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue #3, July 2005
+  </p>
+  <h2>
+   A 2.4.x Kernel Update and Compilation Guide, or<br>
+   The adventures of installing a custom build kernel on to bare metal
+   Slackware-10.1 installation
+  </h2>
+
+  <p>
+   <b>Author:</b> <a class="plain" href="http://bugsplatter.mine.nu/">Grant Coady</a>
+  </p>
+
+<pre class="grant">
+
+     KERNEL: A part of an operating system that preserves the medieval
+             traditions of sorcery and black art.
+
+             Posted on AOLS by Martin Boening,
+             Linux Registered User #258205
+
+</pre>
+
+<p>
+These are brief notes outlining an experience with updating the stock
+kernel for Slackware 10.1 release and then compiling and installing
+a custom kernel.  The procedure can be applied to other releases of
+Slackware and other versions of the 2.4 series kernel.
+</p><p>
+Standard DISCLAIMER:</p>
+<ol>
+ <li>TMTOWTDI [<a href="#TMTOWTDI">0</a>]</li>
+ <li>This works for me.  <em>Maybe</em> this will work for you.</li>
+ <li>Kernel versions will change, check for latest kernel patches.</li>
+</ol>
+<p>
+--<br>
+[<a id="TMTOWTDI">0</a>] "<em>There's More Than One Way To Do It</em>" --Larry Wall,
+Camel Book 2nd Ed. (Programming Perl), p.&nbsp;10</p>
+
+<p>
+That's the Perl Slogan, and you'll get tired of hearing it, unless
+you're the Local Expert, in which case you'll get tired of saying
+it.  Sometimes it's shortened to TMTOWTDI, pronounced "tim-toady".
+But you can pronounce it however you like.  After all, TMTOWTDI.<br><br></p>
+
+<hr>
+<p><b>
+Test box</b>
+</p><p>
+pentiumII/266
+</p><p>
+EPoX EP-61LXA-M: Intel 440LX chipset with pentiumII/266 on 66MHz
+FSB (4 x 66) with 128MB SDRAM, AGP card, PCI + ISA bus.
+</p><p>
+Slackware-10.1 on Reiserfs on IDE 13GB HDD
+</p><p>
+</p><p><b>
+Assumptions</b>
+</p><p>
+You are working on the command line interface, perhaps remotely.
+Grant does not often work in the GUI, and certainly cannot remember
+compiling and installing a kernel from there :)
+</p><p><b>
+Enjoy!</b>
+</p><p>
+This may be a learning experience, it may break your machine, but it
+rarely eats filesystems, for that you need to try the bleeding edge
+development kernels.  Take it easy, it may take several attempts to
+'get it right' for you.  But there is immense satisfaction in getting
+to know one's OS just a little better.
+</p>
+<hr>
+
+<h3>Table of Contents</h3>
+
+<dl>
+<dt>
+<a href="#Preparation">Preparation</a>
+ <dd>
+  Prerequisites
+ </dd><dd>
+  Update Slackware
+ <br><br></dd>
+
+<dt>
+<a href="#Install">Install kernel source</a>
+ <dd>
+  Where to get the source
+ </dd><dd>
+  Patching 2.4.29 to 2.4.31
+ </dd><dd>
+  Creating a working source tree
+ </dd><dd>
+  Create custom EXTRAVERSION
+ <br><br></dd>
+
+<dt>
+<a href="#configuration">Kernel configuration</a>
+ <dd>
+  Collect info about system
+ </dd><dd>
+  Kernel configuration
+ </dd><dd>
+  Adding EXPERIMENTAL options
+ </dd><dd>
+  Pre-compile planning, adjust the bootloader
+ <br><br></dd>
+
+<dt>
+<a href="#Compiling">Compiling the kernel</a>
+ <dd>
+  Checking out the new kernel
+ </dd><dd>
+  It is not just the kernel
+ </dd><dd>
+  Common problems
+ </dd><dd>
+  Automating the kernel install
+ </dd><dd>
+  The installkernel script option
+ </dd><dd>
+  Running third party patches
+ <br></dd>
+</dl>
+<hr>
+
+<h3><a id="Preparation">Preparation</a></h3>
+
+<h4>Prerequisites</h4>
+
+<p>
+Slackware-10.1 installed on a PC :o)  At least the first two Slackware
+CDROMs.  Some time and patience.  A willingness to 'Have a go, mate';
+even if it means breaking the machine.  Common recovery scenarios are
+discussed later.  Also check you installed the d/* development tools and
+k/kernel-source.</p>
+
+<h4>Update Slackware</h4>
+
+<p>
+It is prudent to keep up to date with patches to the distro, fixes
+may be security related or bugs serious enough to impact performance.
+Use your preferred method to obtain Slackware updates.  See:</p>
+
+<pre class="grant">
+http://www.slackware.com/getslack/
+</pre>
+<p>
+choose a mirror and grab the updates, for example:</p>
+
+<pre class="grant">
+ftp://ftp.planetmirror.com/pub/slackware/slackware-10.1/patches/*
+ftp://ftp.planetmirror.com/pub/slackware/slackware-10.1/patches/packages/*
+</pre>
+<p>
+  but probably not:
+</p>
+<pre class="grant">
+ftp://ftp.planetmirror.com/pub/slackware/slackware-10.1/patches/source/*
+</pre>
+<p>
+When you have the patches, issue:</p>
+
+<pre class="grant">
+# upgradepkg /path/to/slackware-10.1/patches/packages/*tgz
+</pre>
+
+<h3><a id="Install">Install kernel source</a></h3>
+
+<p>
+We will follow Linus' advice and compile new kernel under our user
+directory.  For the following exercise, assume we compiling kernel
+in <tt class="verb">~/kernel/</tt>
+
+<h4>Where to get the source</h4>
+
+<p>
+The central repository for the linux-kernel source is kernel.org, as
+for the Slackware updates above, try to use a local mirror to spread
+the load:</p>
+
+<pre class="grant">
+http://www.XY.kernel.org/pub/linux/kernel/v2.4/
+</pre> <p>or</p>
+<pre class="grant">
+ftp://ftp.XY.kernel.org/pub/linux/kernel/v2.4/
+</pre><p>
+where <tt class="verb">XY</tt> is your country code,
+omit the country code to reach main server.</p>
+
+<p>
+Slackware-10.1 comes with 2.4.29 so may save ourselves a 30MB download
+and copy the installed kernel source to user area and patch the distro
+2.4.29 kernel up to the latest version (2.4.31 as of this writing).
+</p>
+
+<p>
+If you have Slackware-10.2 or have updated to 2.4.31 from
+Slackware-current, take a copy of the kernel-source:
+</p>
+
+<pre class="grant">
+$ mkdir kernel
+$ cp -a /usr/src/linux-2.4.31/ kernel
+</pre>
+<p>
+and skip to creating a working source tree.</p>
+
+<h4>Patching 2.4.29 to 2.4.31</h4>
+
+<p>
+Grab the linux-kernel patches, we need:</p>
+
+<pre class="grant">
+ftp://ftp.au.kernel.org/pub/linux/kernel/v2.4/patch-2.4.30.gz (114kB)
+ftp://ftp.au.kernel.org/pub/linux/kernel/v2.4/patch-2.4.31.gz (28kB)
+</pre>
+
+<p>Then,</p>
+
+<pre class="grant">
+$ mkdir kernel
+$ cp -a /usr/src/linux-2.4.29/ kernel
+$ cd kernel/
+$ mv linux-2.4.29 linux-2.4.31
+$ cd linux-2.4.31
+$ zcat /path/to/patch-2.4.30.gz | patch -p1
+$ zcat /path/to/patch-2.4.31.gz | patch -p1
+$ cd ..
+</pre>
+
+<h4>Creating a working source tree</h4>
+
+<p> Why?  Two reasons:  make '<b>rm -rf</b>' your friend: easy
+to wipe out a  source tree and start over if you goof up the patching
+(stuff happens). Secondly, it keeps a clean, non-patched copy of the
+source tree for  future updates.  These reasons no longer hold the same
+meaning on fast  boxen, but if you working with an old 'freebie' box to
+make a firewall,  for example, these techniques can help.  Here we go:
+
+<pre class="grant">
+$ cp -al linux-2.4.31 linux-2.4.31a
+$ cd linux-2.4.31a
+</pre>
+
+<h4>Create custom <tt class="verb">EXTRAVERSION</tt></h4>
+
+<p>
+Why change <tt class="verb">EXTRAVERSION</tt>??  So your custom kernel does not wipe
+out the  distro kernel <tt class="verb">/lib/modules/</tt> directory, that's why!  Assuming
+you updated  the distro kernel to Slackware-current 2.4.31, for example.</p>
+
+<p>
+Now we have the kernel sources up to date, it is time to configure the
+kernel to suit our system.</p>
+<p>
+Duplicate hardlinked file prior to edit:          <b>&lt;&lt;== Important!</b>
+</p>
+<pre class="grant">
+$ mv Makefile Makefile~; cp Makefile~ Makefile
+$ vim Makefile
+</pre>
+Confidence booster (or deflator&nbsp;:), check you now have two different
+Makefiles:
+
+<pre class="grant">
+$ head -5 Makefile
+VERSION = 2
+PATCHLEVEL = 4
+SUBLEVEL = 31
+EXTRAVERSION = a
+
+$ head -5 ../linux-2.4.31/Makefile
+VERSION = 2
+PATCHLEVEL = 4
+SUBLEVEL = 31
+EXTRAVERSION =
+</pre>
+<p>
+Note: 2.6 series kernel have a <tt class="verb">*config</tt>
+option to append local version.</p>
+<p>
+Next, we look at configuring the new kernel.</p>
+
+
+<h3><a id="configuration">Kernel configuration</a></h3>
+<p>
+In this section we gather information about the hardware and configure the
+kernel to suit the hardware plus the intended use of the machine.  The
+example configuration is for a very basic setup and will likely require
+additions in order to make a more usable system.  Season to taste.
+</p>
+
+<h4>Collect info about system</h4>
+<p>
+Do an <b>lspci</b> to see what hardware you have&nbsp;- important bits highlighted
+and <tt class="verb">[n]</tt> will be referenced further below for the example 'silly' box:
+</p>
+
+<pre class="grant">
+# lspci
+
+00:00.0 Host bridge: Intel Corp. 440LX/EX - 82443LX/EX Host bridge (rev 03)
+00:01.0 PCI bridge: Intel Corp. 440LX/EX - 82443LX/EX AGP bridge (rev 03)
+        ^^^                     ^^^^^^^^              ^^^                 [0]
+00:07.0 ISA bridge: Intel Corp. 82371AB/EB/MB PIIX4 ISA (rev 01)
+        ^^^                                                               [1]
+00:07.1 IDE interface: Intel Corp. 82371AB/EB/MB PIIX4 IDE (rev 01)
+        ^^^                                      ^^^^^                    [2]
+00:07.2 USB Controller: Intel Corp. 82371AB/EB/MB PIIX4 USB (rev 01)
+        ^^^             ^^^^^                                             [3]
+00:07.3 Bridge: Intel Corp. 82371AB/EB/MB PIIX4 ACPI (rev 01)
+00:08.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
+        ^^^^^^^^             ^^^^^                           ^^^^^^^      [4]
+00:09.0 Ethernet controller: Digital Equipment Corporation DECchip 21140 [FasterNet] (rev 22)
+        ^^^^^^^^                                           ^^^^^^^^^^^^^  [5]
+01:00.0 VGA compatible controller: ATI Technologies Inc 3D Rage IIC AGP (rev 7a)
+        ^^^                                                         ^^^   [6]
+</pre>
+<p>
+[0] Machine is new enough (!?) to have a PCI bus<br>
+[1] It also has ISA slots, modern boxen don't have these<br>
+[2] The IDE hard and CDROM drives uses PIIX4 interface</p>
+
+<p> Drivers: discover driver names by reading the <tt class="verb">*config</tt> help
+menus, it does get easier once your fingers get it...</p>
+
+<p>
+[3] USB = uhci (discover by reading &lt;Help&gt; below, choose the JE driver)<br>
+[4] NIC = e100 (by Intel, now is better than the older Becker eepro100 driver)<br>
+[5] NIC = tulip (a large family of NICs are based on or emulate DECchip)<br>
+[6] AGP = agpgart support for 440LX/EX [0]<br>
+</p>
+<p>
+Check what cpu:
+</p>
+<pre class="grant">
+# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 3
+model name      : Pentium II (Klamath)
+                  ^^^^^^^^^^                                              [7]
+...
+</pre>
+<pre class="grant">
+# cat /proc/meminfo
+MemTotal:       126372 kB
+                ^^^^^^^^^                                                 [8]
+</pre>
+
+<h4>Kernel configuration</h4>
+<p>
+Think about what you need for the machine, this example is for a localnet
+machine with NFS, nothing fancy...
+</p>
+
+<p>
+Your configuration will likely need more, but then, that <em>is</em> the whole
+idea, to start <em>you</em> on the path to customising your own system.
+</p>
+
+<p>
+Starting from scratch
+</p>
+
+<p>
+To clear everything and start fresh, skip this step for fresh kernel source:
+</p>
+
+<pre class="grant">
+$ make mrproper
+</pre>
+
+<p>
+and here we go:
+</p>
+
+<pre class="grant">
+$ make menuconfig
+</pre>
+
+<p>
+GUI users may prefer make xconfig...
+</p>
+
+<p>
+Any menus not shown in list below indicate that all items in missing menu
+are turned off (blank).  Brought to you by the characters <tt class="verb">*</tt>,
+<tt class="verb">M</tt> and <tt class="verb">N</tt>; for
+Yes, Maybe (Module) and No (<tt class="verb">&lt;&nbsp;&gt;</tt>)
+</p>
+<p>
+Square brackets <tt class="verb">[&nbsp;]</tt> indicate a Yes/No choice.
+Angle brackets  <tt class="verb">&lt;&nbsp;&gt;</tt> indicate Yes/Module/No choice
+No brackets indicate string entry, a really basic backspacing editor,
+often fails to show the cursor, backspace to clear previous entry.
+</p>
+
+<p>
+Remember to read &lt;Help&gt; for more information on a choice, often there
+will be a Y/N indication if unsure.  If you get the message:
+</p>
+
+<blockquote><p>
+  "There is no help available for this kernel option."
+</p></blockquote>
+
+<p>
+it is probably safe to turn off the option.  Keep notes on items you are
+not sure of, these are likely the ones needing adjustment when things go
+wrong.
+</p>
+
+<pre class="grantc">
+Code maturity level options
+  [ ] Prompt for development and/or incomplete code/drivers
+</pre>
+<p>
+- Reduce choices by hiding the experimental options, we will revisit this
+  menu later to turn on some experimental stuff.
+</p>
+
+<pre class="grantc">
+Loadable module support
+  [*] Enable loadable module support
+  [ ]   Set version information on all module symbols
+  [*]   Kernel module loader
+</pre>
+<p>
+- We are building a modular kernel with a fresh (reduced) set of modules,
+  I find the above setting produces the least astonishing result.
+</p>
+
+<pre class="grantc">
+Processor type and features
+  (Pentium-Pro/Celeron/Pentium-II) Processor family                       [7]
+  [ ] PGE extensions (not for Cyrix/Transmeta)
+  [*] Machine Check Exception
+  &lt; &gt; Toshiba Laptop support
+  &lt; &gt; Dell laptop support
+  &lt; &gt; /dev/cpu/microcode - Intel IA32 CPU microcode support
+  &lt; &gt; /dev/cpu/*/msr - Model-specific register support
+  &lt; &gt; /dev/cpu/*/cpuid - CPU information support
+  (off) High Memory Support                                               [8]
+  [ ] Math emulation
+  [*] MTRR (Memory Type Range Register) support
+  [ ] Symmetric multi-processing support
+  [ ] Local APIC support on uniprocessors (NEW)
+  [ ] Unsynced TSC support
+</pre>
+<p>
+- Select the CPU you have in your system, selecting wrong CPU may result
+  in an unbootable kernel.  Read the &lt;Help&gt; for other options.<br>
+- High memory support is for &gt;= 1GB memory
+</p>
+
+<pre class="grantc">
+General setup
+  [*] Networking support
+  [*] PCI support                                                         [0]
+  (Any)   PCI access mode
+  [*] ISA bus support                                                     [1]
+  [*] PCI device name database
+  [ ] EISA support
+  [ ] MCA support
+  [ ] Support for hot-pluggable devices
+  [*] System V IPC
+  [ ] BSD Process Accounting
+  [*] Sysctl support
+  (ELF) Kernel core (/proc/kcore) format
+  &lt; &gt; Kernel support for a.out binaries
+  [*] Kernel support for ELF binaries
+  &lt; &gt; Kernel support for MISC binaries
+  [ ] Select task to kill on out of memory condition
+  [*] Power Management support
+  &lt;*&gt;   Advanced Power Management BIOS support
+  [ ]     Ignore USER SUSPEND
+  [ ]     Enable PM at boot time
+  [ ]     Make CPU Idle calls when idle
+  [ ]     Enable console blanking using APM
+  [*]     RTC stores time in GMT
+  [ ]     Allow interrupts during APM BIOS calls
+  [*]     Use real mode APM BIOS call to power off
+  ACPI Support  ---&gt;
+    [ ] ACPI Support
+</pre>
+<p>
+- Set the 'Use real mode APM BIOS call to power off' if your ATX box does
+  not turn off on shutdown.<br>
+- ACPI needs to be turned on in BIOS, if present.  Older ACPI boxen
+  (prior to 2000) are not supported in 2.4 kernel.
+</p>
+
+<pre class="grantc">
+Memory Technology Devices (MTD)
+  &lt; &gt; Memory Technology Device (MTD) support
+
+Parallel port support
+  &lt; &gt; Parallel port support
+
+Plug and Play configuration
+  &lt;*&gt; Plug and Play support
+  &lt;*&gt;   ISA Plug and Play support                                         [1]
+</pre>
+<p>
+- Turn on PnP support if you have BIOS PnP option on (recommended).  Turn
+  on ISA PnP support if you have PnP devices installed, this example has
+  an ISA SoundBlaster 16 card.
+</p>
+
+<pre class="grantc">
+Block devices
+  &lt;*&gt; Normal floppy disk support
+  &lt; &gt; XT hard disk support
+  &lt; &gt; Compaq SMART2 support
+  &lt; &gt; Compaq Smart Array 5xxx support
+  &lt; &gt; Mylex DAC960/DAC1100 PCI RAID Controller support
+  &lt; &gt; Promise SATA SX8 support
+  &lt;M&gt; Loopback device support
+  &lt; &gt; Network block device support
+  &lt; &gt; RAM disk support
+  [ ] Per partition statistics in /proc/partitions
+</pre>
+<p>
+- Loopback device is handy to have available for mounting .iso image files.
+</p>
+
+<pre class="grantc">
+Multi-device support (RAID and LVM)
+  [ ] Multiple devices driver support (RAID and LVM)
+
+Networking options
+  &lt;*&gt; Packet socket
+  [*]   Packet socket: mmapped IO
+  &lt;*&gt; Netlink device emulation
+  [ ] Network packet filtering (replaces ipchains)
+  [ ] Socket Filtering
+  &lt;*&gt; Unix domain sockets
+  [*] TCP/IP networking
+  [*]   IP: multicasting
+  [ ]   IP: advanced router
+  [ ]   IP: kernel level autoconfiguration
+  &lt; &gt;   IP: tunneling
+  &lt; &gt;   IP: GRE tunnels over IP
+  [ ]   IP: multicast routing
+  [ ]   IP: TCP Explicit Congestion Notification support
+  [ ]   IP: TCP syncookie support (disabled per default)
+    IP: Netfilter Configuration  ---&gt;
+    IP: Virtual Server Configuration  ---&gt;
+  &lt; &gt; 802.1Q VLAN Support
+  ---
+  &lt; &gt; The IPX protocol
+  &lt; &gt; Appletalk protocol support
+  &lt; &gt; DECnet Support
+  &lt; &gt; 802.1d Ethernet Bridging
+  QoS and/or fair queueing  ---&gt;
+  Network testing  ---&gt;
+
+Telephony Support
+  &lt; &gt; Linux telephony support
+
+ATA/IDE/MFM/RLL support
+  &lt;*&gt; ATA/IDE/MFM/RLL support
+  IDE, ATA and ATAPI Block devices  ---&gt;
+    &lt;*&gt; Enhanced IDE/MFM/RLL disk/cdrom/tape/floppy support
+    --- Please see Documentation/ide.txt for help/info on IDE drives
+    [ ]   Use old disk-only driver on primary interface
+    [ ]   Support for SATA (deprecated; conflicts with libata SATA driver)
+    &lt;*&gt;   Include IDE/ATA-2 DISK support
+    [ ]     Use multi-mode by default
+    [ ]     Auto-Geometry Resizing support
+    &lt;M&gt;   Include IDE/ATAPI CDROM support
+    &lt; &gt;   Include IDE/ATAPI TAPE support
+    &lt; &gt;   Include IDE/ATAPI FLOPPY support
+    &lt;M&gt;   SCSI emulation support                   &lt;&lt;== optional, for burners
+    [ ]   IDE Taskfile Access
+    --- IDE chipset support/bugfixes
+    [ ]   CMD640 chipset bugfix/support
+    [ ]   ISA-PNP EIDE support
+    [*]   PCI IDE chipset support
+    [ ]     Generic PCI IDE Chipset Support                  &lt;&lt;== last resort
+    [ ]     Sharing PCI IDE interrupts support      &lt;&lt;== for PCI IDE adapters
+    [*]     Generic PCI bus-master DMA support
+    [ ]     Boot off-board chipsets first support
+    [ ]       Force enable legacy 2.0.X HOSTS to use DMA
+    [*]       Use PCI DMA by default when available
+    [ ]     Enable DMA only for disks      &lt;&lt;== example: Iomega ATAPI Zipdisk
+    ...
+    &lt;*&gt;     Intel PIIXn chipsets support                                  [2]
+    ...
+    [ ]   Other IDE chipset support
+    [ ]   IGNORE word93 Validation BITS        &lt;&lt;== for 80-way ribbon problem
+    &lt; &gt; Support for IDE Raid controllers (EXPERIMENTAL)
+</pre>
+<p>
+- Minimise the options turned on here to only those required, we have CDROM
+  and SCSI emulation for an each-way bet on the CDROM access method.<br>
+- Compile in driver matching <em>your</em> chipset!
+</p>
+
+<pre class="grantc">
+SCSI support
+  &lt;M&gt; SCSI support                      &lt;&lt;== Compile in for SATA or SCSI boot
+  --- SCSI support type (disk, tape, CD-ROM)
+  &lt;M&gt;   SCSI disk support                                          &lt;&lt;== ditto
+  (4) Maximum number of SCSI disks that can be loaded as modules
+  &lt; &gt;   SCSI tape support
+  &lt; &gt;   SCSI OnStream SC-x0 tape support
+  &lt;M&gt;   SCSI CD-ROM support              &lt;&lt;== for ide-scsi or real SCSI CDROM
+  [ ]     Enable vendor-specific extensions (for SCSI CDROM) (NEW)
+  (2) Maximum number of CDROM devices that can be loaded as modules (NEW)
+  &lt;M&gt;   SCSI generic support                                 &lt;&lt;== for burners
+  --- Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+  [*]   Enable extra checks in new queueing code
+  [ ]   Probe all LUNs on each SCSI device
+  [*]   Verbose SCSI error reporting (kernel size +=12K)
+  [ ]   SCSI logging facility
+  SCSI low-level drivers  ---&gt;             &lt;&lt;== check all off for IDE systems
+</pre>
+<p>
+- Compile SCSI support in for SATA boot drive, may be module for SCSI CD-ROM
+  for scdX, SCSI generic for sgX devices.  SCSI layer is also used for USB
+  storage.  Generally speaking, compile in for boot drive, otherwise module.
+</p>
+
+<pre class="grantc">
+Fusion MPT device support
+  &lt; &gt; Fusion MPT (base + ScsiHost) drivers
+
+I2O device support
+  &lt; &gt; I2O support
+
+Network device support
+  [*] Network device support                                          [4] [5]
+  ARCnet devices  ---&gt;
+    &lt; &gt; ARCnet support
+
+  &lt; &gt; Dummy net driver support
+  &lt; &gt; Bonding driver support
+  &lt; &gt; EQL (serial line load balancing) support
+  &lt; &gt; Universal TUN/TAP device driver support
+  &lt; &gt; General Instruments Surfboard 1000
+  Ethernet (10 or 100Mbit)  ---&gt;
+    [*] Ethernet (10 or 100Mbit)
+    ...
+    [*]   EISA, VLB, PCI and on board controllers
+    ...
+    &lt;M&gt;     DECchip Tulip (dc21x4x) PCI support                           [5]
+    [*]       Use PCI shared mem for NIC registers
+    ...
+    &lt;M&gt;     EtherExpressPro/100 support (e100, Alternate Intel driver)    [4]
+    ...
+    [ ]   Pocket and portable adapters
+
+  Ethernet (1000 Mbit)  ---&gt;
+  [ ] FDDI driver support
+  ...
+  Wireless LAN (non-hamradio)  ---&gt;
+  Token Ring devices  ---&gt;
+  [ ] Fibre Channel driver support
+  Wan interfaces  ---&gt;
+</pre>
+<p>
+- Generally speaking, compile in a single NIC driver, or use modules for
+  multi NIC system, or if using older ISA NICs that require parameters.
+</p>
+
+<pre class="grantc">
+Amateur Radio support
+  [ ] Amateur Radio support
+
+IrDA (infrared) support
+  &lt; &gt; IrDA subsystem support
+
+ISDN subsystem
+  &lt; &gt; ISDN support
+
+Old CD-ROM drivers (not SCSI, not IDE)
+  [ ] Support non-SCSI/IDE/ATAPI CDROM drives
+
+Input core support
+  &lt;*&gt; Input core support
+    &lt; &gt;   Keyboard support                              &lt;&lt;== for USB keyboard
+    &lt;*&gt;   Mouse support                                    &lt;&lt;== for USB mouse
+    (1024)    Horizontal screen resolution
+    (768)    Vertical screen resolution
+    &lt; &gt;   Joystick support
+    &lt; &gt;   Event interface support
+    &lt; &gt;   User level driver support
+</pre>
+<p>
+- Need above for USB mouse, screen resolution is for scaling tablet type
+  pointing devices.
+</p>
+
+<pre class="grantc">
+Character devices
+  [*] Virtual terminal                       &lt;&lt;== blank console without this!
+  [*]   Support for console on virtual terminal            &lt;&lt;== and this too!
+  &lt;*&gt; Standard/generic (8250/16550 and compatible UARTs) serial support
+  [ ]   Support for console on serial port
+  [ ] Extended dumb serial driver options
+  [ ] Non-standard serial port support
+  [*] Unix98 PTY support
+  (256) Maximum number of Unix98 PTYs in use (0-2048)
+  I2C support  ---&gt;
+  Mice  ---&gt;
+    &lt; &gt; Bus Mouse Support
+    &lt;*&gt; Mouse Support (not serial and bus mice)
+    [*]   PS/2 mouse (aka "auxiliary device") support
+    ...
+
+  Joysticks  ---&gt;
+  &lt; &gt; QIC-02 tape support
+  &lt; &gt; IPMI top-level message handler
+  Watchdog Cards  ---&gt;
+  ...
+  &lt;*&gt; Enhanced Real Time Clock Support
+  ...
+  Ftape, the floppy tape device driver  ---&gt;
+  ...
+  &lt;*&gt; /dev/agpgart (AGP Support)                                          [0]
+  [*]   Intel 440LX/BX/GX and I815/I820/I830M/I830MP/I840/I845/I850/I860 support
+  ...
+  Direct Rendering Manager (XFree86 DRI support)  ---&gt;
+  &lt; &gt; ACP Modem (Mwave) support
+  &lt; &gt; HP OB600 C/CT Pop-up mouse support
+</pre>
+<p>
+- Say <tt class="verb">&lt;*&gt;</tt> to AGP support if you have AGP card, and select appropriate chipset,
+  select DRI only if your graphics chipset is mentioned&nbsp;[6]<br>
+- Say <tt class="verb">&lt;M&gt;</tt> to AGP support if you intend to use nVidia or ATI binary driver.
+</p>
+
+<pre class="grantc">
+Multimedia devices
+  &lt; &gt; Video For Linux
+
+File systems
+  [ ] Quota support
+  &lt; &gt; Kernel automounter support
+  &lt; &gt; Kernel automounter version 4 support (also supports v3)
+  &lt;*&gt; Reiserfs support
+  [ ]   Enable reiserfs debug mode
+  [ ]   Stats in /proc/fs/reiserfs
+  &lt; &gt; Ext3 journalling file system support
+  &lt;M&gt; DOS FAT fs support                     &lt;&lt;== for floppies and USB sticks
+  &lt;M&gt;   MSDOS fs support                                        &lt;&lt;== this too
+  &lt; &gt;     UMSDOS: Unix-like file system on top of standard MSDOS fs
+  &lt;M&gt;   VFAT (Windows-95) fs support                  &lt;&lt;== long filenames too
+  &lt; &gt; Compressed ROM file system support
+  [ ] Virtual memory file system support (former shm fs)
+  &lt;M&gt; ISO 9660 CDROM file system support
+  [*]   Microsoft Joliet CDROM extensions
+  [*]   Transparent decompression extension              &lt;&lt;== yet to meet one
+  &lt; &gt; JFS filesystem support
+  &lt; &gt; Minix fs support
+  &lt; &gt; FreeVxFS file system support (VERITAS VxFS(TM) compatible)
+  &lt; &gt; NTFS file system support (read only)
+  &lt; &gt; OS/2 HPFS file system support
+  [*] /proc file system support
+  [*] /dev/pts file system for Unix98 PTYs
+  &lt; &gt; QNX4 file system support (read only)
+  &lt; &gt; ROM file system support
+  &lt;*&gt; Second extended fs support
+  &lt; &gt; System V/Xenix/V7/Coherent file system support
+  &lt; &gt; UDF file system support (read only)
+  &lt; &gt; UFS file system support (read only)
+  &lt; &gt; XFS filesystem support
+  Network File Systems  ---&gt;                  &lt;&lt;== only if you have local net
+     &lt; &gt; Coda file system support (advanced network fs)
+     &lt;*&gt; NFS file system support
+     [*]   Provide NFSv3 client support
+     &lt;M&gt; NFS server support
+     [*]   Provide NFSv3 server support
+     [*]   Provide NFS server over TCP support
+     &lt;M&gt; SMB file system support (to mount Windows shares etc.)  &lt;&lt;== windoze
+     [ ]   Use a default NLS (NEW)
+     [ ]   Enable Unix Extensions (NEW)
+     &lt; &gt; NCP file system support (to mount NetWare volumes)
+
+  Partition Types  ---&gt;
+  Native Language Support  ---&gt;
+</pre>
+<p>
+- Remember to compile in boot and main filesystem support!  <b>&lt;&lt;== Important!</b>
+</p>
+
+<pre class="grantc">
+  Partition Types  ---&gt;
+    [ ] Advanced partition selection
+
+  Native Language Support  ---&gt;
+         Default NLS Option: "iso8859-1" (NEW)
+    &lt;*&gt; Codepage 437 (United States, Canada) (NEW)
+    ...
+    &lt;*&gt; NLS ISO 8859-1  (Latin 1; Western European Languages) (NEW)
+    ...
+</pre>
+<p>
+- Add more to taste :)
+</p>
+
+<pre class="grantc">
+Console drivers
+  [*] VGA text console
+  [*] Video mode selection support
+</pre>
+<p>
+- We revisit this item below.
+</p>
+
+<pre class="grantc">
+Sound
+  &lt; &gt; Sound card support
+
+USB support
+  &lt;*&gt; Support for USB
+  [*]   USB verbose debug messages
+  --- Miscellaneous USB options
+  [*]   Preliminary USB device filesystem
+  --- USB Host Controller Drivers
+  &lt;*&gt;   UHCI Alternate Driver (JE) support                                [3]
+  &lt; &gt;   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
+  --- USB Device Class drivers
+  &lt;M&gt;   USB Mass Storage support
+  ...
+  --- USB Human Interface Devices (HID)
+  &lt;*&gt;   USB Human Interface Device (full HID) support      &lt;&lt;== for USB mouse
+  [*]     HID input layer support                &lt;&lt;== ditto, USB keyboard too
+  [ ]     /dev/hiddev raw HID device support
+  ...
+
+Bluetooth support
+  &lt; &gt; Bluetooth subsystem support
+
+Kernel hacking
+  [ ] Kernel debugging
+  (0) Kernel messages buffer length shift (0 = default)
+
+Cryptographic options
+  [ ] Cryptographic API
+
+Library routines
+  &lt;*&gt; CRC32 functions
+  &lt;*&gt; zlib decompression support
+  &lt;*&gt; zlib compression support
+</pre>
+<p>
+- Not all above may be displayed, safe to say yes.
+</p>
+
+
+<p>
+That is it for first pass, some important stuff like the VESA framebuffer
+was hidden while the EXPERIMENTAL flag was turned off, now we turn on that
+flag and revisit the console menu.
+</p>
+
+<h4>Adding EXPERIMENTAL options</h4>
+
+<p>
+If you skip this section be sure to delete the <tt class="verb">vga = nnn</tt>
+in <tt class="verb">/etc/lilo.conf</tt>
+or set it to a valid VGA display value, use the Source, Luke.
+</p>
+
+<pre class="grantc">
+Code maturity level options
+  [*] Prompt for development and/or incomplete code/drivers
+</pre>
+<p>
+If you use the machine without a GUI, you may like to use vesafb, though
+it is slower than a 80x25 screen.  Example: a 100x37 character screen on
+an 800x600 display allows me to forgo the GUI on a laptop.  The specific
+chip drivers below rarely perform well, VESA VGA 2.0+ is common.
+</p>
+
+<pre class="grantc">
+Console drivers
+  [*] VGA text console
+  [*] Video mode selection support
+  &lt; &gt; MDA text console (dual-headed) (EXPERIMENTAL) (NEW)
+  Frame-buffer support  ---&gt;                                      &lt;&lt;== vesafb
+    [*] Support for frame buffer devices (EXPERIMENTAL) (NEW)
+    ...
+    [*]   VESA VGA graphics console (NEW)
+    ...
+    [*]   Select compiled-in fonts (NEW)
+    ...
+    [*]     Sparc console 8x16 font (NEW)
+    [ ]     Sparc console 12x22 font (not supported by all drivers) (NEW)
+    ...
+</pre>
+<p>
+- If your screen is 1024x768 or larger, try the "Sparc console 12x22 font",
+  very nice on 1280x1024 display.
+</p>
+
+<p>
+We're done, exit, saving configuration.
+</p>
+
+<b>!!Important!!</b> ALWAYS run <b>make dep</b> immediately after
+<b>make *config</b> when you see following message:
+
+<pre class="grant">
+*** Next, you must run 'make dep'               <b>&lt;&lt;== Important!</b>
+</pre>
+<pre class="grant">
+$ make dep
+</pre>
+
+
+<h4>Pre-compile planning, adjust the bootloader</h4>
+
+<p>Check kernel version:</p>
+
+<pre class="grant">
+$ head -5 Makefile
+VERSION = 2
+PATCHLEVEL = 4
+SUBLEVEL = 31
+EXTRAVERSION = a
+</pre>
+<p>
+Switch to super-user, backup the distro <tt class="verb">/etc/lilo.conf</tt> just in case...</p>
+
+<pre class="grant">
+# cp /etc/lilo.conf /etc/lilo.conf.bkp
+</pre>
+
+<p>Then edit <tt class="verb">/etc/lilo.conf</tt>,
+ I prefer to remove noise, see '<b>man lilo.conf</b>'</p>
+
+<pre class="grantc">
+# /etc/lilo.conf for Slackware on silly
+#
+boot = /dev/hda
+root = /dev/hda3                  &lt;&lt;== this box Slackware only, so may move..
+read-only                        &lt;&lt;== ..these two into the top global section
+compact                    &lt;&lt;== speeds initial LILO loading, produces warning
+prompt
+timeout = 50                                         &lt;&lt;== five second timeout
+
+# vesa| 800x600 1024x768 1280x1024           &lt;&lt;== table from the source, Luke
+# ---- -------- -------- ---------
+# 256 |  0x303    0x305    0x307
+# 32k |  0x313    0x316    0x319
+# 64k |  0x314    0x317    0x31A
+# 16M |  0x315    0x318    0x31B
+vga = 0x303                                     &lt;&lt;== hexadecimal, same as 771
+
+image = /boot/bzImage-2.4.31a                          &lt;&lt;== new kernel stanza
+  optional
+  label = 2.4.31a
+
+image = /boot/vmlinuz-ide-2.4.31          &lt;&lt;== distro kernel stanza, modified
+  label = Slack-2.4.31
+
+# end
+</pre>
+<p> Thus we have configured our new kernel, probably a)&nbsp;the most
+boring, b)&nbsp;yet the most important part of the exercise.  Next,
+we'll try compiling our new kernel.</p>
+
+
+<h3><a id="Compiling">Compiling the kernel</a></h3>
+<p>
+This is it!  Time to compile our new kernel.  Briefly (because there's more
+than one way to do it, this works for me), assumes you did edit lilo.conf:
+</p>
+
+<pre class="grant">
+$ make bzImage modules
+$ su
+# make install modules_install
+# mv /vmlinuz /boot/bzImage-2.4.31a
+# mv /System.map /boot/System.map-2.4.31a
+# cp .config /boot/config-2.4.31a
+# lilo                             &lt;&lt;== you cannot run lilo too many times ;)
+# reboot
+</pre>
+
+<p>
+Congratulations!  That was easy...  Wasn't it?  No?  Read on...
+</p>
+
+<h4>Checking out the new kernel</h4>
+
+<p>
+Use <b>dmesg</b>, two forms:
+<p>
+
+<pre class="grant">
+  dmesg | less              # view current dmesg, which may be different to
+  less /var/log/dmesg       # viewing the boot time dmesg, it depends...
+</pre>
+
+<p>
+Also check <tt class="verb">/var/log/syslog</tt>, <tt class="verb">/var/log/debug</tt>
+and perhaps <tt class="verb">/var/log/messages</tt>
+<p>
+
+<p>
+First line of <b>dmesg</b> tells you about the new kernel:
+</p>
+
+<pre class="grant">
+Linux version 2.4.31a (root@silly) (gcc version 3.3.4) #6 Tue Jul 19 09:36:57 EST 2005
+</pre>
+
+<p>
+If you don't see this first line of <b>dmesg</b> then you know to check
+<tt class="verb">/var/log/dmesg</tt> for the startup boot information as well.  The <b>dmesg</b>
+ring-buffer is dumped to <tt class="verb">/var/log</tt> when filesystem is remounted&nbsp;r/w.
+</p>
+
+<p>
+The rest?  It depends...  Too.
+</p>
+
+<h4>It is not just the kernel</h4>
+
+The startup scripts have much to do with how your machine performs, some
+options may need adjustment to suit hardware.
+
+Another trap for the unwary is the hotplug blacklist, it may disable
+loading a module you require.  If you want to run your system with
+demand loaded modules, you need not load everything at boot, this
+aspect is less important on modern hardware...
+
+<h4>Common problems</h4>
+
+<dl>
+<dt>
+Compile as user fails with permissions error
+<dd>
+    As root, perform '<b>make clean</b>', or
+    <b>chown -R user /path/to/top/of/source</b>.
+    You may choose to perform entire kernel build as root to avoid this
+    issue, your choice.
+<br><br></dd>
+<dt>
+Compile fails at different places
+<dd>
+    Check hardware, overheating CPU or flaky memory, compiling kernels
+    read/writes lots of little files, uses all CPU and is a far better
+    memory tester than memtest86 :o)
+<br><br></dd>
+
+<dt>
+Compile fails at same place
+<dd>
+    This should not happen in stable kernel series, remove the offending
+    kernel source tree and start over :)  Stuff happens.  Remember the
+    only important system information in a kernel source is your <tt class="verb">.config</tt>
+    file, the rest is as close as the install CDROMs or kernel.org tarball.
+<br><br></dd>
+
+<dt>
+Boot failure with blank screen :(
+<dd>
+    Oops, something bad...  hit Ctrl-Alt-Del, you should notice some disk
+    activity and after a little while the machine reboots, select distro
+    kernel and start from '<b>make menuconfig</b>' again.
+<br><br></dd>
+
+<dd>
+    If Ctrl-Alt-Del did nothing, hot NumLock twice, nothing happen?  Box
+    locked up, remove any non-essential USB devices, power cycle (to get
+    a hardware power-on reset), and select distro kernel, start over.
+<br><br></dd>
+
+<dd>
+    Also consider this sequence:
+<pre class="grant">
+    $ mv .config ..; make mrproper; mv ../.config .
+    $ make oldconfig; make dep; make bzImage modules
+    $ su
+    # make install modules_install</pre>
+</dd>
+<dd>
+    Install boot files and run <b>lilo</b>, see next section for automating install.
+<br><br></dd>
+
+<dt>
+Boot failure, text on screen
+<dd>
+    Okay, where did it fail?  Keep in mind we <em>had</em> a running system, so it
+    cannot be too difficult.  If the system made it to a CLI prompt, it may
+    be missing modules or startup scripts.  There's usually a hint on the
+    screen.  If there's not enough information, then another technique may
+    serve, this is generally for laptops :)  They can be a little more
+    tricky to customise.
+<br><br></dd>
+<dd>
+    Start by turning off the execute bit on all <tt class="verb">/etc/rc.d/rc.*</tt> scripts,
+    apart from the <tt class="verb">rc.?</tt> basic startup scripts.
+<br><br></dd>
+
+<dd>
+    Reboot should get you to a prompt from where you may switch to <tt class="verb">/etc/rc.d</tt>
+    and start scripts one by one with, for example, networking:
+<pre class="grant">
+    sh rc.inet1 start
+    sh rc.inet2 start
+    ...</pre>
+</dd>
+
+<dd>
+    You see the notion, re-enable the non-crash items as you go, serves as a
+    progress marker and speeds up the reboot after next crash :)  Once you
+    isolate the offending script, study it and work out why it crash...
+<br><br></dd>
+
+<dd>
+    When it happened to me it was module load order in <tt class="verb">rc.pcmcia</tt>, I needed
+    CardBus first...  This is also when you appreciate running a journalled
+    filesystem (a small, separate <tt class="verb">/boot</tt> may be ext2 as it is rarely written).
+<br><br></dd>
+
+<dt>
+Minor failure
+<dd>
+    This is where the fun starts, tracking down and reducing the difference
+    between what is, and your understanding thereof.  Be patient, after all,
+    you may always reboot to the distro kernel, try again later.  This is
+    for enjoyment, not a heavy slog.
+<br><br></dd>
+
+<dt>
+Still have problems?
+<dd>
+    Time to take a break...  Then its the old STFW or JFGI.  And read the
+    various fora.  Perhaps even write to them, as a last resort, naturally.
+<br><br></dd>
+
+<dt>
+Feedback
+<dd>
+    To aols, it is a very gentle group, livened up occasionally with odd
+    characters (as in people, not glyphs) and flamefests.  <tt class="verb">8-)</tt>
+</dd>
+</dl>
+
+<!--       ###########################################################      -->
+<h4>Automating the kernel install</h4>
+<p>
+For those who want to compile the kernel more than once, a suggestion
+for making it a little easier.  Two aspects come to mind, what if I want
+to go back to previous configuration?  How much to automate?  Over the
+years this linux user settled on automating the kernel backup and install,
+but not automating rewriting <tt class="verb">/etc/lilo.conf</tt>, for example, as it is trivial
+to copy/modify a stanza for a new kernel.
+</p><p>
+As root, edit <tt class="verb">/etc/lilo.conf</tt> and add one more stanza:
+</p>
+<pre class="grantc">
+# /etc/lilo.conf for slackware on silly
+#
+boot = /dev/hda
+root = /dev/hda3
+read-only
+compact
+prompt
+timeout = 50
+
+# vesa| 800x600 1024x768 1280x1024
+# ---- -------- -------- ---------
+# 256 |  0x303    0x305    0x307
+# 32k |  0x313    0x316    0x319
+# 64k |  0x314    0x317    0x31A
+# 16M |  0x315    0x318    0x31B
+vga = 0x303
+
+image = /boot/bzImage-2.4.31a
+  optional
+  label = 2.4.31a
+
+image = /boot/bzImage-2.4.31a.old             &lt;&lt;== allow boot previous kernel
+  optional
+  label = 2.4.31a.old
+
+image = /boot/vmlinuz-ide-2.4.31
+  label = Slack-2.4.31
+  append = ""
+
+# end
+</pre>
+
+<p>Next,<p>
+<pre class="grant">
+# lilo
+Warning: COMPACT may conflict with LBA32 on some systems &lt;&lt;== Mostly Harmless
+Added 2.4.31a *
+Skipping /boot/bzImage-2.4.31a.old   &lt;&lt;== this is what that 'optional' allows
+Added Slack-2.4.31
+</pre>
+
+<h4>The installkernel script option</h4>
+
+<p>
+Script <tt class="verb">arch/i386/boot/install.sh</tt> is called from '<b>make
+install</b>', in turn <tt class="verb">install.sh</tt> tries first
+<tt class="verb">~/bin/installkernel</tt> then <tt class="verb">/sbin/installkernel</tt>.
+</p>
+
+<p>
+The first call gives the user control over the installation, the second
+call to <tt class="verb">/sbin/installkernel</tt> is made if <tt class="verb">~/bin/installkernel</tt> is missing,
+some distros use this for their install process.  Slackware doesn't use
+it, so you may place the script in either location.
+</p>
+<p>
+Get the script from
+  <a href="./installkernel">here</a>,  or try the latest version from
+  <a href="ftp://ftp.bugsplatter.mine.nu/scripts/installkernel.gz">ftp://ftp.bugsplatter.mine.nu/scripts/installkernel.gz</a>
+</p>
+
+<h4>Running third party patches</h4>
+
+<p>
+I use the hotfix patches for 2.4 kernels, there are other security patches
+out there.  I tend to keep separate hardlinked source trees for each patch,
+easing maintenance.  It also lets you '<b>rm -rf</b>' the branch and start over
+quite easily.  This is useful when patching the kernel, one slip and the
+source is broken, better to wipe it out and start over than to attempt a
+repair.
+</p>
+
+<p><b>
+Example, update to 2.4.31-hf2</b>
+</p>
+
+<p>
+Grab the 5kB patch from:
+http://linux.exosec.net/kernel/2.4-hf/2.4.31/2.4.31-hf2/2.4.31-hf2.withver.diff.gz
+</p>
+
+<p>
+Split off a hardlinked copy of the source tree for the hotfix patch.
+</p>
+
+<pre class="grant">
+$ cd ~/kernel
+$ cp -al linux-2.4.31 linux-2.4.31-hf2
+$ cd linux-2.4.31-hf2
+$ zcat /path/to/2.4.31-hf2.withver.diff.gz | patch -p1 &lt;&lt;== adds EXTRAVERSION
+$ cp /boot/config-2.4.31a .config                  &lt;&lt;== reuse existing config
+$ make oldconfig; make dep; make bzImage modules     &lt;&lt;== configure and build
+</pre>
+
+<p>
+While the kernel is compiling, open a root terminal adjust <tt class="verb">/etc/lilo.conf</tt>:
+</p>
+<pre class="grantc">
+# /etc/lilo.conf for slackware on silly
+#
+boot = /dev/hda
+root = /dev/hda3
+read-only
+compact
+prompt
+timeout = 50
+
+# vesa| 800x600 1024x768 1280x1024
+# ---- -------- -------- ---------
+# 256 |  0x303    0x305    0x307
+# 32k |  0x313    0x316    0x319
+# 64k |  0x314    0x317    0x31A
+# 16M |  0x315    0x318    0x31B
+vga = 0x303
+
+image = /boot/bzImage-2.4.31-hf2        &lt;&lt;== duplicate stanza, change version
+  optional
+  label = 2.4.31-hf2                             &lt;&lt;== change version here too
+
+image = /boot/bzImage-2.4.31a
+  optional
+  label = 2.4.31a
+
+image = /boot/bzImage-2.4.31-hf2.old                &lt;&lt;== optional prior build
+  optional
+  label = 2.4.31-hf2.old
+
+image = /boot/bzImage-2.4.31a.old
+  optional
+  label = 2.4.31a.old
+
+image = /boot/vmlinuz-ide-2.4.31              &lt;&lt;== recommended, distro kernel
+  label = Slack-2.4.31
+
+# end
+</pre>
+
+<p>
+Grab a coffee, whatever your poison...  tick ... tick ... tock...
+</p>
+
+<p>
+Don't watch the compile too closely, yes, there are warnings, again,
+mostly harmless.  If you see "Error...", yes, then you have a problem.
+</p>
+
+<p>
+We got a prompt, I usually uparrow to see what the last command was&nbsp;:o)
+</p>
+
+<p>
+Install the kernel using the <tt class="verb">installkernel</tt> script (called automagically
+from the '<b>make install</b>').</p>
+
+<pre class="grant">
+$ su
+# make install
+...
+</pre>
+<pre class="grant">
+sh -x ./install.sh 2.4.31-hf2 bzImage /home/grant/linux-2.4.31-hf2/System.map ""
++ '[' -x /root/bin/installkernel ']'
++ exec /root/bin/installkernel 2.4.31-hf2 bzImage /home/grant/linux-2.4.31-hf2/System.map ''
+
+Grant's /root/bin/installkernel, 2005-07-22
+* Destination files:
+        config:         /boot/config-2.4.31-hf2
+        kernel:         /boot/bzImage-2.4.31-hf2
+        modules:        /lib/modules/2.4.31-hf2
+        map:            /boot/System.map-2.4.31-hf2
+
+* Moving old kernel files to /boot/*.old
+
+* Moving /lib/modules/2.4.31-hf2 to /lib/modules/2.4.31-hf2.old
+
+* Writing new kernel files to /boot
+
+* Run lilo
+Warning: COMPACT may conflict with LBA32 on some systems
+Added 2.4.31-hf2 *                                         &lt;&lt;== new kernel
+Added 2.4.31a
+Skipping /boot/bzImage-2.4.31-hf2.old              &lt;&lt;== harmless, intended
+Skipping /boot/bzImage-2.4.31a.old
+Added Slack-2.4.31                   &lt;&lt;== keep the distro kernel available
+
+* Reminder: make modules &amp;&amp; make modules_install
+
+make[1]: Leaving directory `/home/grant/kernel/linux-2.4.31-hf2/arch/i386/boot'
+</pre>
+<p>Thus,</p>
+<pre class="grant">
+# make modules_install
+# reboot
+</pre>
+
+<p>
+Rinse and repeat...
+</p>
+<!-- invariant part -->
+ <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address><br>
+ </div>
+
+ <p class="menu">
+  <a class="menu" href="kuac.html" title="2.4.x KUAC Guide"><b>KUAC Guide</b></a>
+  <a class="menu" href="howto.html" title="HOWTO: update kernel 2.6.12 to 2.6.12.3"><b>HOWTO</b></a>
+  <a class="menu" href="sound.html" title="Adding sound"><b>Sound</b></a>
+  <a class="menu" href="refs.html" title="References"><b>References</b></a>
+  <a class="menu" href="summer.html" title="Summertime..."><b>Slack Summer</b></a>
+  <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+ </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

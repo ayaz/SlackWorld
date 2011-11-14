@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 4, 2005. Slack Essence-2</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents, ppp, IP, address, ifconfig">
+ <meta name="description" content="Slack Essence-2">
+ <meta name="author" content="Lew Pitcher">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+ <link rel="first" href="editorial.html" title="Editorial">
+
+ <link rel="previous" href="essence-1.html" title="Slack Essence-1">
+ <link rel="next" href="tips.html" title="Slack Tips">
+ <link rel="last" href="acks.html" title="Acknowledgments">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #4, November 2005
+  </p>
+
+  <h2>Slack Essence-2: What is my IP address?</h2>
+
+  <p>
+   <b>Author:</b> Lew Pitcher
+  </p>
+  <p>
+   I have had need, on occasion, to determine the IP address assigned to my PPP
+   connection by my ISP, but have been reluctant to code the usually complex
+   scripts nececssary to extract this information from the results of the
+   '<b>ifconfig</b>' command.
+  </p><p>
+   Fortunate for lazy me, there's an easy way to determine the PPP IP
+   address,  and it's (more or less) built right in to the <b>pppd</b>
+   daemon. I simply had the ppp daemon put the IP address in a file, so
+   I could read it. Here's the  trick: the ppp daemon runs a script
+   called <tt class="verb">/etc/ppp/ip-up</tt>
+   whenever the IP  connection to the ISP is
+   established, and another script  (called
+   <tt class="verb">/etc/ppp/ip-down</tt>) when the
+   IP connection is broken.
+  </p><p>
+   The <tt class="verb">/etc/ppp/ip-up</tt> and <tt class="verb">/etc/ppp/ip-down</tt> scripts are invoked with
+   several  parameters, including
+  </p>
+  <ul>
+       <li> the name of the logical interface over which the connection has been
+         established (eg ppp0, ppp1)</li>
+       <li> the name of the physical interface over which the connection has been
+         established (eg ttyS0, ttyS1)</li>
+       <li> the speed of the interface (it's baud)</li>
+       <li> the <em>local</em> IP address (the address assigned to our side of the
+         connection)</li>
+       <li> the remote IP address (the address assigned to the ISP side of the
+         connection), and</li>
+       <li> the value set in the ppp configuration's "ipparm" option</li>
+  </ul>
+  <p>
+   Minor additions to these two scripts will give us exactly the information we
+   need: an indicator showing whether an IP address has been assigned or not,
+   the value of the assigned IP address, and the date and time when the IP
+   address was assigned.
+  </p><p>
+   Here's how we do it:
+  </p><p>
+   In <tt class="verb">/etc/ppp/ip-up</tt>
+   (or <tt class="verb">/etc/ppp/ip-up.local</tt>,
+   if your installation supports it) we add these lines:
+  </p>
+<pre class="quest">
+# Create sentinal file
+rm /var/run/$1.ip
+echo $4 >/var/run/$1.ip
+</pre>
+  <p>
+   and in <tt class="verb">/etc/ppp/ip-down</tt>
+   (or <tt class="verb">/etc/ppp/ip-down.local</tt>, if your installation 
+   supports it) we add:
+  </p>
+<pre class="quest">
+# Delete sentinal file
+rm /var/run/$1.ip
+</pre>
+  <p>
+   When <b>pppd</b> establishes an IP session with your ISP, it invokes
+   <tt class="verb">/etc/ppp/ip-up</tt>,  giving it the interface name
+   as parameter&nbsp;$1 and the assigned IP address as 
+   parameter&nbsp;$4. The additional lines in <tt
+   class="verb">/etc/ppp/ip-up</tt> will create a file using  the
+   interface name, and load that file with the IP address. Assuming that
+   you  establish an IP session across (say) interface ppp0, the
+   <tt class="verb">/etc/ppp/ip-up</tt> script will build a file called
+   <tt class="verb">/var/run/ppp0.ip</tt>, and
+   put the assigned IP  address into it.
+  </p><p>
+   When <b>pppd</b> terminates the IP session, it invokes <tt
+   class="verb">/etc/ppp/ip-down</tt>, giving it  the interface name as
+   parameter&nbsp;$1. The additional lines in <tt
+   class="verb">/etc/ppp/ip-down</tt>  will use this parameter to select
+   and delete the file that records the IP  address for that interface.
+  </p><p>
+   Now, when the interface is down, and we do not have an IP address,
+   there will be no <tt class="verb">/var/run/*.ip</tt> file for the
+   interface.
+  </p><p>
+   When the interface is up, and we don't have an IP address, there will
+   still be  no <tt class="verb">/var/run/*.ip</tt> file for the
+   interface.
+  </p><p>
+   However, when the interface is up and we have an IP address, there
+   will be  a <tt class="verb">/var/run/*.ip</tt> file, and that file
+   will carry as its contents the IP address  assigned to the interface.
+   Further, the "last modification date" (<b>mtime</b>) on  the file will
+   indicate when the file was written, and thus indicate the time  that
+   the IP address was assigned.
+  </p><p>
+   Knowing this, we can write a simple script that tells us the IP address of any
+   ppp interface:
+  </p>
+<pre class="quest">
+#!/bin/bash
+IFACE=ppp0
+
+[ "$1" != "" ] && IFACE=$1
+IFACE_UC=`echo $IFACE | tr 'a-z' 'A-Z'`
+
+if [ -f /var/run/$IFACE.ip ]
+then
+   SINCE=`ls -l /var/run/$IFACE.ip | awk '{ print $6,"@",$7 }'`
+   echo "Yes, $IFACE_UC is UP since $SINCE with IP address " \
+        `cat /var/run/$IFACE.ip`
+   exit 0
+else
+   echo "No, $IFACE_UC is DOWN"
+   exit 1
+fi
+</pre>
+  <p>
+   In use, this script generates results like
+  </p>
+<pre class="listing">
+   lpitcher@merlin:~$ is_ppp_up
+   Yes, PPP0 is UP since 2005-10-28 @ 16:55 with IP address  10.99.99.99
+
+   lpitcher@merlin:~$ is_ppp_up ppp1
+   No, PPP1 is DOWN</pre>
+
+  <p> Of course, the script can be expanded on to include all those
+   sorts of things  that one wants in a robust command (like argument
+   checking and better  functionality), but in it's basic form, the
+   script provides the answer to the  age-old question "What's my IP
+   address?" 
+  </p><p>
+   There are other methods that you can use to determine your PPP IP address 
+   (like greping and awking the results of an "ifconfig ppp0" command, or 
+   running a custom program that reads the PPP interfaces IP addresses 
+   directly), but these methods don't really satisfy my needs.
+  </p><p>
+   I have often used <b>pppd</b>'s "dial-on-demand" option to establish
+   my internet  connection, and (in that case) <b>pppd</b> is always up. That
+   means that ppp0 is  always up, but it usually has the wrong IP
+   address. For instance, when I  wrote this, I was not connected to the
+   internet. But, <b>ifconfig</b> reported
+  </p>
+<pre class="listing">
+   lpitcher@merlin:~$ /sbin/ifconfig ppp0
+   ppp0      Link encap:Point-to-Point Protocol
+             inet addr:64.99.99.99  P-t-P:64.8.99.1
+             Mask:255.255.255.255
+             UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+             RX packets:34520 errors:29 dropped:0 overruns:0 frame:29
+             TX packets:32103 errors:0 dropped:0 overruns:0 carrier:0
+             collisions:0 txqueuelen:10</pre>
+
+  <p>
+   Note that the <b>ifconfig</b> results indicate that my ppp0 IP address was 
+   64.99.99.99. When I started up ppp0, <b>ifconfig</b> reported that it had IP address 
+   10.10.10.10
+  </p><p>
+   In both cases, the IP address reported by <b>ifconfig</b> (and by any other program 
+   parsing the parameters of the ppp0 interface) is not the address that ppp0 
+   will be assigned when I connect. The only time that <b>ifconfig</b> or another 
+   program will accurately report the correct IP address is when ppp0 is 
+   connected to my ISP. All other times, the address reported will be wrong.
+  </p><p>
+   So, to avoid getting the wrong results when my IP connection is down, I use 
+   the <tt class="verb">ip-up/ip-down</tt> scripts to record the actual IP address assigned at the 
+   time of connection (or whenever the IP address is renegotiated). 
+  </p>
+<!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="essence-1.html" title="Essence-1"><b>Essence-1</b></a>
+    <a class="menu" href="essence-2.html" title="Essence-2"><b>Essence-2</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="story.html" title="Slack Story"><b>Story</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

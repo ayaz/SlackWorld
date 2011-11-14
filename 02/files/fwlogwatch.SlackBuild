@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# Slackware package build script for fwlogwatch
+# The Slack World, Issue #2, June 2005.
+#
+# Set initial variables:
+umask=022
+
+CWD=`pwd`
+TMP=/tmp/build
+PKG=/tmp/package-fwlogwatch
+
+VERSION=1.0
+ARCH=i386
+BUILD=1
+
+if [ ! -d $TMP ]; then
+  mkdir -p $TMP # location to build the source
+fi
+if [ ! -d $PKG ]; then
+  mkdir -p $PKG # place for the package to be built
+fi
+
+cd $TMP
+tar xzvf $CWD/fwlogwatch-$VERSION.tar.gz
+chown -R root.root fwlogwatch-$VERSION
+chmod -R g-w fwlogwatch-$VERSION
+cd fwlogwatch-$VERSION
+
+make
+
+# Some clean-up:
+strip --strip-unneeded ./fwlogwatch
+
+# Now, put files where they should be:
+# 1. The binary and two executable scripts:
+mkdir -p $PKG/usr/local/sbin
+cp -p fwlogwatch contrib/{fwlw_notify,fwlw_respond} $PKG/usr/local/sbin/
+chgrp -R bin $PKG/usr/local/sbin
+
+# 2. man:
+mkdir -p $PKG/usr/local/man/man8
+cat fwlogwatch.8 | gzip -9c > $PKG/usr/local/man/man8/fwlogwatch.8.gz
+
+# 3. configuration file and an abuse report template:
+mkdir -p $PKG/etc
+cp -p fwlogwatch.{config,template} $PKG/etc
+
+# Now, prepare the `install' directory and the slack-desk file
+mkdir -p $PKG/install
+
+cat << EOF > $PKG/install/slack-desc
+          |-----handy-ruler------------------------------------------------------|
+fwlogwatch: fwlogwatch-1.0
+fwlogwatch:
+fwlogwatch: fwlogwatch is a security tool written in C by Boris Wesslowski
+fwlogwatch: originally for RUS-CERT. It is a packet filter/firewall/IDS log
+fwlogwatch: analyzer with support for a lot of log formats and has many analysis
+fwlogwatch: options. It also features incident report and realtime response
+fwlogwatch: capabilities, an interactive web interface and
+fwlogwatch: internationalization.
+fwlogwatch:
+fwlogwatch: It is available at http://fwlogwatch.inside-security.de/
+fwlogwatch:
+EOF
+
+# Build the package and put it back to the initial directory:
+cd $PKG
+makepkg -l y -c n $CWD/fwlogwatch-$VERSION-$ARCH-$BUILD.tgz
+cd $CWD
+# EOF

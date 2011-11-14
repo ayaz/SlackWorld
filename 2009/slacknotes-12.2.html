@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World 2009: Slack Notes on Slack-12.2</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2009 Mikhail Zotov and The Slack World">
+ <meta name="author" content="Mikhail Zotov">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware-12.2 installation tuning">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+ <h2>Slack Notes on Installing and Tuning Slackware-12.2</h2>
+
+ <p>
+  <b>Author:</b> Mikhail Zotov
+ </p>
+ <p>
+  Published: March 22, 2009, though actually written in January :-)
+ </p>
+
+<h3>Foreword</h3>
+<p>
+I actually didn't plan to install Slackware-12.2.  On my main machine
+at work I had a fine-tuned Slackware-11.0, and a fine-tuned Slackware-12.0
+at my main machine at home.  Unfortunately, the hard drive on my machine
+at work died unexpectedly (do they die "expectedly") a week before 
+Slackware-12.2 was released, thus I decided to give it a try.
+</p>
+<p>
+The PCs I have at my disposal are quite old. The newest of them (a 2.2GHz
+Pentium-4 on an Intel mobo) was manufactured, I think, around four years
+ago.  I have no gadgets to plug in the PCs but USB flash sticks and an
+external DVD writer by HP.  My needs at the desktop level are modest,
+too. I'm using blackbox-0.65 with a custom theme for years and feel
+almost absolutely happy with it [<a href="#almost">*</a>]. 
+My favourite file manager is still
+Midnight Commander.  Thus, I expect my experience with Slackware won't be
+useful for many users.  Anyway,
+</p>
+
+<h3>Installation</h3>
+<p>
+Installation went smoothly as usual. I decided to create encrypted root
+partition, thus <tt>README_CRYPT.TXT</tt> was my main guide.  I had only a minor
+problem at the final stage of setup.  The guide says:
+</p>
+	<blockquote>
+	We are done.  Save your changes, exit the editor and run the command
+	<tt>lilo</tt>.  Lilo will issue a couple of warnings concerning a difference in
+	what <tt>/proc/partitions</tt> reports and what lilo thinks are the available
+	partitions, but it is safe to ignore these.
+	</blockquote>
+<p></p>
+<p>
+In my case, <b>lilo</b> did issue not just a couple of warnings but also a "Fatal" error
+complaining about missing <tt>/dev/mapper</tt> devices.  I exited from chroot,
+copied necessary files to the destination, entered chroot again. This time,
+lilo ran as expected. Voila!
+</p>
+<p>
+One suggestion for those who is going to install Slackware-12.2 on a slow machine.
+Don't choose to install gutenprint unless absolutely necessary.  Gutenprint
+creates PPD files after installation, and it takes eternity on a slow
+machine.  You can add gutenprint when you are up with the installation.
+Besides, there are chances you won't need gutenprint at all, see below.
+</p>
+
+<h3>Setup</h3>
+<h4>Video</h4>
+<p>
+The first (and only) serious problem I had with Slackware-12.2 related to
+the Intel video driver.  The problem was heavily discussed on AOLS, thus
+I will only recall the main point.  The Intel driver ignored settings made
+in <tt>xorg.conf</tt> or by other means when working with an old CRT monitor.
+Replacing the monitor with a newer model improved the situation but didn't
+solve it: I couldn't set the mode I needed.  On the other hand, the driver
+worked fine with an LCD monitor I borrowed from my colleague.  The problem
+was "fixed" by plugging in an Nvidia card.  Gosh blame Intel&nbsp;dot
+</p>
+
+<h4>Printing</h4>
+<p>
+At work, I have an HP LaserJet 3320 MFU.  It used to work fine with previous releases
+of Slackware.  This time, I faced a strange problem when using Gutenprint
+driver.  The point is that I often print texts in the two-pages-up mode.
+I find this to be handy, e.g., with texts published on the web. I first
+print the text in a PostScript file and then rescale and rotate pages using
+<b>pstops</b>.  Usually, this works fine. This time, the output was ugly and
+hardly readable. Gutenprint complained this way:
+</p>
+<pre>
+   Gutenprint detected a bad color depth (1).  Output quality is degraded.
+</pre>
+<p></p>
+<p>
+I tried a few setting, the updated gutenprint but this didn't help.
+Thus I have chosen a "standard" PostScript driver, and this fixed the problem.
+Surely, gutenprint was removed after this.
+</p>
+<p>
+Another printer I'm using every day is a cheah HP LaserJet 1120.  With the stock driver,
+it takes around 30 s to print a simple PostScript page. This is obviously
+an unacceptable rate.  Luckily, there's <b>foo2zjs</b> that works with this
+printer just fine.
+</p>
+
+<h4>Networking. I hate udev</h4>
+<p>
+I have two NICs (three, sometimes) at my main machine at home. One of
+them is a built-in Intel card which I want to be eth1. I failed to
+"ensure" udev I want it to be this way.  (No, editing
+<tt>/etc/udev/rules.d/70-persistent-net.rules</tt> didn't immediately help.) 
+Besides, udev used to load the e100 driver for it instead of eepro100,
+which I prefer.  Thus I created an ole good /etc/rc.d/rc.netdevice and
+used it to load the driver I want.
+</p>
+
+<h4>Other stuff</h4>
+<p>
+Midnight Commander that ships with Slackware-12.2 is buggy. Yes, it is.
+The most annoying bug is its inability to honour the "preserve Attributes"
+setting when copying/moving files. I have fixed the problem by compiling
+and installing <b>mc</b> released back on 2007-01-24.
+</p>
+
+<p><em>Later update</em>: Luckily, Midnight commander seems to get the
+<a href="http://www.midnight-commander.org/">second birth</a>.
+Version 4.6.2, released in early February, is free from the above mentioned bug.
+</p>
+
+
+<h4>Custom stuff</h4>
+
+<p>
+My favourite "all in one" image viewer is <a href="qiv">http://www.klografx.net/qiv/</a>.
+It compiled flawlessly but didn't work in Slackware-12.2 producing the following
+error message:
+</p>
+<pre>
+   Gdk-ERROR **: BadMatch (invalid parameter attributes) serial 108 error_code 8 request_code 2 minor_code 0
+</pre>
+<p></p>
+<p>
+The problem was fixed by adding <tt>export XLIB_SKIP_ARGB_VISUALS=1</tt>
+to <tt>/etc/profile</tt>.
+</p>
+<p>Another problem that I had in Slackware-12.2 first appeared in Slackware-11.0
+after replacing the 2.4.x kernel with a 2.6 one.  It is often called &quot;Ghost
+Users&quot; and is described in details by Michiel v. Wessem 
+<a href="http://michielvwessem.wordpress.com/slackware/ghostusers/">here</a>.
+I will cite Michiel then to explain the problem:
+<blockquote>
+   You take one Slackware 11.0 system,  patched and all, installed with
+   the 2.6.17.13 default kernel. You boot the system and everything humms
+   happily around. You log in and out and do your usual works until, at
+   some point you check logged in users and other various user things and
+	you see the following output of <b>/usr/bin/last</b>:
+<pre>
+	root tty2	Thu Jan 18 18:50	gone -- no logout
+</pre>
+</blockquote>
+
+<p>
+That's it!  This doesn't happen to root only but also to "mere mortal" users.
+I checked and tried everything I found on the subject on the Net but
+nothing fixed the problem.  A hint came from Michiel who pointed a seemingly
+trivial patch for <b>sysvinit</b>.  The patch didn't work first. After a
+slight modification, it solved the problem, and now ghost users are gone :-)
+The patch can be downloaded <a href="sysvinit.ghost-user.patch">here</a>.
+</p>
+
+
+
+
+<p>
+I have added more than a hundred packages to Slackware.  The most of them
+migrate from one installation of Slack to another, but still this would be
+a daunting task to upgrade all of them without Slackbuilds.org. Thanks men!
+</p>
+<p>
+I do also run a custom kernel.  The first funny problem I had with it looked
+this way. <b>Top</b> and other similar tools reported about
+</p>
+<pre>
+   load average: 2.00, 2.00, 2.00
+</pre>
+<p>
+while the processor was actually idle.  The problem was caused by CIFS
+compiled into the kernel.  Building it as a module fixed the problem.
+</p>
+
+<h4>Open problem</h4>
+<p>
+From time to time, <b>bbkeys</b> gets mad taking all power of the CPU.
+This takes place either when I start <b>blackbox</b> or quit it.
+This isn't actually a problem of Slackware-12.2 since I first faced
+it with release 11.0. I have no idea why this happens and how this can
+be fixed :-(
+</p>
+
+
+<h3>Conclusions</h3>
+<p>
+Slackware-12.2 works fine.  Still, for users who, like me, have old
+hardware and need few bells and whistles, the latest release hardly
+brings any benefits over Slackware-12.0.  In my opinion, this is not the
+"fault" of Slackware but the consequence of the way Linux is evolving. 
+The kernel team releases a new version of the kernel almost every other
+week, including security patches, but few of the new kernel features are
+necessary for rank and file users, especially for users of the low-end
+hardware.  (Here I mean the 2.6.27 series kernel, which shipped with
+Slack-12.2.)
+Time one needs to compile a 2.6 kernel is steadily growing,
+and is a few times greater than that needed to compile a similar 2.4
+kernel.  On the other hand, it is just impossible to compile a 2.4 kernel
+with gcc that ships with modern distros (Slackware&gt;12.0 in our case).
+</p>
+<p id="almost">
+[*] Perhaps, I will switch to fluxbox one day. Fluxbox provides a "real"
+full-screen mode even for xterm, and I like the feature.  I don't like
+the way fluxbox switches between windows though.  Thus, I need to make
+sure <b>fbctrl</b> provides the feature I'm missing.
+</p>
+</div>
+
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005&mdash;2009 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+
+</body>
+</html>

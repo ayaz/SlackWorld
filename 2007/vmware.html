@@ -1,0 +1,577 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head><title>Using VMware server</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2007 Grant Coady">
+ <meta name="author" content="Grant Coady">
+ <meta name="keywords" content="Slackware Linux VMware virtual machine">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" type="text/css" href="../share/sw.css" media="screen">
+<style type="text/css">
+#content {max-width:100ex}
+h4	{font-style:italic}
+dl dt	{padding-top:6px}
+tt	{white-space:nowrap}
+.list	{color:#8b1a1a;font-weight:bold}
+.nowrap	{white-space:nowrap}
+</style>
+</head>
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img 
+   src="../share/slackworld.png" class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+<div id="content">
+<h1>Using VMware Server</h1>
+<p><b>Author:</b> Grant Coady </p>
+<p>Published: June 2, 2007 </p>
+
+<h2>Contents</h2><ul>
+	<li><a href="#why_vm">Why VM?  Why VMware Server?</a>
+	<li><a href="#termin">Terminology</a>
+	<li><a href="#host">Host considerations</a>
+	<li><a href="#ins_server">Install VMware server</a>
+	<li><a href="#ins_guest">Install guest OS</a>
+	<li><a href="#ins_tools">Install vmware-tools</a>
+	<li><a href="#gotchas">Gotchas: things to watch out for</a>
+	<li><a href="#examples">Examples: things you can do</a>
+	<li><a href="#further">Further reading...</a>
+</ul>
+
+<a name="why_vm"></a><h2>Why VM?  Why VMware Server?</h2>
+<p>What's better than dual booting another OS and Slackware?  Run both OS at 
+the same time!  Running VMware's Server you too may 'have your cake and eat 
+it too' :)  Evaluate other distros on virtualised hardware&mdash;this is 
+of great value if you're fortunate enough to be running new hardware the 
+distro kernel does not yet support.  Run live CDs from their .iso image. </p>
+
+<p>VMware Server is a free download and can both create and host virtual 
+machines.  The free VMware Player can only run existing VMs while the 
+VMware Workstation product requires a hefty licence fee.  </p>
+
+<a name="termin"></a><h2>Terminology</h2>
+<dl>
+	<dt>client
+	<dd>the machine upon which the VMware Server Console is being run
+
+	<dt>guest
+	<dd>the virtual machine containing the guest Operating System
+
+	<dt>host
+	<dd>the machine on which the guest OS (VMs) are running
+
+	<dt>server
+	<dd>provides virtualised hardware and mediates access to physical 
+	hardware resources
+
+	<dt>virtual machine
+	<dd>environment containing a guest OS, parts of the environment are 
+	virtualised by the VMware server, some components may be real 
+	physical hardware with access mediated by the server
+</dl>
+
+<a name="host"></a><h2>Host considerations</h2>
+<h3>operating system</h3>
+<p>The author runs winxp as primary desktop OS, with several linux boxen 
+running Slackware on the local network.  <a href=
+	"http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> is 
+the terminal used to interact with the Slackware machines.  The author 
+subscribes to the reasoning that GUIs are primarily a method of presenting 
+many CLI terminals, it makes little difference if they be PuTTY or xterm :o) 
+</p>
+
+<p>Consider too, that the machine a VM is being hosted on doesn't have to be 
+the same machine one interacts with the VM with.  The VMware Server Console 
+may connect to a networked machine as easily as the local machine.  LAN 
+console performance is close to locally hosted performance with GUI based 
+guest OS. </p>
+
+<h3>hardware</h3>
+<p>Any recent AMD or Intel based box with 512MB (256MB if you're careful) 
+or more memory and a few GB spare on the hard drive should do.  You need the 
+hardware to run the host OS, then more resources to run the guest OS as 
+well. </p>
+
+<p>The author is running two machines as VM hosts: Intel P4 2.4GHz with 1GB 
+memory and 2 x 250GB HDD, and an Intel Core 2 Duo E6400 with 1GB memory and 
+4 x SATA HDDs providing 440GB.  </p>
+
+<h3>network</h3>
+<p>The VMware Server creates bridged network nodes for the virtual machines 
+(VMs), so each VM appears on the LAN.  The LAN is used to transfer files 
+between the VM and the host system or other machines. </p>
+
+<a name="ins_server"></a><h2>Install VMware server</h2>
+<p>Get VMware server from <a href=
+	"http://www.vmware.com/download/server/"
+	>http://www.vmware.com/download/server/</a> &mdash; register for a 
+free serial number and you too may play with more than one OS running at the 
+same time. </p>
+
+<h3>Install to Windows</h3>
+<p>Installing VMware Server to WinXP is straightforward: double-click the 
+install file <span class=nowrap>VMware-server-installer-1.0.3-44356.exe</span> 
+and follow the prompts. </p>
+
+<h3>Install to Slackware</h3>
+<h4>requirements</h4>
+<p>VMware server 1.0.3 (latest version as of this writing) requires a kernel 
+no later than 2.6.19.x for a successful install (See <a href="#patch"
+>patching vmware</a> below for how to run VMware Server with later kernels). 
+Plan where the VM disk images will be stored, the default is 
+<tt>/var/lib/vmware/Virtual Machines</tt>.  You want to be sure there's 
+enough disk space for your VMs. </p>
+
+<p>Requires the 'd' development tools to be installed, along with the kernel 
+source (from 'k', or kernel.org) to match the running kernel.  The writer 
+tested VMware Server 1.0.3 with 2.4.34.4 and 2.6.19.7 linux-kernels on 
+Slackware-11.0. </p>
+
+<p>The VMware VMware-server-1.0.3-44356.tar.gz install tarball and a serial 
+number from <a href="http://www.vmware.com/download/server/"
+	>http://www.vmware.com/download/server/</a>. </p>
+
+<h4>prepare</h4>
+<p>On Slackware, VMware Server requires the sysvinit directories and the PAM 
+directory as a placeholder. You do <b>not</b> need to install PAM. </p>
+
+<p>As root, create the required extra directories: </p>
+<pre><span class=list># mkdir /etc/rc.d/{init,rc{0,1,2,3,4,5,6}}.d
+# mkdir /etc/pam.d</span>
+</pre>
+
+Note: Slackware later than 11.0 may include the sysvinit directories.
+
+<h4>install</h4>
+<p>Extract the server install tarball and run the installer script: </p>
+<pre><span class=list># cd /tmp
+# tar xvzf /path/to/VMware-server-1.0.3-44356.tar.gz
+# cd vmware-server-distrib
+# ./vmware-install.pl</span>
+</pre>
+<p>and follow the prompts, taking the defaults.  You don't need the NAT or 
+host networking options to get started.  </p>
+
+<h4>post-install: vmware-config.pl</h4>
+<p>Script <tt>/usr/bin/vmware-config.pl</tt> needs to be run again if you 
+boot into a different kernel version.  Building the kernel 'vmmon' module 
+must succeed for a viable installation of Vmware Server.  Also run this 
+script to change your VM network or X server settings.  </p>
+
+<h4>run</h4>
+<p>Fire up your favourite GUI and run: </p>
+<pre><span class=list>$ vmware &amp;</span>
+</pre>
+<p>Now you're ready to install a guest OS.  Note: you may also connect to 
+the Slackware host system with the VMware Server Console installed to 
+another machine on the LAN. </p>
+
+<a name="ins_guest"></a><h2>Install guest OS</h2>
+<p>Installing a guest OS is the same process whether you're running the 
+VMware Server Console on WinXP or Slackware.  On starting VMware Server 
+Console, the first choice is which host machine to connect to: </p>
+
+<p><img src="images_vmware/vm-connect-to-host.png" 
+alt="vmware server console: connect to host" width="658" height="527"><br>
+<i>Connect to local or remote host machine.</i> </p>
+
+<p><img src="images_vmware/vm-connected-local.png" 
+alt="VMware Server Console, connected to local host" width="659" height="528"><br>
+<i>VMware Server Console, connected to local host</i> </p>
+
+<h3>guest: slack-current</h3>
+<p>For this exercise let's install slackware-current (as at 2007-05-25) for 
+review.  To save burning a DVD we'll install from the DVD .iso image.  The 
+writer created the DVD .iso from a local rsync mirror of the install tree.
+You may do this, or locate and download an unofficial DVD image. </p>
+
+<p>Use the File, New, Virtual Machine wizard to create a Typical, 
+&quot;Other Linux 2.6.x kernel&quot; VM named &quot;slack-current&quot; with 
+&quot;Use bridged networking&quot; on an 8.0GB IDE (slack-current doesn't 
+see the SCSI) virtual disk. </p>
+
+<p>Before starting the VM, &quot;Edit virtual machine settings&quot; and 
+point the virtual CD-ROM at the slackware-current install .iso file. </p>
+
+<p>Click on &quot;Start this virtual machine&quot;.  If all goes to plan, 
+you will be presented with the ISOLINUX start screen.  Follow the usual 
+procedure to install slack-current, run <tt>fdisk /dev/hda</tt> 
+and create swap and / partitions, then run <b>setup</b> as usual. </p>
+
+<p>Do VM, Removable Devices, CD-ROM1, Disconnect to release the install .iso 
+image.  </p>
+
+<h3>guest: win98se</h3>
+<p>Requires win98se startup disk and the install CDROM.  </p>
+
+<p>Use the File, New, Virtual Machine wizard to create a Typical, Windows 98 
+VM on a 1GB virtual disk. </p>
+
+<p>Boot VM from the floppy disk and run fdisk to prepare the virtual hard 
+disk, here, the writer split the 1GB virtual hard drive into 512MB C: and 
+D:.  Reboot the VM by using Power, Reset after finishing with fdisk.  </p>
+
+<p>Format the new partition(s).  </p>
+
+<p>Here the writer copied the install CD files to d:\install\win98 as this 
+saves the need to locate the installation CDROM later when modifying the 
+Win98 system.  Install win98 as usual.  Reboot windows for luck prior to 
+installing VMware Tools. </p>
+
+<a name="bios"></a><h3>guest: fails to boot CDROM</h3>
+<p>If a VMware guest cannot see a bootable disk it will attempt a PXE boot 
+and appear to freeze.  Do a Power, Power Off to stop the VM guest.  Make 
+sure you have a bootable disk or image connected to the VM floppy or VM 
+CDROM, then start the VM guest, click to focus the guest and press F2 key 
+to enter the VM guest BIOS.  </p>
+<p><img src="images_vmware/vm-bios-cdrom-boot.png" 
+alt="VMware guest OS BIOS, boot" width="640" height="480"><br>
+<i>VMware guest OS BIOS, boot screen</i> </p>
+
+<p>Move the CDROM option up to the top of the Boot order and save the 
+settings, you should now be able to boot from the CDROM. </p>
+
+<a name="ins_tools"></a><h2>Install vmware-tools</h2>
+<p><img src="images_vmware/vm-install-tools.png" 
+alt="VMware guest: install tools" width="640" height="480"><br>
+<i>VM, Install VMware Tools...</i> </p><p><img src=
+"images_vmware/vm-install-tools-confirm.png" 
+alt="dialog: confirm tools install" width="389" height="272"><br>
+<i>VMware Tools install confirmation dialog</i> </p>
+
+<h3>for slackware-current</h3>
+<p>Press Ctrl-Alt keys to release the cursor then select VM, Install VMware 
+Tools..., then click Install.  This causes VMware to present a special CDROM 
+install image to the guest VM.  You need to mount the virtual CDROM, unpack 
+the tarball to <tt>/tmp</tt>, then run the install script.  Also, you must create the 
+PAM placeholder directory. Perform these steps: </p>
+<pre><span class=list># mkdir /etc/pam.d
+# mount /mnt/cdrom # this mounts a virtual CDROM containing VM Tools tarball
+# cd /tmp
+# tar xvzf /mnt/cdrom/VMwareTools-1.0.3-44356.tar.gz
+# cd vmware-tools-distrib
+# ./vmware-install.pl</span>
+</pre>
+<p>Follow the prompts and take the defaults.  Not all of the options will 
+'take'&mdash;the vmhgfs and vmxnet modules will not be available, but the 
+VM will work without them.  </p>
+
+<h3>for win98</h3>
+<p>Press Ctrl-Alt keys to release the cursor then select VM, Install VMware 
+Tools...  </p>
+
+<p>If the installer does not start automatically, manually start it by 
+clicking the Win98 Start, Settings, Control Panel, Add/Remove Programs, 
+Install, Next, Finish. </p>
+
+<p>Follow the onscreen prompts and the directions to install the video 
+driver, reboot. </p>
+
+<p>If the installer warned that the mouse was not installed, manually install 
+the VMware mouse driver in a similar fashion: right-click My Computer, 
+then Properties, Device Manager, double-click the current mouse, then Driver, 
+Update Driver...  Next, Display a list..., Have Disk, Browse to 
+C:\Program&nbsp;Files\VMware\VMware&nbsp;Tools\Drivers\mouse, then 
+OK, OK, Next and Finish, wait 5&ndash;10 seconds for the new mouse driver 
+to take effect. </p>
+
+<p>You'll notice that now the mouse pointer behaves better and is released 
+automatically on leaving the VM screen area.  Screen draw speed is improved 
+as well. </p>
+
+<a name="gotchas"></a><h2>Gotchas: things to watch out for</h2>
+<ul>
+	<li>When starting a VM, you get: &quot;The process exited with an 
+	error: &lt;blank&gt; End of error message.&quot;  Try doing: 
+	<tt>chmod +x /etc/rc.d/rc.sysvinit</tt>, then reboot
+	<li>The '0' in vmware serial numbers is zero
+	<li>Do not run a screensaver in the VM guest OS, it may lockup X
+	<li>The Ctrl-Alt keys bring the guest display out of fullscreen mode.
+	<li>The F11 key brings VMware Server Console out of fullscreen mode.
+	<li>The VM guest OS continues to run headless if you close the server
+	console with the VM running.
+	<li>The VM is attempting to perform a PXE boot!  This happens when 
+	there is no bootable image on the floppy or hard drive, perhaps fix 
+	it by entering the VM <a href="#bios">BIOS</a> and making the CDROM 
+	the first boot device, then mounting a bootable CD or .iso image.
+</ul>
+
+<a name="examples"></a><h2>Examples: things you can do</h2>
+<h3>screen shots</h3>
+
+<p><img src="images_vmware/vm-black-black-win98se.png" 
+alt="win98 in slackware" width="659" height="608"><br>
+<i>Win98 on the Slackware box.</i> </p>
+<p><img src="images_vmware/vm-winxp-black-win98se.png" 
+alt="win98 in winxp" width="652" height="582"><br>
+<i>Win98 on the Slackware box viewed with VMware Server Console on WinXP.</i> 
+</p>
+<p><img src="images_vmware/vm-black-slack-current.png" 
+alt="slack in winxp" width="640" height="480"><br>
+<i>Slack-current (KDE) on the Slackware box viewed with VMware Server Console 
+	on WinXP.</i> </p>
+
+<a name="patch"></a><h3>patching vmware</h3>
+<p>If you want to run VMware with linux-kernels more recent than 2.6.19.x
+you need to patch the VMware runtime support.  As of this writing, the latest
+patch is <a href=
+	"http://knihovny.cvut.cz/ftp/pub/vmware/vmware-any-any-update110.tar.gz"
+	>http://knihovny.cvut.cz/ftp/pub/vmware/vmware-any-any-update110.tar.gz</a>.
+</p>
+<dl>
+	<dt>&ndash; Answer 'no' when the installer wants to execute the
+	<tt>/usr/bin/vmware-config.pl</tt> script (or, run the patch
+	update after the installer fails to create the vmmon module)
+
+	<dt>&ndash; Extract the patch tarball to <tt>/tmp</tt> and 
+	run the patch script, it will in turn offer to run 
+	<tt>/usr/bin/vmware-config.pl</tt>, answer 'y' to complete the 
+	installation
+	<dd><pre><span class=list># cd /tmp
+# tar xvzf /home/mirror/vmware/vmware-any-any-update110.tar.gz
+# cd vmware-any-any-update110/
+# ./runme.pl
+</span></pre>
+</dl>
+
+<h3>transfer data between guest, host and other machines</h3>
+<ul>
+	<li>Use NFS or Samba, whichever suits the environment.  With the
+	default bridged networking, the VM is just another machine on the
+	local network segment.  More below.
+
+	<li>If you're about to burn a CD or DVD with data for the VM, use
+	the .iso image instead! 
+
+	<li>Floppy image files may be used in place of the physical floppy
+	disk, both for reading and writing.  More below.
+</ul>
+
+<h3>sharing a partition: samba</h3>
+
+<p>Use samba to share data with windows machines.  You need a minimal 
+<tt>/etc/samba/smb.conf</tt> file, a samba password and a 
+directory to share. </p>
+
+<p>This example shares <tt>/home/jmusic/musicdb</tt> as 'music', 
+the user name is 'grant' and the workgroup name is 'scattered'.</p>
+<dl>
+	<dt>&ndash; minimal <tt>/etc/samba/smb.conf</tt>
+	<dd><pre><span class=list># cat /etc/samba/smb.conf</span>
+[global]
+        workgroup = SCATTERED
+        server string = samba on black
+        log file = /var/log/samba.%m
+        max log size = 50
+        name resolve order = hosts
+        socket options = TCP_NODELAY SO_RCVBUF=8192 SO_SNDBUF=8192
+        load printers = No
+        show add printer wizard = No
+        os level = 33
+        preferred master = No
+        domain master = No
+        hosts allow = 192.168.1., 192.168.2., 127.
+
+[homes]
+        comment = Home Directories
+        valid users = %S
+        read only = No
+        browseable = No
+
+[music]
+        path = /home/jmusic/musicdb
+        valid users = grant
+	read only = No
+</pre>
+	<dt>&ndash; create samba password for 'grant'&mdash;this password will be
+	used at the machine mounting the samba share
+	<dd><pre><span class=list># smbpasswd -a grant</span>
+New SMB password:
+Retype new SMB password:
+</pre>
+	<dt>&ndash; restart the samba server
+	<dd><pre><span class=list># /etc/rc.d/rc.samba restart</span>
+Starting Samba:  /usr/sbin/smbd -D
+                 /usr/sbin/nmbd -D
+</pre>
+	<dt>&ndash;  the result in WinXP client, Win98se VM
+	<dd><img src="images_vmware/vm-music-share-seen-from-doze.png" alt="music
+	share seen from windoze" width="151" height="172"> <img 
+	src="images_vmware/vm-black-win98-share.png" 
+	alt="music share seen from win98se VM" 
+	width="160" height="170" hspace="60">
+
+	<dt>&ndash; mounting a samba share in Slackware VM
+	<dd>creating an empty <tt>smb.conf</tt> silences an error message, perform
+	the mount
+	<dd><pre><span class=list># touch /etc/samba/smb.conf
+# mount -o username=grant //black/music /mnt/hd/</span>
+Password:<span class=list>
+# ls -l /mnt/hd/</span>
+total 0
+drwxr-xr-x 1 root root 0 2006-10-29 20:46 African/
+drwxr-xr-x 1 root root 0 2006-10-29 20:46 Ballad/
+drwxr-xr-x 1 root root 0 2006-10-29 20:46 Bluegrass/
+drwxr-xr-x 1 root root 0 2007-03-31 20:50 Blues/
+drwxr-xr-x 1 root root 0 2007-02-11 21:45 Celtic/
+...
+</pre>
+</dl>
+
+<h3>sharing a partition: NFS</h3>
+<p>One generally uses NFS for sharing (exporting) files to other Linux
+(UNIX) machines.  NFS requires the server define its exports in the
+<tt>/etc/export</tt> file.  You need the portmapper to be running. For
+this example we have 'black' exporting the <tt>/home/jmusic/musicdb</tt>
+directory. </p>
+<dl>
+	<dt>&ndash; make sure nfs-utils is installed, in our case we had to install
+	it
+	<dd><pre><span class=list># ls /var/adm/packages/ |grep nfs # turned up nothing, so we:
+# installpkg /path/to/slackware-11.0/slackware/n/nfs-utils-1.0.10-i486-3.tgz</span>
+</pre>
+	<dt>&ndash; define the export
+	<dd><pre><span class=list># cat /etc/exports</span>
+/home/jmusic/musicdb            192.168.1.0/24(sync,rw,no_root_squash,subtree_check)
+</pre>
+	<dt>&ndash; restart the NFS daemons
+	<dd><pre><span class=list># /etc/rc.d/rc.rpc restart</span>
+Starting RPC portmapper:  /sbin/rpc.portmap
+Starting RPC kernel lockd process:  /sbin/rpc.lockd
+Starting RPC NSM (Network Status Monitor):  /sbin/rpc.statd
+<span class=list># /etc/rc.d/rc.nfsd restart</span>
+mount: nfsd already mounted or /proc/fs/nfs busy
+mount: according to mtab, nfsd is already mounted on /proc/fs/nfs
+Starting NFS server daemons:
+  /usr/sbin/exportfs -r
+  /usr/sbin/rpc.rquotad
+  /usr/sbin/rpc.nfsd 8
+  /usr/sbin/rpc.mountd
+</pre>
+	<dt>&ndash; mount the NFS export in the Slackware VM
+	<dd><pre><span class=list># mount black:/home/jmusic/musicdb /mnt/hd/
+# ls -l /mnt/hd/</span>
+total 28
+drwxrw-rw-  30 1000 users   960 2006-10-29 20:46 African/
+drwxrw-rw-   4 1000 users   104 2006-10-29 20:46 Ballad/
+drwxrw-rw-   9 1000 users   320 2006-10-29 20:46 Bluegrass/
+drwxrw-rw- 169 1000 users  5664 2007-03-31 20:50 Blues/
+drwxrw-rw-  21 1000 users   656 2007-02-11 21:45 Celtic/
+...
+</pre>
+</dl>
+
+<h3>creating floppy images</h3>
+<p>Floppy disk image files may be used in place of physical disk, this 
+section describes how to create such images under Slackware, windows 
+and within the VM.  Each example will create an ms-dos format image, 
+under linux or with a linux guest OS of course you may choose to create 
+and use ext2 format floppy images. </p>
+
+<h4>with slackware</h4>
+<dl>
+	<dt>Create a blank image with dd, associate the image with 
+	a loop device, format the image and mount it:
+	<dd><pre><span class=list># dd if=/dev/zero bs=1k count=1440 of=floppy.img</span>
+1440+0 records in
+1440+0 records out
+1474560 bytes (1.5 MB) copied, 0.0197354 seconds, 74.7 MB/s
+<span class=list># losetup /dev/loop0 floppy.img
+# mkdosfs /dev/loop0</span>
+mkdosfs 2.10 (22 Sep 2003)
+<span class=list># mount /dev/loop0 /mnt/floppy</span
+</pre>
+</dl>
+
+<h4>with windows</h4>
+<p>You may use a shareware program called WinImage from <a href=
+	"http://winimage.com"
+	>http://winimage.com</a> to create a floppy disk image and inject 
+files into that image. </p>
+
+<p>Use File, New to create a new image; Image, Inject... to inject files
+to the new image and File, Save to save the new floppy disk image.  </p>
+
+<p>In the File, Save dialog, select Save as type to be <i>All files(*.*)</i>
+so you may use a name like floppy.img instead of the default .IMZ compressed
+image format. </p>
+
+<h4>with the VM</h4>
+<p><img src="images_vmware/vm-create-floppy-img.png" 
+alt="vm-create-floppy-img.png" width="640" height="480"> </p>
+<ul>
+	<li>Use &quot;VM, Settings, Hardware, Floppy, Use a floppy image, 
+	Create...&quot; to create a blank floppy image file.
+	<li>In the Guest OS, format then mount the floppy image as if it were 
+	a real floppy: <pre><span class=list># mkdosfs /dev/fd0</span>
+mkdosfs 2.11 (12 Mar 2005)
+<span class=list># mount /mnt/floppy/</span></pre>
+</ul>
+
+<h3>run VMs on a headless host</h3>
+<p>You may run VM guests with a remote console.  X is not required to be
+running on the host machine to support a GUI VM. </p>
+
+<h3>run live CDs from the .iso image</h3>
+<p><img src="images_vmware/vm-knoppix.png" alt="screenshot: knoppix 5.1"
+width="640" height="480"><br>
+<i>Running Knoppix 5.1 live DVD in a VM</i> </p>
+
+<p>Point the VM CDROM at a CD/DVD drive or an .iso image, tell the VM BIOS
+to boot from CDROM and you will have the live CD running in a VM.  </p>
+
+<a name="further"></a><h2>Further reading...</h2>
+<dl>
+	<dt><a href="http://www.vmware.com/pdf/server_vm_manual.pdf">http://www.vmware.com/pdf/server_vm_manual.pdf</a>
+	<dd>VMware Server User Guide
+
+	<dt><a href="http://www.vmware.com/support/pubs/server_pubs.html">http://www.vmware.com/support/pubs/server_pubs.html</a>
+	<dd>VMware Server Documentation
+
+	<dt><a href="http://pubs.vmware.com/guestnotes/wwhelp/wwhimpl/js/html/wwhelp.htm">http://pubs.vmware.com/guestnotes/wwhelp/wwhimpl/js/html/wwhelp.htm</a>
+	<dd>Guest Operating System Installation Guide
+
+	<dt><a href="http://www.vmware.com/community/index.jspa">http://www.vmware.com/community/index.jspa</a>
+	<dd>Discussion Forums
+
+	<dt><a href="http://specialreports.linux.com/article.pl?sid=07/01/08/192251&amp;tid=136&amp;tid=129">http://specialreports.linux.com/article.pl?sid=07/01/08/192251&amp;tid=136&amp;tid=129</a>
+	<dd>Special report: Virtualization on Linux
+   <dd>If anything is going to be big in 2007, it'll be
+   virtualization&mdash;the ability to run multiple virtual resources and
+   operating systems in a single physical environment...
+
+	<dt><a href="http://www.linuxinsight.com/finally-user-friendly-virtualization-for-linux.html">http://www.linuxinsight.com/finally-user-friendly-virtualization-for-linux.html</a>
+	<dd>Finally user-friendly virtualization for Linux
+	<dd>The upcoming 2.6.20 Linux kernel is bringing a nice
+	virtualization framework for all virtualization fans out there.
+	It's called KVM, short for Kernel-based Virtual Machine...
+
+	<dt><a href="http://specialreports.linux.com/article.pl?sid=06/12/19/0456207&amp;tid=136&amp;tid=86">http://specialreports.linux.com/article.pl?sid=06/12/19/0456207&amp;tid=136&amp;tid=86</a>
+	<dd>Installing Linux-VServer
+	<dd>Linux-VServer offers a simple way to run several virtual servers
+	on one piece of physical hardware. While it lacks some of the
+	flexibility...
+</dl>
+<p> </p></div>
+<!-- the 2nd invariant part -->
+
+<address class="copyright">
+	Copyright &copy; 2005, 2006, 2007 by The Slack World, check <a
+		href="../license.html" title="Copyright info">here</a> for the
+	details.<br>
+	The individual articles and posts are copyrighted by their authors.
+</address>
+
+<p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+</p>
+
+</body></html>

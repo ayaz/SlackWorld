@@ -1,0 +1,527 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 5, 2006. Slack Wisdom</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005, 2006 The Slack World">
+ <meta name="keywords" content="Linux, linux, tips">
+ <meta name="description" content="Slack Wisdom">
+
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #5, September 2006
+  </p>
+  <h2>
+   Slack Wisdom 
+  </h2>
+
+  <p>
+  In this issue, you will find the following materials:</p>
+  <ul>
+   <li><a href="#time_stamps">Time stamps on files taken from a digital
+    camera</a>, by <b>Henrik&nbsp;Carlqvist</b> and <b>Eef&nbsp;Hartman</b>
+
+   <li><a href="#disk_overwrite">Disk overwriting software</a>, by
+    <b>Ertugrul&nbsp;Soeylemez</b></li>
+
+   <li><a href="#arp">Any reasons to filter ARP packets?</a> by
+    <b>Moe&nbsp;Trin</b> and <b>Ertugrul&nbsp;Soeylemez</b></li>
+  </ul>
+  <hr>
+
+<!-- 1 -->
+  <h3 id="time_stamps">
+   Time stamps on files taken from a digital camera
+  </h3>   
+
+<pre class="quest">
+From: Alan Clifford
+Date: December 22 2005
+Newsgroup: alt.os.linux.slackware (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/5a65f575a4e9d08e">Original post</a>)
+   
+When mounting my cameras on linux system (Slackware 10.0), the time in
+a photo's exif information is correct but the file time isn't.
+
+File date    : 2005:12:22 15:54:52
+Date/Time    : 2005:12:22 16:54:52
+
+I've checked back and it looks like it started when summer time ended.
+When mounted on my Mac powerbook, the date stamp is correct so the
+culprit appears to be the linux computer.
+
+The fstab entry is
+
+/dev/sda1        /mnt/camera1     vfat        users            0   0
+
+with the camera connected to a usb port which I mount with:
+
+mount /mnt/camera1
+
+I have UTC in /etc/hardwarclock and get the right answer from the date
+command:
+
+Thu Dec 22 17:08:59 GMT 2005
+
+Is there a magic incantation for fstab or mount or deep in the bowels
+of the usb modules that can solve this problem?
+</pre>
+
+  <p><br><em>
+   From:	 	<b>Henrik Carlqvist</b><br>
+   Date:		December 23 2005<br>
+   Newsgroup: alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/b2043714d7eb3781">Original post</a>)
+  </p>
+  <p>   
+   ...
+   Talking about your clock problems it might be a good idea to add some
+   explanation. Usually Unix systems use UTC time internally. The unix system
+   has a configuration file to know how to translate the UTC time to the
+   local time of the system. It is also possible to use the TZ environment
+   variable to show the date of other timezones. Examples:
+  </p><pre class="listing">
+   $ date
+   Fri Dec 23 08:25:17 CET 2005
+   $ date -u
+   Fri Dec 23 07:25:36 UTC 2005
+   $ export TZ=UTC
+   $ date
+   Fri Dec 23 07:26:02 UTC 2005
+   $ export TZ=GMT+9
+   $ date
+   Thu Dec 22 22:26:26 GMT 2005
+   $ export TZ=Brazil/West
+   $ date
+   Fri Dec 23 03:27:48 AMT 2005</pre>
+  <p>
+   Some simple operating systems do not use UTC time internally. With those
+   you need to have the local time in your CMOS setup. Then you will also
+   have to make sure that the time in CMOS setup is adjusted for daylight
+   savings. Dual booting with such a simple operating system usually means
+   that you will have to configure Linux to use local time in CMOS.
+  </p><p>
+   Your camera is probably running a rather simple OS. That means it is using
+   local time instead of UTC time. If time stamps in Linux file system is
+   very important to you it would be possible to change the time in the
+   camera to UTC time. However, then you would allways see the UTC time in
+   exif info and on the camera.
+  </p>
+  <hr>
+  <p><br><em>
+   From:	 	<b>Eef Hartman</b><br>
+   Date:		December 23 2005<br>
+   Newsgroup: 		alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/cda81dd46bbe0b94">Original post</a>)
+  </p>
+  <p>
+   That is inherent in the different ways Linux (UTC) and Windows (vfat)
+   handle the DST change. In general Linux is trying to show you what the
+   UTC date/time, corrected for the LINUX timezone, would have been.
+   This is because Windows stores files with "local date/time" and Linux
+   in UTC, buts SHOWS them in current locale time. So the corrections
+   in Winter and Summer differ by one hour on vfat filesystems and so
+   date/time on vfat filesystems will normally change by 1 hour twice
+   a year.
+  </p>
+
+  <!--  2 -->
+  <hr>
+  
+  <h3 id="disk_overwrite">
+   Disk overwriting software
+  </h3>
+
+<pre class="quest">
+From: Subba Rao
+Date: March 6 2006
+Newsgroups: comp.os.linux.security, comp.os.linux.misc (<a href="http://groups.google.com/group/comp.os.linux.security/msg/3fe5d0782c160560">Original post</a>)
+
+I am looking for some software that will over write the files on the HD
+several times over.  This software should meet the DOD security
+requirement of cleaning up the data on the hard disk.
+</pre>
+   
+  <p><br><em>
+   From:	 	<b>Ertugrul Soeylemez</b><br>
+   Date:		March 6 2006<br>
+   Newsgroup:	comp.os.linux.security</em>
+   (<a href="http://groups.google.com/group/comp.os.linux.security/msg/acbf05f24e479f20">Original post</a>)<br></p>
+
+  <p>   
+   Important:  Don't use any programs related to security, which are not
+   widely known.  Don't use any programs related to security, for which
+   there is no source code publicly available.  Especially forget GUI
+   programs, as they tend to substitute security by comfort.
+  </p>
+  <p>   
+   There is a (not so) little command line program especially designed for
+   this purpose.  It's called 'shred' and is preinstalled on almost any
+   non-Windows system.  Its main intention is to wipe out entire data
+   storage devices.  By default it overwrites the device 25 times, which
+   should be enough to make data effectively physically unrecoverable.  If
+   you believe that this is not enough, you may increase this amount.  But
+   be prepared to wait quite a while for it to finish.
+  </p>
+  <p>   
+   To make data unrecoverable on magnetic storage, it's not enough to
+   overwrite it with purely random data (e.g., <tt class="verb">/dev/urandom</tt> output).
+   This
+   does not only take forever, it's not even secure.  Shred uses special
+   patterns to overwrite the storage.  By calling it with the <tt class="verb">-v</tt> option,
+   you can see those patterns.
+  </p>
+  <p>   
+   If you want to securely delete your entire <tt class="verb">/dev/hda</tt>, it's enough to
+   type:
+  </p><pre class="listing">
+   # shred /dev/hda</pre>
+  <p>   
+   To overwrite 45 times instead of 25, do this:
+  </p><pre class="listing">
+   # shred -n45 /dev/hda</pre>
+  <p>   
+   Making data unrecoverable is not enough in all cases.  Sometimes it's
+   good to make the hard-disk look like it never had any previous
+   filesystem, which might be interesting.  You may want to add a final
+   overwrite with zeros.  You can do this with the <tt class="verb">-z</tt> option:
+  </p><pre class="listing">
+   # shred -z /dev/hda</pre>
+  <p>   
+   This is intended to trick people inspecting your hard-disk.  But
+   personally I would classify a hard-disk filled with zeros as very
+   suspicious.  Don't do this.  Instead, read on.
+  </p><p>
+   After the shred command returns, I really recommend creating a new
+   partition table and install a fresh operating system.  This confuses
+   possible attackers, as they expected an 'empty' hard-disk.
+  </p><p>
+   Sometimes you even need to be more smart.  Sometimes it isn't even good
+   enough to make the hard-disk look innocuous.  If you really want to
+   trick most people, then I would even create an encrypted filesystem with
+   some random key, and fill it with one large file generated by
+   <tt class="verb">/dev/zero</tt>
+   or <tt class="verb">/dev/urandom</tt> (which one really doesn't matter for an encrypted
+   filesystem-use <tt class="verb">/dev/zero</tt>, it's a lot faster).
+  </p><p>
+   An attacker will find that encrypted filesystem and try to break the
+   encryption, possibly making the 'real' data harder to recover with each
+   try.
+  </p>
+  <hr>
+  <h4>Additional resources on the subject:</h4>
+  <ul>
+   <li>
+    <a href="http://www.dban.org/">Darik's Boot and Nuke</a>
+    ("DBAN") is a self-contained boot floppy that
+    securely wipes the hard disks of most computers</li>
+   <li>
+    <a href="http://wipe.sourceforge.net/">Wipe</a>
+    is a secure file wiping utility</li>
+   <li>
+    <a href="http://www.whitedust.net/view.php?PageID=7">Absolute Data Deletion</a>,
+    by Mark Hinge (Mon, 14 Feb 2005)</li>
+   <li>    
+    Wikipedia has articles on 
+    <a href="http://en.wikipedia.org/wiki/File_wipe">File wiping</a> and
+    <a href="http://en.wikipedia.org/wiki/Data_remanence">Data remanence</a>.</li>
+  </ul>
+
+  <h4>
+   The opposite task: Data recovery
+  </h4>
+  <ul>
+   <li>   
+    <a href="http://foremost.sourceforge.net/">Foremost</a> is a console
+    program to recover files based on their headers, footers, and internal
+    data structures</li>
+   <li>
+    <a href="http://servers.linux.com/servers/06/08/21/1558230.shtml?tid=119&amp;tid=13">How
+    to recover lost files after you accidentally wipe your hard drive</a>,
+    by Shawn Hermans (August 28, 2006)</li>
+   <li>   
+    Wikipedia has an <a href="http://en.wikipedia.org/wiki/Data_recovery">article
+    on data recovery</a>.</li>
+  </ul>
+
+  <hr>
+
+<!-- 3-->
+
+  <h3 id="arp">
+   Any reasons to filter ARP packets?
+  </h3>
+
+<pre class="quest">
+From: Mikhail Zotov
+Date: March <a href="http://groups.google.com/group/comp.os.linux.security/msg/bb90b17d0b1a8d79?hl=en&amp;">28</a>, <a href="http://groups.google.com/group/comp.os.linux.security/msg/df0498afed59bdaf?hl=en&amp;">29</a> 2006 
+Newsgroup: comp.os.linux.security
+
+My home Linux machine is connected to a big LAN, which consists of
+hundreds and maybe even thousands machines.  All machines have IP
+addresses from the 10/8 pool. I am running a simple iptables firewall on
+my machine but it is useless most of the time because there seems to be
+very little threat from (mostly Windows) machines in the LAN. Packets
+blocked by the firewall are, as a rule, just Windoops noise. If I observe
+probes of different ports on my machine I just call the ISP and the
+problem is solved.
+
+At the same time, the network device is open for ARP packets since
+filtering of ARP packets is not supported by netfilter. Thus I wanted
+to understand whether ARP packets can be used to put anything to my
+machine (say, spyware) or get anything from it or just get any type of
+access to it.  According to the docs I have found so far, this is
+impossible because ARP packets don't have place for anything "useful".
+By posting my question, I wanted to make sure that my understanding is
+correct. 
+</pre>
+   
+  <p><br><em>
+   From:	 	<b>Moe Trin</b><br>
+   Date:		March 28 2006<br>
+   Newsgroup:	comp.os.linux.security</em>
+   (<a href="http://groups.google.com/group/comp.os.linux.security/msg/4f7940599c0dcdc9?hl=en&amp;">Original post</a>)<br>
+  </p>
+  <p>   
+   ARP filtering would not hide the system by itself. On broadcast media
+   (coax, twisted pairs with hubs, wireless) all traffic is detectable
+   anyway. On switched media, the switch has to know all, even if ARP
+   is disabled, never mind filtered.
+  </p>
+  <p>
+   Packets on Ethernet style networks (includes wireless) are moved using
+   MAC addresses. Some O/S monitor traffic and complain if another host is
+   detected using "my" MAC address.  Look up "ARP spoofing".
+  </p>
+  <p>
+   ARP is one of two methods used to translate between IP and MAC addresses.
+   On a static network, you can disable ARP by using hard-coded data (ethers
+   files), <tt class="verb">/sbin/arp&nbsp;-s</tt>, and <tt class="verb">/sbin/ifconfig&nbsp;-arp</tt>.
+   This may or may not improve
+   your security, but is usually a pain in the a$$ to set up and maintain.
+  </p>
+  <p>
+   Hardware addresses (and IP itself) is only as secure as your control of
+   access to the network, though encryption helps quite a bit. If you are
+   concerned about attack mechanisms using ARP or hardware addresses, you
+   need to be looking at other problems as well. 
+  </p>
+  <p>
+   You can use static ARP tables (and disable ARP on the media itself), but
+   this offers no protection from someone using
+  </p><pre class="listing">
+   /sbin/ifconfig -hw ether 08:00:de:ad:be:ef</pre>
+  <p>
+   to change the MAC address their interface is using. In a intelligently
+   configured switched network, the switch <em>MAY</em> be configured to only
+   permit "a" specific MAC address on any specific port, and of course
+   the system that is being spoofed <em>MAY</em> detect some other host sending
+   packets with it's MAC address and complain, but the story boils down
+   to control of access to the network.  Poker is a popular card game
+   played with an ordinary deck of cards-but when dealing with computer
+   security please remember that "Physical Access Beats Five Aces". 
+   Think about that.
+  </p>
+   
+  <hr>
+  <p><br><em>
+   From:	 	<b>Ertugrul Soeylemez</b><br>
+   Date:		March 28--April 4, 2006<br>
+   Newsgroup:	comp.os.linux.security</em><br>
+   Compiled from four posts:
+   <a href="http://groups.google.com/group/comp.os.linux.security/msg/46a788d3325c255c?hl=en&amp;">1</a>,
+   <a href="http://groups.google.com/group/comp.os.linux.security/msg/ed3b9935366659d2?hl=en&amp;">2</a>,
+   <a href="http://groups.google.com/group/comp.os.linux.security/msg/b8e30d636176025c?hl=en&amp;">3</a>,and
+   <a href="http://groups.google.com/group/comp.os.linux.security/msg/2c5421e075e96fae?hl=en&amp;">4</a>.
+  </p>
+  <p>
+   Well, the ARP filter has a very good reason to be.  It's ARP poisoning.
+   This is an attack, which allows you to redirect network traffic as you
+   like, if the network is not protected against it.  This is the case,
+   when the hosts in the network use dynamic ARP tables.
+  </p>
+  <p>
+   Now whether you really need the ARP filter depends on the operating
+   systems used.  Given you have operating systems, where static ARP
+   entries cannot be changed remotely (i.e., not Windows), there is no
+   reason for ARP filtering.  If you don't use static ARP entries, then you
+   are going to need ARP anyway, so you can't filter it effectively.  If
+   you do, then you don't need it at all.
+  </p>
+  <p>
+   However, if there is even a single Windows machine in the network, then
+   I strongly recommend setting up static ARP tables on that host and
+   filtering any ARP packets from it.  Windows allows static ARP entries,
+   but they are only static in terms of they don't have any timeout and
+   they (should) survice reboots.  They can be overridden remotely.
+   Unfortunately, Windows doesn't have any ARP filter.
+  </p>
+  <p>
+   In all cases, use static ARP tables, if possible, to prevent ARP
+   poisoning.  This attack is worse than ARP flooding, because it allows
+   for MITM attacks easily.  Several command line utilities are available
+   to take over SSH connections and the like.
+  </p>
+  <p>
+   A much better setup would be one, where you don't rely on consistent ARP
+   tables at all.  For example, use key-based authentication, if possible.
+   This makes ARP poisoning useless, because there is no MITM attack
+   against key-based authentication protocols. 
+  </p>
+  <p>
+   The ARP intentionally doesn't leave any space for
+   payloads in the packet.  However, as every network packet, an ARP packet
+   has a 'size' field, which can well be set larger than the packet itself
+   really is.  So, you <em>can</em> transmit payload with ARP packets, but they
+   get just ignored (as long as there isn't some special purpose
+   application, or some classic network stack bug).
+  </p>
+  <p>
+   Now to the ARP itself.  There are mainly two kinds of attacks via ARP.
+   They can be launched in every switched ethernet (very likely you are in
+   one of them).  They are called ARP flooding and ARP poisoning.
+  </p>
+  <p>
+   ARP flooding:  As you know, the ARP is used to resolve IP addresses into
+   MAC addresses.  All network hosts and the switch itself keep track of an
+   internal ARP table containing such resolutions, which have already taken
+   place.  The size of this internal table is limited.  Most switches
+   switch to a hub-like mode, when it gets overflown.  This allows an
+   attacker to easily intercept <em>any</em> traffic in the network.
+  </p>
+  <p>
+   ARP poisoning:  Essentially the goal of this attack is similar, but the
+   method is quite different.  You can always send arbitrarily constructed
+   ARP packets, and other hosts in the network will honour them.  So with
+   forged ARP packets, you can redirect network traffic to other machines
+   and let them act as routers.  This allows the interception attack
+   mentioned above, too, but also a few other attacks.  By redirecting
+   network traffic intended for the internet gateway to a non-existent
+   machine, you can isolate it completely, making internet access
+   impossible (for a short period of time, until the ARP entries expire).
+   You can also redirect traffic for other hosts to your machine, and then
+   act as a router to send them to the real destination.
+  </p>
+  <p>
+   The latter method allows an attack, which is called the 'man in the
+   middle' (MITM) attack.  With this one, you can not only intercept
+   network traffic, but even manipulate it.  As a funny attack, you could
+   intercept a chat session and also write forged messages for your victim,
+   without him noticing this.  Now, there is a much more serious MITM
+   attack.  If not set up properly (i.e., in the default configuration), you
+   can decrypt almost <em>any</em> encrypted connection.  Yes, this includes
+   SSH/SSL connections, so you can very well get access to remote machines
+   (via SSH) or steal credit card information (via SSL, e.g., via HTTPS).
+  </p>
+  <p>
+   In other words:  The insecurity of the ARP protocol is a major threat in
+   every switched ethernet.  You can overcome this problem by using static
+   ARP tables.  If you use static ARP tables on your host, then outgoing
+   traffic cannot be intercepted or manipulated anymore.  Incoming traffic
+   from a host using dynamic ARP tables, however, can be.  And there is a
+   case, where static ARP tables are even not possible:  When the hosts
+   have dynamic IP addresses.
+  </p>
+  <p>
+   There are two ways to defend yourself (but not others) against ARP
+   poisoning, so that <em>your</em> traffic cannot be intercepted.  Don't rely on
+   the expiration time of ARP entries.  You could lower it.  Luckily, when
+   an MITM attack gets out of synchronization (i.e., not <em>all</em> packets get
+   caught by the attacker), then it is lost in most cases.  This way, you
+   can force a desynchronization sooner or later, and detect the attack.
+   Secondly, add a static ARP entry for 'important' hosts like the router.
+   They are going to have static addresses in most cases.
+  </p>
+  <p>
+   Just add static ARP entries for 'important' hosts, like the router.  By
+   this, you can defend against MITM attacks for packets from you to the
+   router (but not the other way), and sometimes this speeds up
+   communication.  But you don't gain any further security; especially you
+   cannot defend against sniffing in a switched ethernet.  The attacker
+   always has the ability to do ARP flooding, effectively turning the
+   switch into a broadcast device.  There is nothing you could do about
+   that. 
+  </p>
+  <p>
+   The other way is not to use ARP and MAC addressing at all, effectively
+   turning your interface to a broadcast interface.  That will increase
+   network traffic, and you can't defend yourself against interception with
+   this.  But it makes an MITM attack impossible.  You can turn MAC
+   addressing on and off, so I recommend doing this for the setup phase of
+   encrypted connections.  After the connection is established, you can
+   return to normal behaviour.
+  </p>
+  <p>
+   So I have to repeat:  Forget ARP filtering; secure your connections
+   otherwise, using cryptographic techniques.  To prevent sniffing, you
+   need encryption.  To prevent MITM attacks (which include sniffing), you
+   need proper authentication (i.e., key/certificate-based).  In other
+   words:  You need both.  Personally I don't use certificates, because
+   they are effectively the same as keys, but unlike keys they include
+   identity information.  There is nothing bad about that, but using keys
+   is simpler, and more widely supported (example: SSH cannot handle
+   certificates). 
+  </p>
+  <p>
+  <hr>
+  <h4>Further reading</h4>
+  <ul>   
+   <li><a href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a> has a number of articles on the subject:
+    <a href="http://en.wikipedia.org/wiki/Address_resolution_protocol">Address Resolution Protocol (ARP)</a>,
+    <a href="http://en.wikipedia.org/wiki/ARP_spoofing">ARP spoofing</a>,
+    <a href="http://en.wikipedia.org/wiki/ARP_flooding">ARP (MAC) flooding</a>, and
+    <a href="http://en.wikipedia.org/wiki/MITM">Man-in-the-middle attack</a>.
+   </li>
+   <li><a href="http://www.infosecwriters.com/text_resources/pdf/arp_spoofing.pdf">Sniffing
+    in a Switched Network-Arp Spoofing Using Ettercap and
+    Ethereal</a>, by Manu Garg (pdf)</li>
+  </ul>
+
+<!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005, 2006 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="toc.html" title="Table of contents"><b>ToC</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="grsec-basics.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="what.html" title="What?"><b>What</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

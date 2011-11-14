@@ -1,0 +1,693 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 2, 2005. Slack Wisdom</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="description" content="SlackWisdom">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+
+ <link rel="first" href="editorial.html" title="Editorial">
+ <link rel="last" href="acks.html" title="Acknowledgements">
+
+ <link rel="previous" href="person.html" title="Persona Grata">
+ <link rel="next" href="classes.html" title="Slack Classes">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue #2, June 2005
+  </p>
+  <h2>
+   SlackWisdom
+  </h2>
+
+  In this issue, you will find the following materials:
+  <ul>
+   <li><a href="#floyd">What is a dev? What is a mountpoint?</a>
+       by <b>Floyd&nbsp;L. Davidson</b> and <b>Ayaz Ahmed Khan</b></li>
+
+   <li><a href="#lew">Why partition a hard disk?</a> by <b>Lew Pitcher</b></li>
+
+   <li><a href="#stuart">No upgrade for aaa_base and aaa_elflibs</a>, by
+       <b>Stuart Winter</b></li>
+
+   <li><a href="#joost">Make and its output</a>, by <b>Joost Kremers</b></li>
+
+   <li><a href="#walt">Why shouldn't you run network apps as root?</a>
+       by <b>Walt `Newsbox'</b></li>
+  </ul>
+  <hr>
+
+  
+  <h3 id="floyd">
+   What is a dev? What is a mountpoint?
+  </h3>
+
+<pre class="quest">
+"Al. C" &lt;no.spam.acanton@take.out.adams-blake.no.spam.com&gt; wrote:
+> I've read a ton on Linux books this past year. But two things that
+> are never explained well are:
+>
+> What is a device? By that I mean what are the entries in /dev (like
+> /dev/cdrom or /dev/fd0 etc.) I don't mean what they stand for, but
+> WHAT are they?
+>
+> Then, what is a mountpoint? What is /mnt/cdrom mean?
+>
+...
+> I don't understand what a device is, what a mountpoint is and what
+> the relationship between them is.
+>
+> The books all say "In Linux everything is a file" and then they go
+> off into gibberish-land... I often think the AUTHORS don't know the
+> answer!
+</pre>
+
+  <p><em>
+   From: <b>Floyd L. Davidson</b> &lt;fl...@barrow.com&gt;<br>
+   Date: Wednesday 05 January 2005 12:57:04<br>
+   Groups: alt.os.linux.slackware</em> (<a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/5c9b15fa3d70f71e?hl=en">Original Post</a>)<br>
+  </p>
+
+  <p>
+   I laughed when I read that...  then I read the answers you are
+   getting.  Seems I was naive to think the questions were naive.
+  </p><p>
+   First, the "everything is a file" is not a Linux concept, but
+   rather was inherent in UNIX right from the beginning, where it
+   was indeed a new idea.  Your concept of what a "file" is, is too
+   limited!  (Which is one reason for the confusion.)
+  </p><p>
+   An Operating System provides services to "user" applications,
+   and the idea behind "everything is a file" is to make the
+   application's interface to everything just the same as if it
+   were a file rather than implementing a totally distinct set of
+   functions for each and every type of interface, which is exactly
+   the way OS's were written prior to UNIX.
+  </p><p>
+   For example, we have an OS that provides "system calls" (in the
+   C programming language the functions in Section 2 of the man
+   pages access those services), and for files we have a basic set
+   of functions (e.g., open(), read(), write(), lseek() and
+   close()) to allow programs to manipulate files.  That is the
+   interface the creators of UNIX wanted to use for everything.
+   (They did not succeed immediately in doing so, but modern unix
+   OS's pretty much do, with a few exceptions.)
+  </p><p>
+   What's all that mean?  Well, if we have a printer or a modem, we
+   want to be able do IO using those open/read/write/close
+   functions!  There are other things too...  networks, pipes,
+   buffers, and for that matter processes themselves as well as the
+   kernel itself, which can be accessed using the "file interface"!
+  </p><p>
+   That works because there are many types of "files" and while at
+   the application programming level we rarely are ever much
+   concerned with different file types, inside the kernel each of
+   those functions that deal with files are actually doing very
+   different things for each different type of file.  Hence if
+   your applications program wants input from a FIFO, from a disk
+   file, and from a modem, the way the read() function is used is
+   identical...  but inside the kernel what happens is totally
+   different.  The read() function has the same name, but it
+   executes different code for each of those "files".  The whole
+   point of the UNIX concept of "everything is a file" is to hide
+   that difference from application programmers and users.
+  </p><p>
+   Whenever you do an ls command using the -l option you see a
+   display that shows the file type as part of the string that also
+   shows the permissions.   The man page for ls says (reformatted
+   for emphasis):
+  </p><pre class="listing">
+      "The file types are as follows:
+
+            -   for an ordinary file,
+            d   for a directory,
+            b   for a block special device,
+            c   for a character special device,
+            l   for a symbolic link,
+            p   for a fifo,
+            s   for a socket."
+  </pre><p>
+   OK?  Now you can see that the kernel uses "file" system calls to
+   do several different things, depending on what "type" of file.
+  </p><p>
+   One of those things is access to hardware via "device special"
+   files, the "b" and "c" types in the list above.  Generally
+   device special files are all kept in the /dev directory, and a
+   quick check there shows how diverse this "everything is a file"
+   concept has gotten!  We can access the computer's memory, every
+   hardware device from hard disks to printers, and a bazillion
+   other things, in an application by using the same functions that
+   are used to access just an "ordinary file".
+  </p><p>
+   Prior to UNIX, it was much more likely that an OS would provide
+   a different system call for each type of device; which means
+   each of the "major" device numbers used by device special files
+   in /dev would probably have had a totally separate function for
+   each of read(), write() and so on.  It worked fine to begin
+   with, but obviously would be way out of hand by today!
+  </p><p>
+   So that is what a "device" is!  It is the magic hidden inside
+   the kernel to allow one universal, simplified, method of access
+   to anything for input/output.  It is the part of the kernel
+   which decides what the read() function, for example, will
+   actually do when called for that particular file.  A "device
+   driver" is the code to provide the functionality.  It extends the
+   kernel's list of "file types" by providing a "file interface" for
+   any given hardware.
+  </p><p>
+   Hence you can only call read() on /dev/xyz if there is a
+   "driver" in the kernel for an xyz.  And of course the driver
+   must actually find whatever hardware it is supposed to
+   communicate with too.
+  </p><p>
+   On to "mountpoint"...
+  </p><p>
+   Directories are one of those "different" types of files too.
+   And a mount point is nothing other than a directory!
+  </p><p>
+   A mount point is a directory that is arbitrarily used as the
+   place where a "filesystem" is attached to the directory tree.
+   But there is nothing special about it, as any directory can be
+   used as a mount point.
+  </p><p>
+   A "filesystem" is just more kernel magic used to hide messy
+   details from application level programming.  It usually provides
+   a standardized view of "files" available on some storage device,
+   but for example sometimes it provides a view of "files"
+   (information) available from the kernel!
+  </p><p>
+   Regardless, the "mount" system call attaches the filesystem to
+   the directory tree, which makes those "files" available via the
+   interface discussed above.  A filesystem can be mounted on any
+   directory, and any directory that has a filesystem mounted on it
+   is then called a "mount point".
+  </p><p>
+   Now, consider two ideas...
+  </p><p>
+   If you have a directory which contains a list of files available
+   on one storage device, what happens if you then mount another
+   filesystem on that particular directory?  Can you access the
+   files that were available prior to mounting the new filesystem?
+   Are they still there?  Hmmmm...  (Try it!)
+  </p><p>
+   But another idea is actually much more interesting!  The
+   "everything is a file" concept actually means "everything that
+   is local to this computer is a file".  Things that are networked
+   don't fit quite so well, though certainly even that is partially
+   interfaced as a "file".  (Networks aren't well adapted, but
+   network connections, once they are set up, are.)  So...  what if
+   the paradigm is change to "everything is a network"?  The same
+   people who came up with "everything is a file" have also spent a
+   couple decades or so researching the concept of viewing
+   everything as a network too.
+  </p><p>
+   <a href="http://web.newsguy.com/floyd_davidson">Floyd L. Davidson</a><br>
+   Ukpeagvik (Barrow, Alaska)
+  </p>
+
+  <hr>
+  <p><em>
+   From: <b>Ayaz Ahmed Khan</b><br>
+   Newsgroups: alt.os.linux.slackware<br>
+   Date: 5 Jan 2005 19:59:11 GMT</em> (<a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/e104ce4a574eb5db?hl=en">Original Post</a>)
+  </p><p>
+   Device files, special files or nodes of the filesystem are names
+   through which character and/or block devices are accessed. The kernel
+   associates a major number, a 16-bit number as far as the 2.4 series
+   kernels are concerned, with a device driver which provides mechanisms
+   (and sometimes policies) that implement open, read, write, release,
+   ioctl, and other functions which access the physical device attached.
+   Device's or its driver's name is ignored by the kernel.
+  </p><p>
+   The minor number of a device driver is something the kernel doesn't
+   need, nor use; it merely passes this value along to the driver.
+   Within the driver, however, the minor number is used to distinguish
+   among various instances of the same device having the same major
+   number (and any name).
+  </p><p>
+   In a strict sense, the kernel doesn't read and write information from
+   and to devices. It only provides raw resources to the devices'
+   drivers, which in turn provide mechanisms that are used to access the
+   device.
+  </p><p>
+   -- 
+  <a href="http://unixforge.org/~ayaz/">Ayaz Ahmed Khan</a>
+
+  <!--  2 -->
+  <hr>
+  
+  <h3 id="lew">
+   Why partition a hard disk?
+  </h3>
+
+<pre class="quest">
+Dudee Bastardo wrote:
+> Hi,
+> Just a short question.
+> If one has only one HD then is there any point of making different
+> partitions for the differnt 'directories' ? Like hda2 for /home, hda3
+> for /tmp etc, or is it better to use just one?
+</pre>
+
+  <p><em>
+   From: <b>Lew Pitcher</b> &lt;lpitc...@sympatico.ca&gt;<br>
+   Date: Sat, 07 May 2005 20:07:13 -0400<br>
+   Newsgroups: alt.os.linux.slackware</em> (<a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/63c0b4eb213f81c8">Original post</a>)
+  </p>
+ 
+  <p>
+   It depends on your needs and how stable you want your system.
+  </p><p>
+   I like to use partitions for directories that should be protected during
+   regular system use (i.e. /boot) or that I want to save if I have to reinstall
+   the system (i.e. /usr/local and /home). But, this plan might not suit you.
+  </p><p>
+   Here's a list that I've compiled showing the reasons to partition. I'm sure
+   that a rebuttal will soon be posted in reply :-)&nbsp;[<a href="./wisdom.html#remark1">1</a>]
+  </p>
+  <p>
+   <b>Why partition? There are many reasons:</b>
+  </p>
+  <ul>
+   <li>Make intellegent use of disk space by reserving space for future expansion
+   of your filesystems</li>
+
+   <li>To perform optimization of disk access resources by placing heavily used
+   disk resources closer to optimum seek point of the disk</li>
+
+   <li>To impose restrictions on the size of certain directory subtrees (i.e. /tmp
+   or /var/spool/lpd) to ensure that they do not grow beyond certain preset sizes.</li>
+  
+   <li>To facilitate backup and recovery by enabling volume backups as well as
+   directory tree/subtree backups</li>
+
+   <li>To reduce the time taken by the boot up filesystem check, by reducing the
+   amount of filesystem checked at any one time, and by permitting the filesystem
+   check to parallelize it's operations.</li>
+
+   <li>To facilitate upgrades by ensuring that the upgrade process doesn't delete
+   or reformat certain directory subtrees (like /home or /var/spool/news) as part
+   of the installation/upgrade process</li>
+
+   <li>To restrict online access to certain directory subtrees (i.e. the boot
+   partition ) by ensuring that they are mounted "read-only" or not mounted at
+   all when they are not needed.</li>
+
+   <li>To provide alternate (or recovery) directory subtrees, by offering offline
+   space for image archives of critical directory subtrees, or by providing space
+   for alternate versions of the directory subtrees (i.e. a "recovery" root fs)</li>
+
+   <li>To provide alternate filesystem formatting (journal fs vs unjournaled fs),
+   to meet the needs of the use of the filesystem (i.e. use journalling
+   filesystems where recovery is required (like / or /home), and non-journalling
+   filesystems where recovery is unnecessary (like /tmp or /var/tmp).</li>
+
+   <li>To provide alternate filesystem blocksizes (1K, 4K, etc) to meet the needs
+   of the use of the filesystem (i.e. smaller blocksizes for filesystems that
+   store many small files vs larger blocksizes for filesystems that store large
+   files).</li>
+  </ul>
+  <p>
+   Lew Pitcher
+  </p><p>
+   Master Codewright & JOAT-in-training<br>
+   Registered Linux User #112576 (<a href="http://counter.li.org/">http://counter.li.org/</a>)<br>
+   Slackware - Because I know what I'm doing.
+  </p>
+  <hr>
+  <p>
+   <em>Editors' remarks:</em>
+  </p>
+  <p>
+   [<a id="remark1">1</a>] None were.
+  </p>
+  <p>
+   [2] A new Linux user may want to check the following guides to
+   partitioning a hard drive, one at
+   <a href="http://twiki.iwethey.org/Main/NixPartitioning">http://twiki.iwethey.org/</a>
+   and another one at
+   <a href="http://www.linuxquestions.org/questions/answers.php?action=viewarticle&amp;artid=121">http://linuxquestions.org/</a>.
+  </p>
+
+  <!--   3   -->
+  <hr>
+  
+  <h3 id="stuart">
+   No upgrade for aaa_base and aaa_elflibs
+  </h3>
+
+<pre class="quest">
+On Wed, 26 Jan 2005 09:15:39 +0300,  Mikhail Zotov wrote:
+> Slackware-current now has new versions of aaa_elflibs and aaa_base.
+> AFAIU, there is no need to upgrade aaa_base.  But what do you do
+> with aaa_elflibs?  Its slack_desk says that "this package should be
+> not upgraded or reinstalled."  (To be fair, I have reinstalled it
+> once in Slack-10.0.  I had to fix a number of things by hands then.)
+> On the other hand, UPGRADE.TXT does not contain any warnings
+> concerning upgrading aaa_elflibs.
+</pre>
+
+  <p><em>
+   From: <b>Stuart Winter</b><br>
+   Date: Wednesday 26 January 2005 13:13:25<br>
+   Groups: alt.os.linux.slackware</em>
+   (<a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/268d148a62bdda60?hl=en">Original post</a>)
+  </p>
+
+  <p>
+   Here is what Pat says about aaa_elflibs (slightly edited) some time ago.
+   I hope this helps explain the purpose of aaa_elflibs and answers the
+   question of why it should not be upgraded.
+  </p><p>
+   [..]
+   Of course, aaa_elflibs (kludgey as it is) contains a few nuggets that
+   really aren't found anywhere else.  I've also been meaning to warn
+   people that if they see a new aaa_elflibs released that upgrading to it
+   is a REALLY DUMB IDEA. The aaa_ packages are intended for one time
+   installation (though reinstalling aaa_base is a lot safer than
+   reinstalling aaa_elflibs). aaa_elflibs is mostly to provide a net for
+   people who would otherwise install a functionally incomplete system to
+   cut down on the amount of help people need if they do not install
+   required packages.  It  wouldn't be such a bad package except that some
+   projects (like, say CUPS, or ALSA) don't tend to increment library
+   versions when they release new ones, so ancient ones in aaa_elflibs get
+   copied over new ones, and things begin to mysteriously fail.  Fun, huh?
+  </p><p>
+   I've been meaning to look at a solution, but previous attempts like
+   staging libraries from /lib/incoming and considering if they should be
+   installed had other problems.  A nice side effect of the filename
+   collisions is that having something listed in aaa_elflibs also prevents
+   removing the newer library when people run around removing things at
+   random so they can have 60GB free instead of 59GB ;-)
+  </p><p>
+   Continued a bit
+   <a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/13028c03dbb7aaaf?hl=en">later</a>:
+  </p><p>
+   Oh, and to answer the question about why it is not in UPGRADE.TXT:
+   if you're upgrading every package in the OS, then there is no need
+   to worry about aaa_elflibs because its library versions are identical to
+   those contained within the main packages.
+  </p><p>
+   For example:
+  </p><pre class="listing">
+   turrican [a] # tar ztvvf aaa_elflibs-10.1.0-i486-1.tgz | grep curses.so
+   -rwxr-xr-x root/root    253584 2005-01-24 17:02:29 lib/libncurses.so.5.4
+   turrican [a] # tar ztvvf ../l/ncurses-5.4-i486-2.tgz|grep curses.so
+   -rwxr-xr-x root/root    253600 2004-02-17 23:22:33 lib/libncurses.so.5.4
+   turrican [a] #</pre>
+  <p>
+   This is why it is not mentioned in the UPGRADE.TXT.
+  </p><p>
+   A short while ago, elflibs was renamed to aaa_elflibs (the name it now
+   has) so that it would always be installed prior to any other packages.
+   This was so that if you were installing Slackware-current then you
+   wouldn't run into the situation in the following example:
+  </p><p>
+    a/aaa_elflibs contains bzip2 libraries from a/bzip2
+    Because the packages are installed according to their alphabetic precedence,
+    it meant that bzip2 would be installed first.  Remembering that aaa_elblibs
+    (or 'elflibs' as it was called previously) was only updated right before
+    a new release of Slackware, you run into the problem, or run the risk that
+    the installation goes like this:
+  </p>
+    <ul>
+      <li> a/bzip2 is installed -- this is the very latest bzip2</li>
+      <li> more packages installed...</li>
+      <li> elflibs package is installed
+        This package has not been updated since the last release of Slackware
+        it contains ancient libraries -- including an old copy of bzip2's .so.</li>
+    </ul>
+  <p>
+   It was renamed 'aaa_elflibs' to work around this problem.
+   This also explains why you should not upgradepkg aaa_elflibs without 
+   also upgrading the entire OS.
+  </p>
+
+  <!-- 4 -->
+  <hr>
+
+  <h3 id="joost">
+   Make and its output
+  </h3>
+  <p><em>
+   From: <b>Joost Kremers</b><br>
+   Subject: Re: Question on installing and compiling programs.<br>
+   Date: 2004-11-22 13:29:25 PST<br>
+   Newsgroups: alt.os.linux.slackware</em>
+   (<a href="http://groups-beta.google.com/group/alt.os.linux.slackware/msg/0974e5e0f757a2ef?hl=en">Original post</a>)
+  </p><p>
+  </p><p class="center">
+                             <b>MAKE AND ITS OUTPUT</b><br>
+            Being A Concise And Practical Tutorial On How To Read And<br>
+        Interpret The Output Gleaned From The `Make' Command, Wherein Can<br>
+            Be Found For The Benefit Of The Reader Two Magical Hints<br>
+           Regarding The Solution Of Never-Before Encountered Problems
+  </p><pre class="quest">
+John Q &lt;joh...@hotmail.com&gt; writes:
+> make
+> make  all-recursive
+> make[1]: Entering directory `/home/user/downloads/g-wrap-1.3.4'
+> Making all in doc
+> make[2]: Entering directory `/home/user/downloads/g-wrap-1.3.4/doc'
+> make[2]: Nothing to be done for `all'.
+> make[2]: Leaving directory `/home/user/downloads/g-wrap-1.3.4/doc'
+> Making all in rpm
+> make[2]: Entering directory `/home/user/downloads/g-wrap-1.3.4/rpm'
+> make[2]: Nothing to be done for `all'.
+> make[2]: Leaving directory `/home/user/downloads/g-wrap-1.3.4/rpm'
+> Making all in bin
+> make[2]: Entering directory `/home/user/downloads/g-wrap-1.3.4/bin'
+> make[2]: Nothing to be done for `all'.
+> make[2]: Leaving directory `/home/user/downloads/g-wrap-1.3.4/bin'
+> Making all in g-wrap</pre>
+  <p>
+   this is just make telling you what it's doing. you've probably run make
+   before, and didn't do `make clean' so the object files created on the first
+   run are still there. therefore make has nothing to do in those
+   directories.
+  </p><pre class="quest">
+> make[2]: Entering directory `/home/user/downloads/g-wrap-1.3.4/g-wrap'</pre><p>
+   now make has entered a directory where it does have to do stuff. nice thing
+   about make: it tells you exactly what it's doing, i.e. which commands it
+   runs, and it doesn't hide any of the output those commands give. so:
+  </p><pre class="quest">
+> guile -c \
+>           "(set! %load-path (cons
+> \"/home/user/downloads/g-wrap-1.3.4/g-wrap/..\" %load-path))""(d
+> ebug-enable 'backtrace) \
+>                         (debug-enable 'debug) \
+>                         (read-enable 'positions) \
+>                         (use-modules (g-wrap)) \
+>                         (use-modules (g-wrap gw-standard-spec)) \
+>                         (gw:generate-wrapset \"gw-standard\")"</pre>
+
+  <p>
+   this is the command that make is executing. it's calling guile. guile, in
+   case you don't know, is an embedable(sp) interpreter for the scheme
+   language. scheme, in case you don't know, is a dialect of the most
+   brilliant programming language known to man, lisp. now, guile isn't quite
+   happy. you can tell, because it's spitting out what you're trying to give
+   it:
+  </p><pre class="quest">
+> Backtrace:
+> In unknown file:
+>    ?: 38* (if (or # #) (try-load-module name))
+>    ?: 39  [try-load-module (ice-9 slib)]
+>    ?: 40  (or (begin (try-module-linked name)) (try-module-autoload
+> name) ...)
+>    ?: 41* [try-module-autoload (ice-9 slib)]
+>    ?: 42  (let* (# # # #) (resolve-module dir-hint-module-name #f)
+> (and # #))
+>     ...
+>    ?: 43  (letrec ((load-file #)) (dynamic-wind (lambda () #) (lambda
+> () #) ...) ...)
+>    ?: 44* [dynamic-wind #&lt;procedure #f ()&gt; #&lt;procedure #f ()&gt;
+> #&lt;procedure #f ()&gt;]
+>    ?: 45* [#&lt;procedure #f ()&gt;]
+>    ?: 46* (let ((file #)) (cond (# =&gt; #) (# =&gt; #)))
+>    ?: 47  [#&lt;procedure #f (full)&gt;
+> "/usr/share/guile/1.6/ice-9/slib.scm"]
+>    ?: 48  [load-file #&lt;primitive-procedure primitive-load&gt; ...]
+>    ?: 49* [save-module-excursion #&lt;procedure #f ()&gt;]
+>    ?: 50  (let (# #) (dynamic-wind # thunk #))
+>    ?: 51  [dynamic-wind #&lt;procedure #f ()&gt; #&lt;procedure #f ()&gt;
+> #&lt;procedure #f ()&gt;]
+>    ?: 52* [#&lt;procedure #f ()&gt;]
+>    ?: 53* [primitive-load "/usr/share/guile/1.6/ice-9/slib.scm"]
+> In /usr/share/guile/1.6/ice-9/slib.scm:
+>  194: 54* (define slib-parent-dir (let (#) (if path # #)))
+>  195: 55* (let ((path #)) (if path (substring path 0 ...) ...))
+>  196: 56  (if path (substring path 0 ...) ...)
+  </pre><p>
+   this is a backtrace from guile. a backtrace just shows you what the
+   interpreter has been doing just before it encountered an error. that info
+   may help to determine what the cause of the error was, although in this
+   case it's not really necessary.
+  </p><pre class="quest">
+> In unknown file:
+>     ...
+>    ?: 57  [scm-error misc-error #f ...]
+>
+> &lt;unnamed port&gt;: In procedure scm-error in expression (scm-error (quote
+> misc-error) #f ...):
+> &lt;unnamed port&gt;: Could not find slib/require.scm in
+> ("/home/user/downloads/g-wrap-1.3.4/g-wrap/.."
+> "/usr/share/guile/site" "/usr/share/guile/1.6" "/usr/share/guile" ".")
+</pre><p>
+   now guile is reporting the actual error. it seems that it is looking for a
+   file slib/require.scm that it cannot find. slib, FYI, is the scheme
+   library, which (i assume, i'm not actually familiar with scheme) is similar
+   to libc, the C library. i suspect that you haven't installed it, because
+   FWIU it is a separate package and doesn't come with guile.
+  </p><pre class="quest">
+> make[2]: *** [gw-standard.c] Error 2
+> make[2]: Leaving directory `/home/user/downloads/g-wrap-1.3.4/g-wrap'
+> make[1]: *** [all-recursive] Error 1
+> make[1]: Leaving directory `/home/user/downloads/g-wrap-1.3.4'
+> make: *** [all] Error 2</pre><p>
+   this is just make giving you an error count, and telling you in which
+   target and in which nested level the error(s) occurred. note that make can
+   call itself, and when make[2] encounters an error, it breaks off and tells
+   make[1] by which it was called about this. make[1] then also breaks
+   off. so it looks like you're seeing two errors, but in reality you're
+   seeing one error that's being reported twice.
+  </p><p>
+   one important thing to keep in mind with this sort of thing (this is
+   magical hint #1 ;-) ): read the *entire* error message and try to grok what
+   it says. don't just skip it because you don't understand the first line. a
+   phrase like "Could not find slib/require.scm" should be pretty
+   self-evident, even if you haven't got the foggiest what that backtrace is
+   all about.
+  </p><p>
+   and now for magical hint #2: a google search for that missing file
+   would have led you to 
+   <a href="http://www.gnucash.org/pipermail/gnucash-user/2003-June/007075.html">this post</a>
+   which is a reply to someone with exactly your problem, giving the
+   solution. (which, BTW, indicates my suspicion above was correct.)
+  </p><p>
+   anyways, i don't know if the problems you have compiling other programs
+   also relate to guile/slib, but if not, try the method i suggested, using
+   the info i provided on how the output of make is structured. read the error
+   messages carefully, looking for anything that you understand, and try to
+   find something that may lead to a successful google search. if nothing
+   turns up, go to the program's home page, see if there is a mailing list
+   (there usually is) and search the archives. if that still doesn't yield
+   anything useful, consider posting to the list. it's usually (though
+   admittedly not always...) a better place to ask questions that are related
+   to a specific program.
+  </p><p>
+   --<br>
+   Joost Kremers<br>
+   Life has its moments
+  </p>
+
+  <!-- 5 -->
+  <hr>
+  
+  <h3 id="walt">
+   Why shouldn't you run network apps as root?
+  </h3>
+
+<pre class="quest">
+On Sat, 11 Dec 2004 02:08:55 -0500, Jon wrote:
+> Sorry to go slightly off topic and also sorry if this seems a stupid
+> and ignorant question but ... why shouldn't you run network apps as
+> root and how could something like whois be exploited?
+</pre>
+
+  <p><em>
+   From: <b>Newsbox</b> &lt;dontspa...@thanks.invalid&gt;<br>
+   Date: Sat, 11 Dec 2004 03:29:08 -0500<br>
+   Subject: Re: "SRC=69.28.159."<br>
+   Newsgroups: comp.os.linux.security</em>
+   (<a href="http://groups-beta.google.com/group/comp.os.linux.security/msg/2a32edaa16c9e6a1?hl=en">Original post</a>)
+  </p><p>
+  </p><p>
+   No problem Jon to answer that, and it's a good question that probably many
+   need to know the answer to. Thanks for asking !!
+  </p><p>
+   Even when there are no "known vulnerabilities" or "published exploits" --
+   of which there are very many (that probably most people are not
+   immediately aware), even then, ...
+  </p><p>
+   When you run as an unpriveledged (normal) user, then any vulnerability or
+   exploit (search zero day exploit) that may be deployed against the
+   application, and which succeeds in running "arbitrary code", only gets to
+   run that arbitrary code in the priviledges of the user that was running
+   the application. If the user is not allowed to (does not have ownership
+   of) writing system files, then, in order to compromise the system, the
+   attacker must then deploy a second vulnerability exploit before s/he can
+   escalate the priveledge (ownership) to change system files (much, much
+   more difficult).
+  </p><p>
+   If you run as root, whoever gets in, gets everything, right off. Very bad
+   strategy if it can be avoided. It can be avoided by running as a normal
+   user.
+  </p><p>
+   I don't think whois has a vulnerability. If it doesn't, then there is no
+   problem. But whois will run as a normal user and as such should always
+   <em>be</em> run as a normal user. If in fact there were a vulnerability in
+   whois, for example, or an exploit for the (hypothetical) vulnerability,
+   then whomever did exploit it ( the dirty criminal!!) could access the
+   system with the rights of whoever called the process. And a normal user
+   doesn't have system rights, whereas root does.
+  </p><p>
+   ...
+  </p><p>
+   Walt
+  </p>
+
+<!-- invariant part -->
+  <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address><br>
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="classes.html" title="Slack Classes"><b>Classes</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="humour.html" title="Slack Humour"><b>Humour</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

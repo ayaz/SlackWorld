@@ -1,0 +1,574 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 2, 2005. Slack Notes</title>
+
+ <meta name="content-language" content="en">
+ <meta name="author" content="Mikhail Zotov">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="description" content="SlackNotes">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+
+ <link rel="first" href="editorial.html" title="Editorial">
+ <link rel="last" href="acks.html" title="Acknowledgements">
+
+ <link rel="previous" href="tips.html" title="Slack Tips">
+ <link rel="next" href="humour.html" title="Slack Humour">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #2, June 2005
+  </p>
+
+  <h2>SlackNotes: Analyzing firewall logs with fwlogwatch</h2>
+
+  <p>
+   <b>Author:</b> Mikhail Zotov
+  </p>
+   
+  <h3> 
+   1. Introduction
+  </h3> 
+
+  <p>
+   Security seems to be one of the most widely discussed subjects in
+   IT-related resources in the web, and the number of programs related
+   to computer security is great.  In these notes, I am going to share
+   my experience of using <b>fwlogwatch</b> to analyze daily logs of an
+   <b>iptables</b> firewall.  Let's begin with an excerpt from the README
+   that comes with <b>fwlogwatch</b>:
+  </p>
+
+  <blockquote><p>
+     <b>fwlogwatch</b> is a security tool written in C by Boris Wesslowski
+     originally for RUS-CERT. It is a packet filter/firewall/IDS log
+     analyzer with support for a lot of log formats and has many analysis
+     options. It also features incident report and realtime response
+     capabilities, an interactive web interface and internationalization.
+   </p>
+   <p>
+     It is available at
+     <a href="http://fwlogwatch.inside-security.de/">http://fwlogwatch.inside-security.de/</a>
+   </p>
+  </blockquote>
+
+  <p>
+   In what follows, version 1.0 of <b>fwlogwatch</b> will be discussed.
+   This version is the current one at the moment of this writing.
+  </p>
+  <p>
+   I don't anyhow pretend that the tips discussed below are the best way
+   to use <b>fwlogwatch</b>.  This isn't a comprehensive guide on using
+   the program either.  <b>fwlogwatch</b> comes with pretty good
+   documentation and I suggest that you study it in case you decide to
+   give <b>fwlogwatch</b> a try. I just hope that another
+   non-professional Linux user (like me) who has his machine on-line for
+   many hours every day will find them useful.
+  </p>
+
+  <h3> 
+   2. Compilation and Installation
+  </h3>
+  <p>
+   These two steps are very easy.  Once again, an excerpt from the README:
+  </p>
+
+  <blockquote><p>
+     The Makefile assumes you use Linux...
+     A simple 'make' should be enough to obtain a working binary...
+     'make install' will install the binary (in /usr/local/sbin) and the
+     man page, 'make install-config' will also install a sample
+     configuration file and template in /etc.
+  </p>
+  </blockquote>
+  <p>
+   Everything really comes as described.  Namely, <b>make install</b>
+   puts the <b>fwlogwatch</b> binary and two bash scripts
+   <tt class="verb">fwlw_notify</tt> and
+   <tt class="verb">fwlw_respond</tt>
+   in <tt class="verb">/usr/local/sbin</tt> and the man
+   page <tt class="verb">fwlogwatch.8</tt> in <tt class="verb">/usr/local/share/man/man8/</tt>.
+   In its turn, <b>make install-config</b> puts the default configuration file
+   <tt class="verb">fwlogwatch.config</tt> and the default template for incident reports
+   <tt class="verb">fwlogwatch.template</tt> in <tt class="verb">/etc</tt>.
+  </p>
+
+  <p>
+   No libraries that are not present in the Slackware distribution are
+   needed for compilation as can be seen from the output of <b>ldd fwlogwatch</b>:
+  </p>
+
+  <pre class="listing">
+   $ ldd fwlogwatch
+         libcrypt.so.1 => /lib/libcrypt.so.1 (0x40028000)
+         libz.so.1 => /usr/lib/libz.so.1 (0x40057000)
+         libc.so.6 => /lib/libc.so.6 (0x40068000)
+         /lib/ld-linux.so.2 (0x40000000)</pre>
+  <p>
+   <a href="./files/fwlogwatch.SlackBuild">This SlackBuild script</a> can be
+   used to compile the program and prepare a Slackware
+   package.&nbsp;[<a href="./notes.html#remark1">1</a>]
+  </p>
+
+  <h3>
+   3. Configuration
+  </h3>
+
+  <p>
+   The behaviour of <b>fwlogwatch</b> can be controlled both from the configuration
+   file and from the command line.  Note though that only those options that
+   are <em>not</em> specified explicitly in the configuration file can be changed
+   in the command line.  Otherwise, they are just ignored.
+  </p>
+
+  <p>
+   Let's take a look at <tt class="verb">fwlogwatch.config</tt> which will be used in the examples
+   that follow below.  Comments are mostly taken as is from the original file.
+  </p>
+
+  <pre class="quest">
+# fwlogwatch.config
+#
+# 'resolve_services' enables lookup of port numbers in /etc/services.
+resolve_services = yes
+
+# Input files.
+# By default, <b>fwlogwatch</b> analyses /var/log/messages.
+#
+input = /var/log/syslog
+
+# Use netfilter as a parser (this setting is optional)
+#
+parser = n
+
+# Activate the protocol and TCP option distinction
+#
+protocol = on
+tcp_opts = on
+
+# A suggested mode of running <b>fwlogwatch</b> to generate reports.
+#
+run_as = nobody
+</pre>
+
+  <p>
+   There are many more options that can be set in the configuration file
+   but none of them are necessary for the purposes of these notes.
+  </p><p>
+   Boris Wesslowski suggests to use the <tt class="verb">services</tt>
+   file that comes with
+   <a href="http://www.insecure.org/nmap"><b>nmap</b></a>
+   instead of the standard one.  I found this idea pretty
+   useful because <b>nmap</b>'s file contains a number of entries
+   related to worms and/or trojans.
+  </p>
+
+  <h3>
+   4. Daily analysis
+  </h3>
+  <p>
+   As a log analyzer, <b>fwlogwatch</b> can write a report to standard output
+   (i.e., on the screen) or in a file specified with the "-o" option. The
+   first way is especially convenient if one wants to receive reports via
+   e-mail.  (In fact, <b>fwlogwatch</b> has the "-T" option, which means that
+   the summary must be sent via e-mail but I prefer the `old good' pipe.) 
+   In what follows, we will generate three reports by putting the following
+   (executable) file in <tt class="verb">/etc/cron.daily</tt>:
+  </p>
+
+  <pre class="quest">
+#!/bin/bash
+# fwlogwatch daily reports
+#
+# 1.
+fwlogwatch -O Sacdda -l 1d -d | mail -s "FWLW: ports" root
+
+# 2.
+fwlogwatch -O Sacd -l 1d -n -m3 -D | mail -s "FWLW: hosts + names" root
+
+# 3.
+fwlogwatch -O Sacd -l 1d -d | mail -s "FWLW: hosts" root
+</pre>
+
+  <p>
+   Let us first look at options that appear in all lines that envoke
+   <b>fwlogwatch</b>.  The "-O" option specifies the sorting criteria of the
+   records in the report.  Explanation given in
+   <tt class="verb">fwlogwatch.config</tt> reads:
+  </p>
+
+  <pre class="quest">
+# Since the sort algorithm used is stable you can sort several times,
+# entries that are equal for the primary criteria will be sorted by the
+# next criteria. The sort string can be composed of 11 fields of the
+# form 'ab' where 'a' is the sort criteria:
+#
+# c count
+# t start time
+# e end time
+# z duration
+# n target name
+# p protocol
+# b byte count
+# S source host
+# s source port
+# D destination host
+# d destination port
+#
+# and 'b' the order:
+#
+# a ascending
+# d descending
+#
+# Sorting is done in the given sequence, so the last option is
+# the primary criteria.</pre>
+  <p>
+   For the first report, we use the "-O Sacdda" option to sort results. The
+   last pair of letters ("da") means that all entries in the report will be
+   first sorted by the destination port number ("d"), in the ascending
+   order ("a"), i.e., from port number&nbsp;0 up to port 65535.  Next, the
+   "cd" pair defines (and this will take place for the other two reports)
+   that entries will be sorted according to the count number ("c") (i.e.,
+   the number of appearances of the respective record in <tt class="verb">syslog</tt>) in the
+   descending order ("d"), i.e., the most `active' entries will be listed
+   first.  Finally, the "Sa" pair defines that entries which are equivalent
+   in the sence of the previous criteria will be sorted in the ascending
+   order ("a") of the IP addresses of source hosts&nbsp;("S").
+  </p><p>
+   Another option that appears in all commands is "-l&nbsp;1d".  It tells
+   <b>fwlogwatch</b> to ignore entries older than 1&nbsp;day.  It can be specified in
+   <tt class="verb">fwlogwatch.config</tt> as "recent = 1d" but I put it here because it is
+   sometimes useful to generate reports for longer periods of time, e.g.,
+   weekly or bi-weekly reports.&nbsp;[<a href="./notes.html#remark2">2</a>]
+  </p><p>
+   Now, it's time to look what <b>fwlogwatch</b> can do for us.  Below, I will
+   use excerpts from real reports generated by an analysis of a day in the
+   life of a small firewall/router.  By obvious reasons, IP addresses of
+   destination hosts will be replaced by "A.B.C.#".  `Researchers' will be
+   listed as is.&nbsp;:-)
+  </p>
+
+  <h3>
+   4.1 Ports
+  </h3>
+  <p>
+   Recall that the first report is generated by the command
+  </p>
+
+  <pre class="listing">
+   fwlogwatch -O Sacdda -l 1d -d</pre>
+  <p>
+   and begins with lower ports.  The "-d" option specifies that we want
+   to differentiate destination ports.  Below come a number of excerpts
+   from the report.  (It is clearly seen that entries are sorted in the
+   desired order.)
+  </p><p>
+   First, one can see connection attempts to ftp, ssh and telnet ports:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 66.97.95.1 to A.B.C.18 port 21 (ftp) SYN
+   eth0 1 tcp packet from 66.97.95.1 to A.B.C.1 port 21 (ftp) SYN
+   eth0 1 tcp packet from 66.97.95.1 to A.B.C.15 port 21 (ftp) SYN
+   eth0 2 tcp packets from 66.98.138.88 to A.B.C.24 port 22 (ssh) SYN
+   eth0 2 tcp packets from 66.98.138.88 to A.B.C.6 port 22 (ssh) SYN
+   eth0 1 tcp packet from 59.150.165.92 to A.B.C.18 port 22 (ssh) SYN
+   eth0 1 tcp packet from 80.99.170.132 to A.B.C.25 port 22 (ssh) SYN
+   eth0 2 tcp packets from 213.161.3.127 to A.B.C.52 port 23 (telnet) SYN
+   ...</pre>
+  <p>
+   to the nameserver port:
+  </p>
+  <pre class="listing">
+   eth0 2 tcp packets from 213.150.169.147 to A.B.C.31 port 42 (nameserver) SYN
+   eth0 1 tcp packet from 12.5.228.40 to A.B.C.18 port 42 (nameserver) SYN
+   eth0 1 tcp packet from 12.5.228.40 to A.B.C.1 port 42 (nameserver) SYN
+   eth0 1 tcp packet from 12.5.228.40 to A.B.C.8 port 42 (nameserver) SYN
+   eth0 1 tcp packet from 210.210.127.213 to A.B.C.17 port 42 (nameserver) SYN
+   eth0 1 tcp packet from 213.145.46.52 to A.B.C.21 port 42 (nameserver) SYN
+   ...</pre>
+  <p>
+   to the www port:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 24.81.21.67 to A.B.C.23 port 80 (http) SYN
+   eth0 1 tcp packet from 66.191.136.10 to A.B.C.18 port 80 (http) SYN
+   eth0 1 tcp packet from 66.191.136.10 to A.B.C.12 port 80 (http) SYN
+   eth0 1 tcp packet from 131.172.30.71 to A.B.C.22 port 80 (http) SYN
+   eth0 1 tcp packet from 131.172.30.71 to A.B.C.1 port 80 (http) SYN
+   eth0 1 tcp packet from 131.172.30.71 to A.B.C.10 port 80 (http) SYN
+   eth0 1 tcp packet from 203.98.177.86 to A.B.C.15 port 80 (http) SYN
+   ...</pre>
+  <p>
+   a number of MS-specific ports:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.62 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.59 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.44 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.33 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.52 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 213.82.111.186 to A.B.C.60 port 135 (msrpc) -a-r--
+   eth0 1 tcp packet from 216.192.7.9 to A.B.C.40 port 139 (netbios-ssn) -a-r--
+   eth0 1 tcp packet from 216.192.7.9 to A.B.C.30 port 139 (netbios-ssn) -a-r--
+   eth0 1 tcp packet from 216.192.7.9 to A.B.C.38 port 139 (netbios-ssn) -a-r--</pre>
+  <p>
+   and so on.  The report ends up with entries corresponding to connection
+   attempts to higher ports:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 221.208.157.38 to A.B.C.28 port 19116 (-) sa----
+   eth0 2 tcp packets from 143.248.239.240 to A.B.C.1 port 32772 (sometimes-rpc7) SYN
+   eth0 1 tcp packet from 143.248.239.240 to A.B.C.18 port 32772 (sometimes-rpc7) SYN
+   eth0 1 tcp packet from 143.248.239.240 to A.B.C.18 port 32772 (sometimes-rpc7) ---r--
+   eth0 1 tcp packet from 143.248.239.240 to A.B.C.1 port 32772 (sometimes-rpc7) ---r--
+   eth0 1 tcp packet from 143.248.239.240 to A.B.C.58 port 32772 (sometimes-rpc7) ---r--
+   eth0 1 tcp packet from 221.188.190.51 to A.B.C.3 port 33361 (-) SYN
+   eth0 1 tcp packet from 221.208.157.38 to A.B.C.57 port 36948 (-) sa----
+   eth0 1 tcp packet from 221.208.157.38 to A.B.C.2 port 38421 (-) sa----</pre>
+
+  <p>
+   In the end of each line corresponding to a TCP packet (actually, all
+   packets listed above), SYN, ACK, RST (and possibly other) header bits
+   are shown.  Such a report is probably not necessary for a daily analysis
+   but it can be handy at the stage of preliminary tuning of your firewall
+   rules when you want to silently drop connection attempts that are
+   irrelevant for your machine or LAN.  Besides, it helps to notice when
+   another MS worm appears and begins to fill <tt class="verb">syslog</tt> with `noise'.
+  </p>
+  <h3>
+   4.2 Hosts with names
+  </h3>
+  <p>
+   The second report (generated with the "fwlogwatch -O Sacd -l 1d -n -m3 -D"
+   command) can be more interesting.  Here, DNS lookups are enabled ("-n").
+   In order to reduce the number of DNS lookups we limit their number by
+   `researchers' who were logged at least three times ("-m3").  In
+   addition, we will not differentiate destination hosts ("-D") because we
+   are going to find `researchers' who were the most active to scan our
+   LAN.
+  </p><p>
+   The report begins with hosts with the biggest number of records in
+   <tt class="verb">syslog</tt>:
+  </p>
+  <pre class="listing">
+   eth0 30 tcp packets from 66.225.253.145 (unknown.ord.scnet.net) sa----
+   eth0 12 tcp packets from 204.202.12.175 (makeland.co.jp) sa----</pre>
+  <p>
+   We have already seen this host hitting port 135:
+  </p>
+  <pre class="listing">
+   eth0 6 tcp packets from 213.82.111.186 (-) -a-r--</pre>
+  <p>
+   and this one hitting port 42:
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 12.5.228.40 (okmls.com) SYN</pre>
+  <p>
+   Next come a couple of other `researchers':
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 66.89.116.66 (w066.z066089116.den-co.dsl.cnc.net) SYN
+   eth0 3 tcp packets from 66.97.95.1 (w1.bmi.net) SYN</pre>
+  <p>
+   As we could see earlier, the latter one `investigated' the ftp port.
+   And this one `studied' www ports:
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 131.172.30.71 (moodle.fhu.latrobe.edu.au) SYN</pre>
+  <p>
+   This one tried to study us in two different ways, namely with the SYN and
+   RST bits set:
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 143.248.239.240 (wlan-card-1-121.kaist.ac.kr) SYN
+   eth0 3 tcp packets from 143.248.239.240 (wlan-card-1-121.kaist.ac.kr) ---r--</pre>
+
+  <p>
+   This one `touched' port 139 with only ACK and RST bits set in the headers
+   of its TCP packets:
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 216.192.7.9 (sfr-tgn-sfe-vty9.as.wcom.net) -a-r--</pre>
+
+  <p>
+   Finally, this one examined higher ports of our machines with packets that
+   had only SYN and ACK bits set:
+  </p>
+  <pre class="listing">
+   eth0 3 tcp packets from 221.208.157.38 (-) sa----</pre>
+  <p>
+   In this case, <b>fwlogwatch</b> didn't find a name of the host, as well as in
+   the case of host 213.82.111.186 above.  This is indicated by "(-)" after
+   host's IP address.
+  </p>
+  <h3>
+   4.3 Hosts with more details
+  </h3><p>
+   The third report ("fwlogwatch -O Sacd -l 1d -d") contains the same
+   information as the first one but it is not ordered with respect to
+   destination ports and can be handy when a `researcher' `studies'
+   different ports of our machines. For example, the following entries
+   allow us to see activities of makeland.co.jp at once:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.61 port 1024 (kdm) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.16 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.11 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.45 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.26 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.6 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.31 port 1024 (kdm) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.35 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.28 port 3072 (-) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.19 port 1024 (kdm) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.4 port 1024 (kdm) sa----
+   eth0 1 tcp packet from 204.202.12.175 to A.B.C.39 port 3072 (-) sa----</pre>
+
+  <p>
+   With the "-s" option, we can find that makeland.co.jp used port&nbsp;22 (ssh)
+   as its source port.  A treacherous guy, isn't he?&nbsp;;-)
+  </p>
+  <h3>
+   5. What's more?
+  </h3><p>
+   There are many more options supported by <b>fwlogwatch</b>.  Please, check its
+   man page, the README file, and the default <tt class="verb">fwlogwatch.config</tt>.  Besides,
+   options can be combined so that one can have in one entry, say, both
+   source and destination ports, timestamp of the first and/or the last packet,
+   etc.  I didn't use a big number of options to prepare reports considered
+   above because the more options you add the longer respective entries can
+   become.  This sometimes makes a report hardly readable.
+  </p><p>
+   Above, we have looked at three different ways to generate daily reports.
+   It can be convenient to make a weekly report.  This can be accomplished,
+   e.g., this way:
+  </p>
+  <pre class="listing">
+   fwlogwatch -O Sacd -l 7d -D -m10 -n | mail -s "FWLW weekly report" root</pre>
+
+  <p>
+   if the command is run just before the moment <tt class="verb">syslog</tt> is rotated.
+   If this is not the case, or you want to have a report for a longer
+   period, add the names of necessary files to the command line.
+   (I assume that <tt class="verb">syslog</tt> is rotated once a week as it takes place 
+   in the default installation of Slackware.)
+  </p><p>
+   As it should be clear from the above discussion, the last command
+   tells  <b>fwlogwatch</b> to consider entries that appeared in <tt class="verb">syslog</tt> during
+   last seven days ("-l 7d"), to ignore destination IP addresses ("-D"), to
+   ignore hits that appeared less than 10 times (-m10) during the week, and
+   to perform DNS lookups ("-n").  In our case, it reveals that at least two
+   of the the `researchers' listed above were more active than we could judge
+   basing on a one day report:
+  </p>
+  <pre class="listing">
+   eth0 33 tcp packets from 66.225.253.145 (unknown.ord.scnet.net) sa----
+   eth0 15 tcp packets from 221.208.157.38 (-) sa----</pre>
+
+  <p>
+   All in all, I find <b>fwlogwatch</b> to be a convenient tool for the analysis
+   of entries made in <tt class="verb">syslog</tt> by
+   <a href="http://www.netfilter.org/"><b>netfilter</b></a>.
+   Unfortunately, the program
+   lacks an option that can be handy when your LAN is `studied' by a
+   `prudent' `researcher'.  Consider the folowing excerpt from the third
+   report:
+  </p>
+  <pre class="listing">
+   eth0 1 tcp packet from 216.10.118.11 to A.B.C.40 port 4974 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.11 to A.B.C.36 port 1846 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.14 to A.B.C.40 port 4999 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.25 to A.B.C.5 port 3615 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.25 to A.B.C.36 port 2071 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.26 to A.B.C.15 port 1182 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.27 to A.B.C.40 port 1048 (-) -a-r--
+   eth0 1 tcp packet from 216.10.118.28 to A.B.C.36 port 2056 (-) -a-r--</pre>
+
+  <p>
+   Each of these hosts made at most two `touches' of our machines, so that
+   we didn't notice them in the second report.  In addition, all `touches'
+   used different destination ports, so that it was difficult to notice
+   them in the first report.  (Interestingly, all connection attempts
+   originated from port&nbsp;80, i.e., the http port.)  Happily, our reports are
+   sorted with respect to source IP addresses and thus these entries appear
+   in the report one by one.  In my opinion, it could be handy if
+   <b>fwlogwatch</b> had an option that allowed one to group entries originated
+   from the same subnet.  Admittedly, a more `prudent' `researcher' or a
+   group of `researchers' can employ machines from different networks for
+   their `investigation' but this seems to be a (bit) more complicated
+   task.
+  </p><p>
+   <b>fwlogwatch</b> can be used in a number of other ways.  For example, it can
+   operate in real time mode and modify ipchains/iptables rules on the
+   fly.  It can even automatically send abuse reports.  These applications
+   of the program are out of the scope of the present Slack Notes.
+  </p>
+
+  <h4>
+   Remarks
+  </h4>
+  <p>
+   [<a id="remark1">1</a>] 
+   In fact, <b>fwlogwatch</b> supports i18n but I didn't bother with this in
+   the build script.
+  </p>
+  <p>
+   [<a id="remark2">2</a>] 
+   In order to obtain correct daily reports with the above script,
+   one has to make sure that at the day log files are rotated, the script
+   is run just before rotation.  Otherwise, <b>fwlogwatch</b> will read 
+   incomplete file.  In order to avoid such situation, one may want to
+   include "input = /var/log/syslog.1" in the configuration file.
+  </p>
+
+<!-- invariant part -->
+  <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles are copyrighted by their authors.
+ </address><br>
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="classes.html" title="Slack Classes"><b>Classes</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="humour.html" title="Slack Humour"><b>Humour</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

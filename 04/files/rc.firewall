@@ -1,0 +1,140 @@
+#!/bin/sh
+# Start/stop/restart the generic Firewall rules
+#
+# Version 2 - 2002/10/25 - Lew Pitcher - NetFilter version
+
+firewall_start() {
+
+  MODPROBE=/sbin/modprobe
+  IPTABLES=/usr/sbin/iptables
+
+  # Enable Dynamic IP addressing
+  /usr/bin/echo 1 >/proc/sys/net/ipv4/ip_dynaddr
+
+  # Load firewalling modules for Linux kernel 2.4.x
+  $MODPROBE ip_tables
+  $MODPROBE iptable_filter
+  $MODPROBE ip_conntrack
+  $MODPROBE ip_conntrack_ftp
+  $MODPROBE ip_conntrack_irc
+  $MODPROBE iptable_mangle
+  $MODPROBE iptable_nat
+  $MODPROBE ip_nat_ftp
+  $MODPROBE ip_nat_irc
+  $MODPROBE ipt_LOG
+  $MODPROBE ipt_limit
+  $MODPROBE ipt_state
+  $MODPROBE ipt_REJECT
+  $MODPROBE ipt_owner
+  $MODPROBE ipt_MASQUERADE
+
+
+  # reset INPUT chain, set policy to DROP
+  $IPTABLES -t filter -F INPUT
+  $IPTABLES -t filter -P INPUT DROP
+
+  # Reset FORWARD chain, set policy to ACCEPT
+  $IPTABLES -t filter -F FORWARD
+  $IPTABLES -t filter -P FORWARD DROP
+
+  # Reset OUTPUT chain, set policy to ACCEPT
+  $IPTABLES -t filter -F OUTPUT
+  $IPTABLES -t filter -P OUTPUT ACCEPT
+
+  # Accept all input from lo and eth0
+  # all other i'faces reject as per INPUT policy
+  $IPTABLES -t filter -A INPUT -i lo   -j ACCEPT
+  $IPTABLES -t filter -A INPUT -i eth0 -j ACCEPT
+
+  # Permit forwarding from lo and eth0
+  $IPTABLES -t filter -A FORWARD -i lo   -j ACCEPT
+  $IPTABLES -t filter -A FORWARD -i eth0 -j ACCEPT
+
+  # Build utility chains (log_and_drop and log_and_deny)
+  $IPTABLES -t filter -N log_and_drop
+  $IPTABLES -t filter -A log_and_drop -j LOG --log-level notice --log-prefix "netfilter (drop) "
+  $IPTABLES -t filter -A log_and_drop -j DROP
+
+  $IPTABLES -t filter -N log_and_deny
+  $IPTABLES -t filter -A log_and_deny -j LOG --log-level notice --log-prefix "netfilter (deny) "
+  $IPTABLES -t filter -A log_and_deny -j REJECT
+
+}
+
+firewall_stop() {
+
+  IPTABLES=/usr/sbin/iptables
+  RMMOD=/sbin/rmmod
+
+  # reset INPUT chain
+  $IPTABLES -t filter -F INPUT
+
+  # Reset FORWARD chain
+  $IPTABLES -t filter -F FORWARD
+
+  # Reset OUTPUT chain
+  $IPTABLES -t filter -F OUTPUT
+
+  # reset/delete log_and_deny chain
+  $IPTABLES -t filter -F log_and_deny
+  $IPTABLES -t filter -X log_and_deny
+
+  # reset/delete log_and_drop chain
+  $IPTABLES -t filter -F log_and_drop
+  $IPTABLES -t filter -X log_and_drop
+
+  # Unload firewalling modules for Linux kernel 2.4.x
+  $RMMOD ipt_MASQUERADE
+  $RMMOD ipt_owner
+  $RMMOD ipt_REJECT
+  $RMMOD ipt_state
+  $RMMOD ipt_limit
+  $RMMOD ipt_LOG
+  $RMMOD ip_nat_irc
+  $RMMOD ip_nat_ftp
+  $RMMOD iptable_nat
+  $RMMOD iptable_mangle
+  $RMMOD ip_conntrack_irc
+  $RMMOD ip_conntrack_ftp
+  $RMMOD ip_conntrack
+  $RMMOD iptable_filter
+  $RMMOD ip_tables
+
+  # Disable Dynamic IP addressing
+  /usr/bin/echo 0 >/proc/sys/net/ipv4/ip_dynaddr
+
+}
+
+firewall_status() {
+  IPTABLES=/usr/sbin/iptables
+
+  echo "Firewall filter status"
+  $IPTABLES -L -v -n -t filter
+
+  echo -e "\nFirewall nat status"
+  $IPTABLES -L -v -n -t nat
+}
+
+firewall_restart() {
+  firewall_stop
+  sleep 1
+  firewall_start
+}
+
+
+case "$1" in
+'start')
+  firewall_start
+  ;;
+'stop')
+  firewall_stop
+  ;;
+'restart')
+  firewall_restart
+  ;;
+'status')
+  firewall_status
+  ;;
+*)
+  echo "usage $0 start|stop|restart|status"
+esac

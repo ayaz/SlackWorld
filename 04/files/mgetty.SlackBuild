@@ -1,0 +1,153 @@
+#!/bin/sh
+# George Georgakis <admin-at-tripleg-net-au>
+# _slightly_ modified by Mikhail Zotov <user e-boogie at host yandex.ru>
+########################################################################
+
+# Set initial variables
+NAME=mgetty
+VERSION=1.1.33
+TMP=/tmp/build
+CWD=`pwd`
+PKG=$TMP/package-$NAME
+
+ARCH=${ARCH:-i486}
+BUILD=${BUILD:-1}
+
+# Create the package location, if it doesn't already exist
+[ ! -d $PKG ] &&  mkdir -p $PKG
+
+# Move the source tarball to the correct name
+[ -e $CWD/$NAME$VERSION-Apr10.tar.gz ] && \
+mv $CWD/$NAME$VERSION-Apr10.tar.gz $CWD/$NAME-$VERSION.tar.gz
+
+# Explode the controller tarball, if one exists
+(
+cd $PKG
+[ -e $CWD/_$NAME.tar.gz ] && explodepkg $CWD/_$NAME.tar.gz
+
+# Start the on-screen information
+echo "+=======+=======+"
+echo "| $NAME-$VERSION |"
+echo "+========+======+"
+
+# Explode the source tarball
+cd $TMP
+tar xzvf $CWD/$NAME-$VERSION.tar.gz
+cd $NAME-$VERSION
+
+# Apply the Makefile patch
+#zcat $CWD/mgetty.Makefile.patch.gz | patch -p0
+cat $CWD/mgetty.Makefile.patch | patch -p0
+
+# Copy the modified policy.h here
+cp $CWD/policy.h .
+
+# Compile the source
+make
+
+# Create the requisite directories
+# Don't create /etc/ppp once again
+mkdir -p 	$PKG/etc/$NAME/ \
+		$PKG/usr/{bin,lib,info,sbin} \
+		$PKG/install \
+		$PKG/usr/man/man{1,4,5,8}
+
+# Copy the executables
+#cp fax/{faxq,faxrm,faxrunq,faxspool} $PKG/usr/bin
+cp `find . -name "g3*" -type f -perm -700` $PKG/usr/bin
+strip --strip-unneeded newslock
+cp newslock $PKG/usr/bin
+cp g3/pbm2g3 $PKG/usr/bin
+
+#cp fax/faxrunqd $PKG/usr/sbin
+#cp {mgetty,sendfax} $PKG/usr/sbin
+cp mgetty $PKG/usr/sbin
+
+# Ensure that all files really are executable
+chmod 755 $PKG/usr/bin/*
+
+# and are owned by group "bin"
+chgrp -R bin $PKG/usr/bin/
+chgrp -R bin $PKG/usr/sbin/
+
+# Copy the config files
+cp `find . -name "*.config"` $PKG/etc/mgetty
+cp `find . -name "*.cfg.in"` $PKG/etc/mgetty
+#cp fax/faxheader $PKG/etc/mgetty
+#cp fax/faxspool.rules $PKG/etc/mgetty/faxspool.rules.sample
+
+# Adding these isn't going to hurt. Good for post-install reference.
+cp $CWD/policy.h $PKG/etc/mgetty
+cp Makefile $PKG/etc/mgetty
+
+# Copy the libraries
+cp `find . -name "cour25*"` $PKG/usr/lib
+
+# Copy the docs
+#cp -r `ls [A-Z]*` $PKG/usr/doc/$NAME-$VERSION/
+#cp doc/mgetty.texi $PKG/usr/doc/$NAME-$VERSION/
+
+# Copy the info pages
+cp `find . -name "mgetty.info*"` $PKG/usr/info/
+
+# Copy the man pages
+for MAN in 1 4 5 8 ; do
+  for EACH in `find . -name "*.$MAN"` ; do
+    gzip -9c $EACH > $PKG/usr/man/man$MAN/`basename $EACH`.gz
+  done
+done
+
+# Add any additional post-install scripts
+cat << EOF > $PKG/install/doinst.sh
+( cd usr/bin ; rm -rf g3topbm )
+( cd usr/bin ; ln -sf g32pbm g3topbm )
+echo "$NAME-$VERSION successfully installed"
+EOF
+
+# Add the description file
+cat << EOF > $PKG/install/description
+$NAME: $NAME
+$NAME:
+$NAME: This is the mgetty+sendfax distribution. It contains programs to
+$NAME: send and receive faxes in a unix environment as well as to allow
+$NAME: dialins via modem connection.
+$NAME:   
+$NAME: For detailed informations how everything works and how to use
+$NAME: it, see the file "mgetty.texi" in /usr/doc/$NAME-$VERSION
+$NAME:   
+$NAME: 
+$NAME: 
+EOF
+
+# Build the package
+cd $PKG
+tar czvf $TMP/$NAME-$VERSION-$ARCH-$BUILD.tgz .
+
+# Warn and/or delet zero-length files
+for file in `find . -type f -print` ; do
+  if [ "`$CWD/filesize $file`" = "0" ]; then
+    echo "Removed zero length file $file..." ;  rm $file
+  fi
+#  if [ "`filesize $file`" = "20" ]; then
+#    echo "WARNING: possible empty gzipped file $file"
+#  fi
+done
+
+# Clean up the build directories
+if [ "$1" = "--cleanup" ]; then
+  rm -rf $TMP/$NAME-$VERSION
+  rm -rf $PKG
+fi
+
+# Move the completed package into this directory
+if [ "$1" != "--nomove" -a "$2" != "--nomove" ]; then
+  mkdir -p $CWD/package
+  mv $TMP/$NAME-$VERSION-$ARCH-$BUILD.tgz $CWD/package/
+  echo
+  echo "The finished $NAME-$VERSION-$ARCH-$BUILD is now in the package/ directory"
+  echo
+fi
+
+# Fork screen output to a log
+) 2>&1 | tee $CWD/$NAME.build.log
+

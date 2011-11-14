@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# ip-up.firewall
+# Prototype firewall setup script for ppp-up
+# $1 is i'face
+# $4 is local IP address
+
+IPTABLES=/usr/sbin/iptables
+
+# Clear out old INPUT, OUTPUT, FORWARD chain
+$IPTABLES -t filter -N $1.in
+$IPTABLES -t filter -N $1.out
+$IPTABLES -t filter -N $1.fwd
+
+# INPUT Chain
+# * don't accept for 10.0.0.0/8 from PPP i'face
+# * don't accept for 172.16.0.0/12 from PPP i'face
+# * don't accept for 192.168.0.0/16 from PPP i'face
+# * don't accept for local Microsoft ports from PPP i'face
+# * don't accept for local KDM port from PPP i'face
+# * don't accept for local nfsd ports from PPP i'face
+# * don't accept for local X ports from PPP i'face
+# * don't accept for local X fontserver ports from PPP i'face
+# * don't accept for local mysql port from PPP i'face
+# * don't accept ICMP requests from PPP i'face
+# * accept other ICMP from PPP i'face
+# * accept for local NTP ports from PPP i'face
+# * accept for local SSH ports from PPP i'face
+# * accept for local AUTH ports from PPP i'face
+# * accept for local HTTP ports from PPP i'face
+# * accept for local user ports from PPP i'face
+# * don't accept anything else from PPP i'face
+
+$IPTABLES -t filter -A $1.in -d 10.0.0.0/8			-j log_and_drop
+$IPTABLES -t filter -A $1.in -d 172.16.0.0/12			-j log_and_drop
+$IPTABLES -t filter -A $1.in -d 192.168.0.0/16			-j log_and_drop
+
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 135:139	-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 135:139	-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 445		-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 445           -j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 1024		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 1024		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport nfsd		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport nfsd		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 6000:6063	-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 6000:6063	-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 7100:7109	-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 7100:7109	-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 3306		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 3306		-j log_and_drop
+$IPTABLES -t filter -A $1.in -d $4 -p icmp --icmp-type echo-request		-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p icmp --icmp-type timestamp-request	-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p icmp --icmp-type address-mask-request	-j DROP
+$IPTABLES -t filter -A $1.in -d $4 -p icmp			-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport ntp		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport ntp		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport ssh		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport auth		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport auth		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport http		-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p tcp --dport 1024:65535	-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 -p udp --dport 1024:65535	-j ACCEPT
+$IPTABLES -t filter -A $1.in -d $4 				-j log_and_drop
+
+# MASQUERADE Chain
+# * only masquerade for local LAN to PPP i'face
+$IPTABLES -t filter -A $1.fwd -i $1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+$IPTABLES -t filter -A $1.fwd -o $1                                      -j ACCEPT
+
+# OUTPUT Chain
+# * don't accept for 10.0.0.0/8 for PPP i'face
+# * don't accept for 172.16.0.0/12 for PPP i'face
+# * don't accept for 192.168.0.0/16 for PPP i'face
+$IPTABLES -t filter -A $1.out -d 10.0.0.0/8			-j log_and_deny
+$IPTABLES -t filter -A $1.out -d 172.16.0.0/12			-j log_and_deny
+$IPTABLES -t filter -A $1.out -d 192.168.0.0/16			-j log_and_deny
+
+# Connect input chain to INPUT chain
+$IPTABLES -t filter -A INPUT -i $1				-j $1.in
+
+# Connect output chain to OUTPUT chain
+$IPTABLES -t filter -A OUTPUT -o $1				-j $1.out
+
+# Enable MASQUERADE
+$IPTABLES -t nat    -A POSTROUTING -o $1                        -j MASQUERADE
+
+# Connect forward chain to FORWARD chain
+$IPTABLES -t filter -A FORWARD                                  -j $1.fwd
+

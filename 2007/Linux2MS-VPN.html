@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>Linux to MS VPN</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2007 Tom Newsom">
+ <meta name="author" content="Tom Newsom">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware Linux pptp pppd VPN">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+ <h2>A quickie on how to set up a Linux to MS VPN</h2>
+
+ <p>
+  <b>Author:</b> Tom Newsom
+ </p>
+ <p>
+  Published: January 17, 2007
+ </p>
+
+ <p>  
+   There are many reasons why you, as a Linux user, would want or need to
+   connect your Linux workstation to an MS VPN server. In this short
+   document I will show you how simple this process is.
+ </p><p>
+   What we need to make this work is PPPD and its associated kernel modules
+   and PPTP from <a href="http://pptpclient.sourceforge.net/">http://pptpclient.sourceforge.net/</a>.
+   Download, extract,
+   build and install <b>pptp</b>. The <b>pptp</b> archive does not have a
+   <tt class="verb">configure</tt> in it.
+   Instead we can simply <b>make</b> and <b>sudo make install</b>
+   (or perhaps <b>checkinstall</b>
+   if you use that program). More advanced users may want to strip the <b>pptp</b>
+   binary by doing &quot;<b>strip --strip-unneeded pptp</b>&quot; and
+   &quot;<b>gzip pptp.8</b>&quot; before
+   installing <b>pptp</b>. It is not difficult to create ones own 
+   slackpak for <b>pptp</b>
+   but that is beyond the scope of this mini how to. The steps outlined
+   above are enough to get a working <b>pptp</b>. 
+ </p><p>
+   However, if you are like me and roll your own kernels then you may need
+   to redo it and select the relevant modules. To give you a hand in
+   selecting the options we must have see below. Load up your favorite
+   kernel configuration tool (<b>xconfig</b>, <b>menuconfig</b> etc)
+   and follow the path indicated below.
+ </p><p>
+   (Be aware that the 2.4.x series of kernels do not have a <tt class="verb">mppe</tt> option by
+   default but you can download the MPPE module separately from
+   <a href="http://mppe-mppc.alphacron.de/">http://mppe-mppc.alphacron.de/</a>
+   and patch various kernels or patch <b>pppd</b>
+   and rebuild it with MPPE support. Examples of how to accomplish this are
+   given on the site).
+ </p><p>
+   If you use a 2.6.x kernel then the steps below will give you MPPE support.
+ </p>
+ <pre class="listing">
+  Device Drivers  ---&gt;
+    Network device support  ---&gt;
+       &lt;M&gt; PPP (point-to-point protocol) support 
+       [*]   PPP multilink support (EXPERIMENTAL)
+       [*]   PPP filtering
+       &lt;M&gt;   PPP support for async serial ports 
+       &lt;M&gt;   PPP support for sync tty ports
+       &lt;M&gt;   PPP Deflate compression
+       &lt;M&gt;   PPP BSD-Compress compression 
+       &lt;M&gt;   PPP MPPE compression (encryption) (EXPERIMENTAL)</pre>
+ <p>
+   The more astute amongst you will notice I have 
+   <tt class="verb">&lt;M&gt;&nbsp;PPP&nbsp;Deflate&nbsp;compression</tt>
+   and
+   <tt class="verb">&lt;M&gt;&nbsp;PPP&nbsp;BSD-Compress&nbsp;compression</tt>
+   as part of my kernel
+   build but do not use them when calling <b>pppd</b>.
+   This is because there are
+   times when those options for <b>pppd</b>
+   will be needed so by building them at
+   the start they are there for use when we need them.
+ </p><p>
+   Once your kernel is ready we need to configure PPP.  For <b>pppd</b>
+   we need to
+   edit or create 3 files. These are namely <tt class="verb">/etc/ppp/options.pptp</tt>,
+   <tt class="verb">/etc/ppp/peers/$TUNNEL</tt> and 
+   <tt class="verb">/etc/ppp/chap-secrets</tt>. So, let's start by
+   editing or creating <tt class="verb">/etc/ppp/options.pptp</tt>.
+   Use your preferred editor and
+   open <tt class="verb">/etc/ppp/options.pptp</tt>
+   (we use <tt class="verb">option.pptp</tt> here as a way to
+   differentiate it from the normal options file. That way if you use <b>pppd</b>
+   to connect to your ISP then the normal options file is there to use and
+   when we need to tunnel to our VPN server we have the <tt class="verb">options.pptp</tt>
+   available). The <tt class="verb">options.pptp</tt> file should contain the following
+ </p>
+ <pre class="listing">
+   lock
+   noauth
+   nobsdcomp
+   nodeflate</pre>
+ <p>
+   Now we need to open or create a <tt class="verb">/etc/ppp/peers/$TUNNEL</tt> file.
+   <tt class="verb">$TUNNEL</tt> can
+   be any name you wish to remember which MS VPN server you are connecting
+   to. I usually call my <tt class="verb">$TUNNEL</tt> file the same name as who I am
+   connecting
+   to so, in this example I use <tt class="verb">wrights</tt>. So open or create
+   <tt class="verb">/etc/ppp/peers/$TUNNEL</tt>. This file contains the following.
+ </p>
+ <pre class="listing">
+   pty "pptp $IP --nolaunchpppd"
+   name $LOGINNAME
+   remotename PPTP
+   require-mppe-128
+   file /etc/ppp/options.pptp
+   ipparam $TUNNEL</pre>
+ <p>
+   Save this file as <tt class="verb">/etc/ppp/peers/wrights</tt>.
+ </p><p>
+   The <tt class="verb">$IP</tt> above should be set to whatever the MS VPN server
+   IP/domainname
+   is and <tt class="verb">$LOGINNAME</tt> set to whatever the login username is to
+   login to the
+   MS VPN server. The <tt class="verb">ipparam</tt> is set to whatever you called the
+   peers file.
+   In this example that was <tt class="verb">wrights</tt>.
+   It can be named anything.  So let us create that file now.
+ </p><p>
+   Open, or create <tt class="verb">/etc/ppp/peers/wrights</tt>.
+ </p><p>
+   Finally, we need to set up the <tt class="verb">chap-secrets</tt> file. So using
+   your preferred
+   editor open or create <tt class="verb">/etc/ppp/chap-secrets</tt>.
+ </p><p>
+   This file holds the account details thus:</p>
+ <pre class="listing">
+   # client    server      secret      ip addresses
+     Ben       PPTP        millychip      *</pre>
+ <p>
+   The above is a standard PPP peers file but for completion I will explain
+   what is what within that file. <tt class="verb">Ben</tt> is the username
+   which you should of been given by the MS VPN administrator.
+   <tt class="verb">PPTP</tt> the protocol type
+   (it should always be <tt class="verb">PPTP</tt>).
+   <tt class="verb">millychip</tt> the user password, again this should of
+   been given to you by the MS VPN administrator and
+   the&nbsp;<tt class="verb">*</tt> at the end
+   signifies take whatever IP the VPN server says to use.
+ </p><p>
+   Once these three files are in place run this:
+ </p><pre class="listing">
+   sh /usr/doc/ppp-2.4.4/scripts/pon wrights debug dump logfd 2 nodetach</pre>
+ <p>
+   '<b>man pppd</b>' will tell you what the options after '<tt class="verb">wrights</tt>'
+   do but
+   basically they keep <b>pppd</b> in the foreground so we can see what is going
+   on.
+ </p><p>
+   The script file '<tt class="verb">pon</tt>' and its companion '<tt class="verb">poff</tt>'
+   are two scripts that come
+   with <b>pppd</b>.
+   They are useful when you do not keep <b>pppd</b> in the foreground.
+   As you can see above I call the file from its location but you can move
+   '<tt class="verb">pon</tt>' and '<tt class="verb">poff</tt>' to somewhere in your <tt class="verb">$PATH</tt>
+   for ease of use.
+ </p><p>
+   This should then connect to the MS VPN server and bring up ppp0 with an
+   IP assigned by the MS VPN server. You can check that ppp0 is up and
+   working with <b>/sbin/ifconfig</b>.
+ </p><p>
+   When you know everything is working fine you can drop the
+   <tt class="verb">debug dump logfd 2</tt> and <tt class="verb">nodetach</tt>.
+ </p><p>
+   There is also a <b>pptpconfig</b> application which aids in setting
+   up <b>pptp</b> but
+   I could not get that to  work AT ALL. However, doing it manually is not
+   difficult and it worked first time.
+ </p>
+
+ </div>
+
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005, 2006, 2007 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+<!--
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+-->
+</body>
+</html>

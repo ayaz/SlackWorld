@@ -1,0 +1,274 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World 2008: Tux meets Amiga</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2008 Tom Newsom">
+ <meta name="author" content="Tom">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Linux Amiga emulator">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+ <h2>Tux meets Amiga, or Amiga emulation using UAE or E-UAE</h2>
+
+ <p>
+  <b>Author:</b> Tom Newsom
+ </p>
+ <p>
+  Published: January 30, 2008
+ </p>
+ <p>
+  Are you on old school <a href="http://en.wikipedia.org/wiki/Amiga">Amiga</a>
+  user who gave up that most brilliant of
+  operating systems for no other reason than it seemed during the middle to
+  late 1990's as the platform was dead in the water and going nowhere fast
+  after company after company bought, collapsed then sold the Amiga brand
+  on? Have you longed for those days when innovation truly was innovation
+  and the Amiga range of personal computers rose high above the competition
+  in both sales and usability? If your answer to any and all of the above
+  is yes then you have no doubt tried AROS.  
+  <a href="http://aros.sourceforge.net/">The AROS Research Operating
+  System</a> formerly known as the Amiga Research Operating System
+  which is almost at the stage of usability
+  and can in fact be installed directly to hard drive these days and has a
+  growing wealth of applications. AROS is as close to the old philosophy as
+  one is ever going to see. It is a wonderful project that every once
+  erstwhile Amiga user, who for whatever reason fled the platform in days
+  one by, should check out.
+ </p><p>
+  But this article is not about AROS, as good as it is. No. It is about
+  true Amiga emulators. UAE and the newer E-UAE. There are others but their
+  popularity is not as high as those two. Indeed, I don't think those
+  others like fellow or xfellow, and a few more besides, are still
+  maintained.
+ </p><p>
+  I still own an <a href="http://en.wikipedia.org/wiki/Amiga_1200">Amiga&nbsp;1200</a>
+  (A1200) which sits on my network plugging away.
+  My children play the games on it. I have years old fidonet messages
+  stored within YAM (Yet Another Mailer) as well as in archives stored for
+  posterity but even with that machine available to me I simply love UAE,
+  and more recently, E-UAE for no other reason than I can leave it running
+  sat on screen 16 on my desktop available to do whatever it is I want to
+  do on it.
+ </p><p>
+  I have always played with <a href="http://uae.coresystems.de/">UAE</a>
+  from when it
+  first came on the market. Back then it was called the Useless
+  (or Unusable) Amiga Emulator&nbsp;[<a href="http://en.wikipedia.org/wiki/UAE_%28emulator%29">1</a>]
+  by some and for good reason. Back then it was as buggy a Hell
+  and often times crashed without a good reason. Sometimes taking the whole
+  OS with it as it crashed and burnt yet again. But as time rolled on UAE
+  got better and better and more and more stable. Today it is totally
+  usable and stable.
+ </p><p>
+  On checking for the latest version I stumbled across something calling
+  itself <a href="http://www.rcdrummond.net/uae/">E-UAE</a>. 
+  I went to check it out
+  mainly to see what it was about and in what way it differed to UAE. The
+  main difference as far as I can see is that E-UAE uses the 
+  <a href="http://www.winuae.net/">WinUAE</a> core.
+  On loading E-UAE for the first time other more subtle changes became
+  apparent. The E-UAE control panel offers not only visual GUI differences
+  but also usability changes. Other subtle changes make E-UAE my Amiga
+  Emulator of choice now after years of UAE usage.
+ </p><p>
+  Both UAE and E-UAE have recently brought out new versions. As these are
+  both Linux applications, unlike WinUAE, I will only be writing about
+  things that concern them. Things that only work under the Microsoft OS
+  are useless to us Linux based users anyway, unless of course you are
+  masochist enough to run an emulated Amiga under WINE. Possible but ugly
+  and quite probably slow.
+ </p><p>
+  UAE and E-UAE can be interchanged here as we go along this article. What
+  applies to E-UAE also applies to UAE so to save me typing both names
+  throughout the article I shall say that when I mention E-UAE you can
+  simply replace it with UAE if your preference is towards that.
+ </p><p>
+  Both compile without errors on my x86_64 <a href="http://www.bluewhite64.com">Bluewhite64</a>
+  install. Though to
+  get a <tt>scsi.device</tt> on the emulated Amiga side there are bits needed from
+  the <a href="http://cdrecord.berlios.de/private/cdrecord.html">cdrtools</a>
+  sources. You need to at least compile <b>cdrtools</b> then copy a
+  few bits from there to where ever your UAE or E-UAE sources are. Once
+  that is done you are ready to compile UAE or E-UAE. This was not a
+  problem for me but may be a bit of a challenge for our non-technical
+  minded brothers and sisters. If requested I can outline the exact
+  procedure but any one with aspirations to using an Amiga emulator should
+  be able to figure it out without too much trouble. There is a script in
+  both extracted archive source trees in <tt>src/</tt> called <tt>install_libscg</tt>. 
+  This was horribly broken for me and steadfastly refused to copy the relevant
+  files. On further inspection is turns out that to get a <tt>scsi.device</tt> on
+  the Amiga side one needs an older, much older, copy of <b>cdrtools</b> or
+  <b>cdrecord</b>. Version 2.0 in fact. This <tt>scsi.device</tt> is however not a
+  requirement so getting the <b>cdrtools</b> thing sorted is not a requirement
+  either. That said, I do recommend you read the <tt>README</tt> provided in both
+  source trees.
+ </p><p>
+  I created 3 virtual hard drives, which are really directories on the
+  Bluewhite64 side. I called the virtual drives 'System', 'Work' and
+  'HDGames'. This was achieved by first creating those named directories on
+  the Bluewhite64 side then pointing E-UAE to them in the hard drive
+  preferences tab within E-UAE. Upon installing Amiga&nbsp;OS&nbsp;3.1 from
+  <tt>.adf</tt>
+  files I had created on my A1200 along with the required kickrom which I
+  also created via my real A1200 the Hard drive install option of Amiga&nbsp;OS&nbsp;3.1
+  saw these virtual drives as Amiga hard drives and proceeded to
+  install onto 'System'. This install, to hard drive, was simplicity
+  itself. It installed without any problems. A bare Amiga OS is nothing
+  exciting. In fact I would go so far as to say it is boring to look at.
+ </p>
+ <p style="text-align: center;">
+  <a href="amiga/basic-workbench.jpg"><img src="amiga/basic-workbench-560x420.jpg" border="0" alt="" title="Basic Workbench, 800x600, 89kB"></a>
+ </p>
+ <p>
+  Next I installed a TCP stack so I had at least got Internet access within
+  E-UAE. I used <a href="http://www.jeacle.ie/pub/articles/amitcp/">AmiTCP</a>
+  which again installed without issue. After editing a
+  few files within amiTCP I rebooted. A quick, very quick, reboot later and
+  my Amiga emulator was online. My next step was to visit
+  <a href="http://www.aminet.net/">aminet</a>
+  and download a few useful, and not so useful but
+  wonderful to have, applications that I have always enjoyed using. The
+  list of files I downloaded from Aminet is too long to list them all, but
+  a few worth mentioning are Picasso96, MagicWB, Toolmanager, MUI and
+  GuiArc. Those 4 applications alone make for a much better Workbench
+  experience.
+ </p><p>
+  This process of making the emulated Amiga like my real A1200 was coming
+  along nicely. I hit google in an excited attempt to locate some
+  pre-configured Workbench setups I had used before. These being AIAB
+  (Amiga In A Box) and AmiSYS. Both had been updated since I last used them
+  in ernest which is always a good thing to see. These wonderful bundles are
+  add-ons for WinUAE which works fine on Linux providing one gets the zip
+  archive not the .exe file, after some manual tweaking to fix
+  Amiga side. The executable flag on some files on the Amiga side
+  <tt>.info</tt> files (which are icons that hold information for the program they
+  match up with. More on this issue later.), on the Linux based platform
+  that basically gives UAE/E-UAE/WinUAE a lovely look and feel. I would go
+  so far as to say AIAB brings the emulated Amiga to life.
+ </p><p>
+  Using UAE or E-UAE and <a href="http://www.amigainabox.co.uk/">AIAB</a>
+  or <a href="http://amigasys.german-amiga-community.de/index.php?page=download">AmiSys</a>
+  negates the need to build up your own Amiga Workbench environment . For
+  AIAB you will need a copy of the Workbench floppy disk in adf format from
+  the Amiga installation set as well as a kick-start rom. These are
+  available on the Internet but I will not be linking to them here as
+  unless you actually have a paid for set of disks and a real Amiga then
+  you are not legally allowed to use them. I had not used AmiSYS before and
+  was delighted to see how close to my real A1200 install it was. After
+  many years of using AIAB with UAE I have now switched allegiances and use
+  E-UAE and AmiSYS. Be aware that if like me you have gone to the trouble
+  of creating your own Workbench environment that both AIAB and AmiSYS both
+  come with pre-configured hardfiles that act as Amiga hard drives. Not a
+  problem really as one can keep your own work as a backup should anything
+  go badly wrong with the AIAB (as it did) or AmiSYS installs.
+ </p><p>
+  The newer AIAB was more of a challenge to get installed and working as
+  although installing it is not difficult once installed under a Linux OS
+  it quite simply refused steadfastly to allow both UAE and E-UAE to boot
+  up the Amiga. Bummer, thought I. Previous versions had always worked
+  without error so why did the newer version not? Okay, the error was
+  printed on the screen. "devs:monitors/uaegfx was not executable." To
+  recover from this I created a hard drive within the emulated environment
+  then installed Workbench&nbsp;3.1 separately within that. Then I moved the
+  AIAB install into the emulated hard drive space so that I could
+  investigate what had gone wrong.
+ </p><p>
+  Once booted into the Amiga I inspected the AIAB installed files and sure
+  enough many files and associated <tt>.info</tt> files were indeed none executable.
+  This meant several Amiga files would not or rather could not run. There
+  was a lot of these all over the install. I traced what had caused the
+  error, or at least what I thought caused the errors. This was an Amiga
+  batch file that changes the icon set used. It would seem that the AIAB
+  author used the wrong switches for <b>lzx</b>. Or rather he missed or neglected
+  to use one. Once I added the missing switch to the various icon set
+  switching batch files on executing them they all worked as expected.
+ </p><p>
+  I finally was looking at the familiar Amiga Workbench screen in all its
+  glory.
+ </p>
+ <p style="text-align: center;">
+  <a href="amiga/aiab-screenshot.jpg"><img src="amiga/aiab-screenshot-560x420.jpg" width="560" height="420" alt="" title="Aiab, 1024x768, 171kB"></a>
+ </p>
+ <p>
+  AmiSYS uses the hardfile approach but the expansion pack they have is
+  simply a directory. Once I had extracted both AmiSYS files and pointed
+  UAE and E-UAE at them it just worked. The emulated Amiga booted straight
+  into an Internet capable Amiga Workbench. Wonderful stuff. It looked so
+  much like my real A1200 install that I simply have to use it and I do in
+  preference to my previously used AIAB.
+ </p>
+ <p>Here is a screenshot of AmiSys booting up the emulated Amiga.</p>
+ <p style="text-align: center;">
+  <a href="amiga/bootup-picture.jpg"><img src="amiga/bootup-picture-560x420.jpg" border="0" alt="" title="Bootup picture, 800x600, 67kB"></a>
+ </p>
+ <p>And here is another screenshot showing the emulated Amiga wih AmiSys installed.</p>
+  <p style="text-align: center;">
+  <a href="amiga/advanced-workbench.jpg"><img src="amiga/advanced-workbench-560x420.jpg" border="0" alt="" title="Advanced Workbench, 1024x768, 232kB"></a>
+ </p>
+ <p>Be aware that the boot up picture is random so the one you see may differ
+  as of course, being randomised the picture changes each boot. Also, the background
+  picture, while being mostly obscured, is different from the default AmiSys install.</p>
+ <p>
+  After playing with both UAE and E-UAE I have to say both have their uses.
+  For example, to create an Amiga hard drive I have to use UAE because
+  E-UAE does not have the option to do this, leaning as it does to wards
+  the directory on a linux drive. So, I fire up UAE, create the hardfile,
+  save the settings then fire up E-UAE which sees the hard drive without
+  problems. 
+ </p><p>
+  Finally. There are two major players in the Amiga emulation arena, UAE
+  and E-UAE and two major players in the pre-configured Workbench arena,
+  AIAB and AmiSYS. If I was to give a preference as to which two of those four
+  one should use I would need to be honest and say E-UAE and AmiSYS make
+  for a better Amiga/Workbench experience. That said,  all four could very
+  easily be interchanged. For my day to day usage I use E-UAE for no other
+  reason than its mouse tracker appears to work better. A minor thing you
+  may think but the reality is that when working on the Amiga side and your
+  mouse pointer is something like 2 inches from where the  Linux mouse
+  pointer is or points this makes part of the Amiga screen unaccessible
+  until you realize that by getting the pointer as close as possible to the
+  top-left of the Amiga screen and coming in at the same point off the
+  Linux side means the pointer of the Amiga and the Linux pointer are once
+  again in harmony.
+ </p><p>
+  On recompiling UAE this pointer nuisance mysteriously went away. Most
+  puzzling, but something to bare in mind.
+ </p>
+ <hr>
+ <p>
+  Address of this article: <b><tt>http://slackworld.berlios.de/2008/amiga.html</tt></b>
+ </p>
+ </div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005&ndash;2008 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

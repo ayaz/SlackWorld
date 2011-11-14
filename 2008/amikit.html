@@ -1,0 +1,417 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World 2008: Tux meets Amiga, part 2</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2008 Tom Newsom">
+ <meta name="author" content="Tom">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Linux Amiga emulator AmiKit">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+ <h2>Tux meets Amiga, part&nbsp;2: Porting AmiKit to Linux</h2>
+
+ <p>
+  <b>Author:</b> Tom Newsom
+ </p>
+ <p>
+  Published: March 19, 2008
+ </p>
+<!--
+Part 1 can be found here: http://slackworld.berlios.de/2008/amiga.html
+-->
+<p>
+During <a href="http://slackworld.berlios.de/2008/amiga.html">my article
+on Amiga emulation on the Linux platform</a> I had deliberately 
+neglected to mention <b>AmiKit</b> as there appeared to be only MS Windows
+based  executable installers and zip archives on the 
+<a href="http://amikit.amiga.sk">AmiKit web site</a>.
+</p>
+<p>
+After the article went live, 
+<a href="http://amigaweb.net/index.php?function=view_profile&amp;id=34">Mike</a>
+kindly informed us there was indeed a Linux friendly archive of AmiKit. I
+emailed the AmiKit  author, Jan Zahurancik, requesting a link to it as
+there was no link to be  found on the AmiKit web site, only MS centric 
+archives. He duly replied with 3 links, which Jan has requested I do not
+show  here as they were not and are not public versions, to AmiKit in zip
+and lzx  format as well as a link to a PDF file showing how to get AmiKit
+working on  the Linux platform.
+</p>
+<p>
+I downloaded the zip and lzx files, though I did not use the lzx one at all. I 
+took a cursory glance at the provided PDF file but found it lacking. All it 
+shows is pictures of the MS Window install and goes through the 'guide' 
+picture by picture with very little by way of guidance on actually getting 
+AmiKit to work on the Linux platform. Basically, in my honest opinion the PDF 
+is a waste of time, because if as a Linux user you are looking for a helping 
+hand in getting AmiKit installed the guide will not help you at all because 
+the guide requires an MS Windows system to hand and if you are like me and 
+many other Linux users you will not have one. Plus, it is outdated in places 
+as well. For example it makes mention of the bsdsocket.library and how one 
+should copy this to the Amiga side in the Libs: directory. This of course is 
+no longer required with the latest versions of UAE and E-UAE. If you do need a 
+helping hand then the 
+<a href="http://amikit.amiga.sk/knowledge-base.htm">AmiKit Knowledge</a> base
+will be of more use as will the 
+<a href="http://amikit.amiga.sk/forum/index.php">AmiKit forums</a>. 
+Be aware though that 
+AmiKit itself is more an MS Windows based thing and just about all its help 
+via the knowledge base and forums is aimed at using AmiKit with WinUAE. 
+However, there are some Linux based nuggets scattered around and even some of 
+the WinUAE bits will guide you. Finally, at the request of Jan I wrote a guide 
+on getting E-UAE and AmiKit working on the Linux platform. That guide can be 
+found <a href="http://amikit.amiga.sk/linux.htm">here</a>.
+</p>
+<p>
+I send my thanks to Jan Zahurancik the creator of AmiKit for providing me with 
+the links and for his seemingly bottomless pit full of patience. More on the 
+patience bit later on.
+</p>
+<p>
+On extracting Amikit140.zip (the filename will invariably change so I cannot 
+give you a direct link. Best I can do is say keep an eye on the download page 
+<a href="http://amikit.amiga.sk/downloads.htm">here</a>, the latest version 
+available at the time of writing), I hit the same problem as I had hit with 
+AIAB in that all the executable bits had been stripped off all Amiga 
+executable files. This appears to be an incompaatibility issue between MS 
+Windows based zip and Linux based zip. The good thing is that because AmiKit 
+uses the directory format fixing this, while not trivial to do properly, was 
+an easy exercise in how to do blanket changes. Forgetting the rights and 
+wrongs of my approach I simply did '<tt>chmod&nbsp;-R&nbsp;u+x&nbsp;*</tt>' 
+after doing '<tt>cd /path/to/extracted/amikit/directory/</tt>'. 
+A similar approach is to do '<tt>chmod&nbsp;-R&nbsp;755*</tt>' 
+after cd'ing into the extracted directory. It should be fairly trivial to 
+muster up a simple script to look for and act on the executable files as the 
+Linux tool '<b>file</b>' reports them as 'Amiga OS loadseg()ble executable/binary'.
+</p>
+<p>
+Whichever method one uses once done it allows E-UAE and AmiKit to boot. After 
+setting up a 'hard drive' which pointed to the directory where I had extracted 
+the AmiKit zip file AmiKit immediately put up a requester asking for 'OS3.9 
+CD, OS3.5 CD, OS XL CD, Amiga Forever CD and AF installed'. So far so good.  
+AmiKit uses a higher version than Amiga OS3.1 that AIAB and AmigaSYS use. No 
+matter how much I played I could not get AmiKit to see my DVD writer. Rather 
+than fight with this particular issue and as a quick way to get around it I 
+copied the entire Amiga Forever CD onto a directory named Amiga Forever on one 
+of my hard drives and added it as a 'hard drive' to E-UAE. AmiKit then found 
+it and used it to copy various bits and bobs from the Amiga Forever CD into 
+itself. No biggy here either. However, all was not well.
+</p>
+<p>
+Here is a screen shot to show how it came up:
+</p>
+ <p style="text-align: center;">
+  <a href="amikit/poor_amikit.jpg"><img src="amikit/poor_amikit-560x420.jpg" border="0" alt="" title="Click to see at 800x600, 25kB"></a>
+ </p>
+<p>
+I do not want to dwell on the problems I encountered because as time went by 
+Jan fixed all of the ones I encountered. But, one problem that was not clear, 
+either to Jan or myself, as to why it happened was an alias on the Amiga side 
+did not and would not 'take'. Think of this as pattern matching, you can 
+imagine what happens on your Linux based system when some pattern matching 
+does not 'take'. The alias in question was XCopy which had a PATTERN attached 
+to it. Because the XCopy PATTERN would not set, several files were not copied 
+from the Amiga Forever CD to the AmiKit install and the AmiKit install itself 
+could not set itself up correctly. Quite a show stopper this one as the files 
+not copied are liberally used throughout the AmiKit install process as well as 
+once AmiKit is up and running.
+</p>
+<p>
+Being fairly affluent in Amiga DOS scripting, it was a fairly easy task to do 
+these copies manually after reading the S:Startup-sequence which led me to 
+S:Startup-sequence2 script and so on until I had covered every line. Still, 
+this would be a show stopper for most people. Jan created hard-file after 
+hard-file and packed up time and time again the whole shebang that is AmiKit 
+in an effort to get a Linux friendly archive of AmiKit. Unfortunately for both 
+of us Jan was limited in which archiver he could use. Being a MS Windows based 
+man, who incidentally disliked the Redmond created operating system until the 
+day he realised he could run his beloved Amiga within in, Jan was just as 
+determined to get the Linux based install of AmiKit to work correctly as I 
+was.
+</p>
+<p>
+Throughout this exercise Jan was sat patiently at the other end of an email 
+exchange, which expanded to be an ICQ exchanged after one particularly busy 
+day passing advice back and forth via email was proving too slow a process for 
+Jan who in one email exclaimed "Do you have ICQ?". Fortunately I did. Not 
+everyone has fallen for MS propaganda or Yahoo! prettiness have they I thought 
+as I passed my ICQ number to Jan. With his help and Amiga knowledge and my 
+Amiga guile we eventually got AmiKit up and running via one particular 
+hard-file and an Amiga Forever CD which, as mentioned earlier, was placed on 
+one of my hard drives but still I had to manually copy various files to their 
+proper places. Once this was done AmiKit came up for what was my first proper 
+view of it. And what a thing of beauty it is! I had had my first proper 
+teasing look at AmiKit and I was in awe of what I saw. However, as I was to 
+learn later this thing of beauty on my screen was not in fact correct as Jan 
+knew it should be. Bits where missing off the Workbench desktop for example so 
+who knows what under the hood bits where missing too?
+</p>
+<p>
+While everything looked nice after sending a screen-shot to Jan of what I 
+assumed was the AmiKit Workbench environment, Jan upon seeing it knew the 
+install process under Linux and E-UAE or UAE still was not perfect.
+</p>
+<p>
+"Lets have another go." said Jan. Jan also offered up several workarounds in 
+an effort to get the last of the bugs ironed out, but the problem with 
+workarounds is that they are exactly that. Workarounds. Not something your 
+average Joe wants to be doing. Jan sent the link to his latest hard-file which 
+I duly downloaded. Would all Jan's, and my, hard work pay off? Well, yes and 
+no. Still, we was getting ever closer to our goal of a Linux friendly archive.
+</p>
+<p>
+Using the hard-file that almost worked as a base to work from, Jan sent 
+several 'patches' which had to be copied onto the hard-file. I mounted the 
+hard-file in a loop device using the affs kernel module then copied the 
+'patch' files across to it. Booted the emulated Amiga and lo and behold! 
+Everything worked perfectly.
+</p>
+<p>
+Here is a screen shot of E-UAE with AmiKit once booted. Remember at this 
+screen shot stage the work on the Linux based archive was not yet quite 
+complete.
+</p>
+ <p style="text-align: center;">
+  <a href="amikit/better_amikit.jpg"><img src="amikit/better_amikit-560x420.jpg" border="0" alt="" title="Click to see at 1024x768, 82kB"></a>
+ </p>
+<p>
+Jan decided to create a zip file whilst inside his WinUAE. He added the
+word  <tt>_attrib</tt> to the file-name to signify that the attributes
+that gave us so much  trouble would now be no problem. Instead of using
+the hard-file approach this  time Jan plumped for the directory approach.
+He created this file within the  WinUAE/AmiKit environment at his end.
+This assured the file attributes, when  extracted on the Linux platform
+stayed the same. One additional file called  linux_modifications2.zip
+which was to fix some differences between WinUAE and  E-UAE was created,
+applied and the install began. It worked 100%. Jan was  happy to have a
+working Linux port of AmiKit and I was happy to be his beta  tester
+offering a helping hand here and there.
+</p>
+<p>
+Once AmiKit had finished installing the, in my case, Amiga Forever files, it 
+asked to "Press ENTER to reboot". Once rebooted E-UAE and AmiKit presented 
+themselves and what a thing of absolute beauty it is. The wealth of programs 
+available within AmiKit is simply overwhelming in that there are literally 
+hundreds to play with from simple editors to comprehensive word processors, 
+games, tons of utilities for every use imaginable. The list of programs 
+included in AmiKit is quite simply overwhelming.
+</p>
+<p style="text-align: center;">
+<i>The Linux platform now has a fully working AmiKit140 archive.</i>
+</p>
+<p>
+So, now that AmiKit works on Linux what does AmiKit offer AmigaSYS and AIAB 
+(see <a href="http://slackworld.berlios.de/2008/amiga.html">part&nbsp;1</a> 
+for explanations of these) do not? The answer to that is lots! 
+AmiKit has over 300 programs within it. It is pure fun and enjoyment working 
+ones way around the AmiKit powered Workbench.
+</p>
+<p>
+For a start AmiKit leverages the changes and additions Amiga OS 3.5/3.9 offer 
+over Amiga OS3.1. There is a way to use Amiga OS3.1 but if one does use that 
+version they will find they miss out of a few of the better things within 
+AmiKit that rely on the later Workbench suites. There are a few Amiga 
+applications written purely for AmiKit. <b>LiveUpdate</b>, of which Jan is 
+particularly proud, <b>MorpheuZ</b> for changing Themes, window manager and such 
+like. It also has a special only available to AmiKit <b>Dopus5</b> the ubiquitous 
+file manager turned Workbench replacement. Dopus5 itself requires a fair 
+amount of grunt to operate correctly and so AmiKit leverages P96 (Picasso the 
+graphics driver program) to full effect. In addition to those mentioned Jan 
+has bagged himself some AmiKit specials. These are special versions of some 
+programs that no-one else has. Jan, apparently, got these by asking the 
+authors and filing lots of bug reports etc. As well as these special AmiKit 
+only programs there are over 300 other freely available programs included with 
+AmiKit. Far too many for me to list them all in this article but be assured 
+every one is useful in one way or another to someone. On the whole they are 
+all bonded together with some Amiga DOS, Arexx and Dopus5 scripting mostly 
+created by Jan himself.
+</p>
+<p>Browsing the Web:</p>
+ <p style="text-align: center;">
+  <a href="amikit/aminet.jpg"><img src="amikit/aminet-560x420.jpg" border="0" alt="Accessing the Web" title="Click to see at 1024x768, 166kB"></a>
+ </p>
+<p>
+To find out a little more about Jan, his ambitions for AmiKit and generally a 
+good read take a look at 
+<a href="http://www.thecryptmag.com/Online/46/amikitinterview.html">this interview</a> 
+Jan gave with The Crypt Magazine.
+</p>
+<p>
+Finally I have a screen-shot for you that if you are a one time long since 
+gone but never forgotten Amiga user or someone whose interest has been peeked 
+by this article it sure to blow your mind. Even in this day and age that old 
+dog Amiga surely stands the test of time. Take a look, be prepared to be 
+amazed.
+</p> 
+ <p style="text-align: center;">
+  <a href="amikit/perfect_amikit.jpg"><img src="amikit/perfect_amikit-560x420.jpg" border="0" alt="" title="Click to see at 1024x768, 157kB"></a>
+ </p>
+<p>
+Well, not quite. One stubborn problem, while not vital to normal operation of 
+AmiKit as it can be done manually (details of how are on the AmiKit web site 
+<a href="http://amikit.amiga.sk/knowledge-base.htm#livemanual">here</a>), was that 
+<b>LiveUpdate</b>, a program developed for AmiKit to automate the process of keeping 
+AmiKit up to date with new versions of applications as and when released, 
+refused to work as advertised. Jan put me in touch with the LiveUpdate's 
+author and after a few test versions and release candidates he arrived at a 
+version that did work as advertised, well there was a lot more to it than that 
+but it will be tedious reading.
+</p>
+<p>
+What was the problem? Well, LiveUpdate's author (a certain 
+Mr Daniel&nbsp;Westerberg (who's personal web site is <a href="http://www.algonet.se/~deniil/">here</a> and his 
+business web site is <a href="http://www.onyxsoft.se/">there</a>) writes the program on a real 
+Amiga which has a real TCP stack unlike UAE and E-UAE which have an emulated 
+TCP stack. Both the emulated TCP stack and the real TCP stack use a library 
+called bsdsocket.library but UAE and E-UAE implementation is not complete and 
+so LiveUpdate hit upon the part that is not complete which stopped his program 
+from functioning fully. As I said, after a few revisions this particular, and 
+the only bug left, was squashed and now LiveUpdate works as it should which 
+makes using AmiKit all the more pleasurable. Daniel is somewhat typical of an 
+Amiga user in that he is very friendly and gives his time and programs for 
+free for all to use.
+</p>
+<p>LiveUpdate in action:</p>
+ <p style="text-align: center;">
+  <a href="amikit/liveupdate.jpg"><img src="amikit/liveupdate-560x420.jpg" border="0" alt="LiveUpdate screen shot" title="Click to see at 1024x768, 110kB"></a>
+ </p>
+<p>
+Will I use AmiKit in preference to AmigaSYS my previous favourite Workbech 
+environment? A resounding yes. The screen shots do not show just how much work 
+Jan has put into creating his emulated Amiga Workbench nor the extra work Jan 
+put in to get a fully working Linux based archive. But lots of work, and no 
+doubt love, have gone into AmiKit and it shows. Its beauty needs to be seen to 
+be believed! It is truly a labour of love, a work of art even. Give E-UAE and 
+AmiKit a try and decide for yourself. I feel sure that you will come to the 
+same conclusion as I have and that is that AmiKit is wonderful and a joy to 
+use.
+</p>
+<p>
+For anyone who is, or was, an Amiga user I urge you to give AmiKit a run. For 
+those of you reading about the Amiga emulated environment for the first time 
+should also give E-UAE and AmiKit a go. Combined with E-UAE AmiKit is a sight 
+to behold and a pleasure to use. You can download the zip archive of AmiKit 
+for Linux from <a href="http://amikit.amiga.sk/downloads.htm">here</a>. 
+With a guide to getting it all to work, written by yours truly, 
+<a href="http://amikit.amiga.sk/linux.htm">here</a>.
+To get E-UAE, which seems to me to be the 
+future of Amiga emulation on the Linux platform, sure it is missing several 
+features compared to WinUAE, but it is sure to mature as time progresses and 
+as it uses the WinUAE core you can be sure of its excellence. To get E-UAE, go 
+<a href="http://www.rcdrummond.net/uae/">here</a> or if you prefer an alternative version 
+try Bernd Schmidt's original UAE from <a href="http://uae.coresystems.de/">here</a>.
+</p>
+<p>
+Of AmiKit itself I can but parrot Yoda who if he had seen and used it may
+have said.
+</p>
+<blockquote>
+&lt;Yoda&gt;Impressed I am. Use E-UAE and AmiKit I will.&lt;/Yoda&gt;
+</blockquote>
+<p>
+Finally, a quick word about Amiga ROM files and Workbench disk sets.
+</p>
+<p>
+I, like any true free, free as in free speech, not as in free beer, thinking 
+individual abhors piracy. Vendor lock in is also something I do not like but, 
+as with the nVidia graphics driver and 4Fronts OSS sound driver package, both 
+of which I use because of their superiority over GPL governed alternatives for 
+my particular hardware, sometimes one has to forgo ones principles, bite the 
+bullet so to speak and use them.
+</p>
+<p>
+Because I refuse to pirate anything and because of my liking for all things 
+Amiga I needed a way to get the ROM and Workbench disk set into a format 
+suitable for UAE and E-UAE usage. Prior to purchasing Amiga Forever the method 
+of getting the ROM and Workbench disk sets I used involved the usage of 
+GrabKick on my still owned Amiga 1200, to get a ROM image, and one or more of 
+the ADF utilities, freely available on Aminet, to convert the Workbench floppy 
+disk set into ADF format.
+</p>
+<p>
+Sure this method is a royal pain but the mere thought of pirating these files, 
+which are available from several places on the Internet, makes me cringe.
+</p>
+<p>
+Simply stated. Do Not Pirate These Files!
+</p>
+<p>
+AmiKit itself does not come with either the needed ROM files nor any Workbench 
+disks out of the box. Nor do UAE or E-UAE for that matter. The reason none of 
+these include these needed files is due to copyright. Incidentally, it is this 
+same copyright issue that forces AmiKit and such like program sets to request 
+the disks so they can copy some files off the disk into their environment so 
+that they can function stand alone. For AmiKit, I think this is a shame as 
+AmiKit is by far the most complete of its ilk which includes such names as 
+ClassicWB, Amiga-In-A-Box, AmigaSYS and possibly others I do not know about. 
+</p>
+<p>
+If you know of any complete Workbench environments, free or none free,
+not  mentioned in this article or the previous one then please email us
+at  Slackworld [gmail.com] and let us know because if there is to be a
+3rd article in this series, it will be about comparing them all side by
+side.
+</p>
+<p>
+In the murky waters that is the ownership of the Amiga Workbench and ROM arena 
+I lost track a long time as to who owns what now, but I seem to remember 
+Cloanto got the redistribution rights which may or may not have included 
+selling on the Amiga ROM and Workbench sets to third parties. They are and do 
+distribute them themselves as part of their Amiga Forever distribution, so, if 
+you want a legally purchased set then go 
+<a href="http://amikit.amiga.sk/amigaforever.htm">here</a>
+and purchase Amiga Forever which 
+includes them.
+</p>
+<p>
+<b>Breaking News!</b>
+</p>
+<p>
+It would appear I spoke to soon. Just before this article was submitted to 
+Slackworld Jan told me that AmiKit will be available as an optional package 
+for Amiga Forever 2008 which can be easily installed via Amiga Forever's 
+internal mechanism. AmiKit itself will never be commercial. Jan is adament 
+about that. <a href="http://amikit.amiga.sk/amigaforever.htm">Amiga Forever 2006</a>
+is available for purchasing right now and anyone who does buy it now will be 
+eligible for a free upgrade to 2008 when it is released, which is anytime now. 
+This news nugget (you probably heard it here first) proves that AmiKit really 
+is the best all round Amiga Workbench environment.
+</p>
+<hr>
+<p>
+Address of this article: <b><tt>http://slackworld.berlios.de/2008/amikit.html</tt></b>
+</p>
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005&ndash;2008 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

@@ -1,0 +1,117 @@
+#! /bin/bash
+#
+# remove old kernels not referenced by /etc/lilo.conf and their 
+#  associated files and modules
+#
+# Copyright (C) 2006 Grant Coady <bugsplatter@gmail.com> GPLv2
+#
+# WARNING: This script deletes kernel files!  Take care ;)
+#
+# If you're game, run this as root user...  The script notifies what it 
+#  is about to delete and gives you a chance to say no ;)
+#
+# Assumptions: Your system uses the conventional kernel naming scheme 
+#  like this example:
+#
+# /boot/config-2.6.16.20
+# /boot/bzImage-2.6.16.20	(or vmlinuz-, vmlinux-, ...)
+# /boot/System.map-2.6.16.20
+# /lib/modules/2.6.16.20
+#
+# and the next older kernel would be deleted by:
+#  rm /boot/*-2.6.16.19; rm -rf /lib/modules/2.6.16.19
+#
+# method: scan /etc/lilo.conf for currently used kernel versions 
+#  and build a list of these, along with versions of kernel files.
+#
+# sort the list and remove duplicate entries, these being kernel 
+#  versions that appear both in /etc/lilo.conf and under /boot
+#
+# display the list and ask for confirmation prior to dleting the old 
+#  kernel files.
+#
+# repeat this procedure with /etc/lilo.conf and /lib/modules, done 
+#  separately as they may be out-of-step with /boot.
+#
+# possible refinements would be to package old kernels into tarballs 
+#  into tarballs for backup instead of deleting them, or to keep old 
+#  config-* files somewhere in case of later need.
+#
+# Thanks to a.o.l.s. members for review / comments.
+#
+
+# create temp files
+KERNEL_LIST=$(mktemp -t rmklist1.XXXXXX)
+RM_KERNEL_LIST=$(mktemp -t rmklist2.XXXXXX)
+
+# get list of currently used kernel versions from /etc/lilo.conf
+sed -n 's/image = \/boot\/[a-zA-Z]*-\(.*$\)/\1/p' \
+	/etc/lilo.conf > $KERNEL_LIST
+
+# append list of installed kernel versions
+ls /boot/System.map-* | \
+	sed -n 's/\/boot\/[a-zA-Z.]*-\(.*$\)/\1/p' \
+	>> $KERNEL_LIST
+
+# discover unused kernel versions
+sort $KERNEL_LIST | uniq -u > $RM_KERNEL_LIST
+
+# display and count unused kernel versions
+count=0
+echo "Preparing to:"
+while read f; do
+	  echo "rm /boot/*$f"
+	((count++))
+done < $RM_KERNEL_LIST
+
+if [ $count -eq 0 ]; then
+	echo "  no old kernels found..."
+else
+	# get confirmation prior to deleting old kernel files
+	reply="n"
+	echo -e "\nConfirm: Really remove these (y/N) ??? \c"
+	read reply
+	case $reply in
+		Y|y|O|o|J|j|S|s) # a dash o' l0k1 ;)
+		while read f; do
+			rm /boot/*$f
+		done < $RM_KERNEL_LIST
+		;;
+	esac
+fi
+
+# do it all again for kernel modules, slightly differently
+sed -n 's/image = \/boot\/[a-zA-Z]*-\(.*$\)/\1/p' /etc/lilo.conf \
+	| sed 's/ide-//' > $KERNEL_LIST
+ls /lib/modules >> $KERNEL_LIST
+
+sort $KERNEL_LIST | uniq -u > $RM_KERNEL_LIST
+
+echo "Preparing to:"
+count=0
+while read f; do
+	echo "  rm -rf /lib/modules/$f"
+	((count++))
+done < $RM_KERNEL_LIST
+
+if [ $count -eq 0 ]; then
+	echo "  no old modules found..."
+else
+	reply="n"
+	echo -e "\nConfirm: Really remove these (y/N) ??? \c"
+	read reply
+	case $reply in
+		Y|y|O|o|J|j|S|s)
+		while read f; do
+			rm -rf /lib/modules/$f
+		done < $RM_KERNEL_LIST
+		;;
+	esac
+fi
+
+# remove temp files
+rm -f $KERNEL_LIST
+rm -f $RM_KERNEL_LIST
+
+# end
+

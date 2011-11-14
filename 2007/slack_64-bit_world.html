@@ -1,0 +1,352 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>A Few Days in the Slack 64-bit World</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2007 Grant Coady">
+ <meta name="author" content="Grant Coady">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="64-bit forks Slackware Linux Slamd64 Bluewhite64 sflack">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+<h2>A Few Days in the Slack 64-bit World</h2>
+
+ <p>
+  <b>Author:</b> Grant Coady
+ </p>
+ <p>
+  Published: March 27, 2007
+ </p>
+
+<p>
+Hardware: <a href="http://www.intel.com/products/motherboard/dp965lt/">Intel DP965LT mobo</a>
+with <a href="http://processorfinder.intel.com/details.aspx?sspec=sl9s9">Intel Core 2 Duo CPU</a>
+and  1GB main memory, 120GB + 160GB SATA hard drives and DVD burner + 
+CDROM optical drives, a <a href="http://www.gigabyte.com.tw/Products/VGA/Products_Overview.aspx?ProductID=1261&amp;ProductName=GV-NX62TC256D8">GeForce 6200 Graphics Accelerator</a>.
+</p><p>
+Check <a href="http://bugsplatter.mine.nu/system/dp965lt.html">here</a> for more 
+information and gotchas.
+</p>
+
+
+<h3>Day 1: <a href="http://www.bluewhite64.com">Bluewhite64</a></h3>
+
+<p>
+I type this as I go, bluewhite second download:
+</p><p>
+<a href="ftp://mirror.inode.at/bluewhite64/bluewhite64-11.0-dvd-iso/bluewhite64-11.0-install-dvd.iso">
+<tt class="verb">ftp://mirror.inode.at/bluewhite64/bluewhite64-11.0-dvd-iso/bluewhite64-11.0-install-dvd.iso</tt></a>
+</p><p>
+also failed md5 checksum, but I give it a go anyway.
+</p><p>
+First boot failed to see the SATA disks, booted 'test26' and the
+SATA drives are visible&mdash;this is a good start!
+</p><p>
+Installer startup looks just like slackware :o)
+</p><p>
+I'm installing to <tt class="verb">/dev/sdb2</tt> (8GB) and will boot via existing slack
+install, so <b>lilo</b> will be <tt class="verb">boot /dev/sdb2</tt>, <tt class="verb">root /dev/sdb2</tt>.
+</p><p>
+Hit setup...  Bad news, it cannot see the CDROM, plan B?  Install from
+hard drive.
+</p><p>
+Reboot to slackware and copy the DVD to <tt class="verb">/dev/sda6</tt>&mdash;cannot get slackware
+to see the DVD, reboot to openSUSE and copy the DVD to a local partition.
+</p><p>
+OpenSUSE has working <b>hald</b> and <b>udev</b> ;)
+Using the GUI to copy the DVD is
+a no-brainer...  Except I forgot to mount <tt class="verb">/dev/sda6</tt> and I'm copying to
+the freakin' mountpoint!  Luckily there's enough room for it :)
+</p><p>
+Okay, copy install source to <tt class="verb">/dev/sda6 -&gt; bw64</tt>, I'm doing this in an
+<b>ssh</b> session, underneath the GUI.  For me, this is familiar territory.
+</p><p>
+Note: the 'slackware' directory is renamed to 'bluewhite64', so the
+install path will be <tt class="verb">/dev/sda6 -&gt; /bw64/bluewhite64</tt>.
+</p><p>
+Here goes.  The example for HDD install is labelled <tt class="verb">/stuff/bluewhite64</tt>!
+</p><p>
+Hah!  Can see the install source :o))
+</p><p>
+Take the defaults from a 'menu' install&mdash;<b>linuxdoc</b> is corrupt, that's
+a relief 'cos I don't use it ;)  Oops, <b>qt</b> is corrupt too :(  That's bad.
+</p><p>
+Now I hit the install kernel from HDD cannot find kernels. Bug, copy
+<tt class="verb">/cdrom/bw64/kernels/test26.s/bzImage</tt> to <tt class="verb">/mnt/boot</tt>,
+as well as its <tt class="verb">config</tt>.
+</p><p>
+Reboot to slackware to make a main <b>lilo</b> boot stanza for the new OS.
+</p><p>
+Kernel panic :(  cannot mount the root &mdash;&gt; Reboot to slackware&mdash;let's
+fix this?  Kernel is <tt class="verb">/boot/bzImage</tt>, not <tt class="verb">vmlinuz</tt>!!
+</p><p>
+Well here I am, at a bw64 login: prompt  . . .  bluewhite64 is running,
+it includes the expected slackware installer quirks and recovery methods.
+</p><p>
+Familiar territory for a slacker lucky enough to upgrade to modern
+64bit hardware :)
+</p><p>
+Beware&mdash;I need to install the kernel modules from <tt class="verb">/testing</tt> to suit the
+boot kernel&mdash;reboot...
+</p><p>
+Install missing <b>nfs-utils</b>, we have NFS!
+</p><p>
+Okay, add 'grant' user and edit <tt class="verb">/etc/fstab</tt> to include the kernel source
+partition, compile a new 2.6.19.7 kernel to suit the hardware.
+</p><p>
+Reboot to new kernel, so now we have sound :)
+</p><p>
+KDE can't start due to the missing <b>libqt</b>...
+</p><p>
+Okay, we're on the familiar territory of finding and fixing the minor
+glitches, I'm disappointed at the mirror holding an apparently faulty
+.iso image&mdash;but the thing installed with only the usual minor hiccups.
+</p><p>
+Compiling 2.6.19.7 took 2 minutes for '<b>time make -j4</b>' :)
+</p><p>
+Now I need to grab the faulty packages and get KDE going.
+</p>
+
+
+<h3>Day 2:
+<a href="http://www.slamd64.com/">Slamd64</a></h3>
+
+<p>
+Install was straightforward, as expected the installer couldn't find
+the cdrom so I installed from hard drive.  Slamd64 comes with a 2.6.16.29
+kernel which is a bit old.
+</p><p>
+Slamd64 had no problems installing <b>vmware</b> 5.5.3, it even works :)
+</p><p>
+NFS not behaving&mdash;unsure what the problem is as yet.  NFS worked as
+expected with BW64.
+</p><p>
+Some screens in grey rather than the expected colours&mdash;me not sort out
+why yet&mdash;minor niggle.
+</p><p>
+KDE runs okay.  Basically, Slamd64 works out of the 'box', apart from NFS.
+</p>
+
+
+<h3>Day 3: Updates</h3>
+<p>
+I've now got the local mirror of slamd64 install tree up-to-date with 
+the source and will add at least one more installment after applying 
+the patches since NFS gets a couple mentions in the Changelog.  Here's 
+the update story.
+</p>
+<p>
+Both BW64 and slamd64 have active <b>rsync</b> mirrors which allows me to
+maintain a local install tree mirror&mdash;updating is then a simple
+'<b>updatepkg /home/mirror/&lt;distro&gt;/patches/packages/*tgz</b>', except the
+initial slamd64 will be via local hard drive as I <b>rsync</b> the install
+tree over while booted into BW64.
+</p><p>
+Updating slamd64
+</p><p>
+Syncing up the local install tree with the mirror is an <b>rsync</b> one liner:
+</p>
+<pre class="listing">
+rsync -avPH --delete --progress \
+         rsync://mirror.vbfx.com/slamd64/slamd64-11.0/ \
+         /home/mirror/slamd64-11.0
+</pre>
+<p>
+Refresh the hard drive install source from the local server with:
+</p>
+<pre class="listing">
+rsync -avPH --delete --progress /home/mirror/slamd64-11.0/ slamd64-11.0
+</pre>
+reboot to slamd64 and run the update:
+<pre class="listing">
+upgradepkg /home/grant/vmware/slamd64-11.0/patches/packages/*tgz
+</pre><p>
+(<tt class="verb">/home/grant/vmware</tt> is the temporary home of the install source).
+</p><p>
+Restart the NFS by issuing '<b>/etc/rc.d/rc.nfsd restart</b>' and
+'<b>/etc/rc.d/rc.rpc restart</b>' and NFS mounts now work without locking up.
+</p><p>
+Now I modify <tt class="verb">/etc/fstab</tt> to mount the <tt class="verb">/home/common</tt>
+NFS export on boot
+and reboot to check there is no longer a bootup warning.  No, slamd64
+still stalls on boot with an NFS error :(  For me, this is a showstopper.
+I've applied the patches and slamd64 still stalls on boot, unusable.
+</p><p>
+Read through the slamd64 forum but see no mention of NFS problems,
+cannot register to report the issue as the registration page looped on
+submit then kicked me out after five tries :(  I had no such problem
+registering on the bluewhite64 site.
+</p><p>
+Current status:
+Slamd64 is a no go due to the NFS issue, while BW64 cannot run <b>vmware</b>
+at the moment, Arny (the maintainer of BW64) is going to try it and report back.
+</p><p>
+</p><p>
+Note: openSUSE 64bit is working fine, and <b>YaST</b> on a fast box is almost
+bearable.  At the moment openSUSE works, and bluewhite64 is a promising
+slackware port.  Slamd64 is depressing since it has the showstopper no
+NFS plus is dreary grey on screens (<b>vim</b> and <b>make menuconfig</b>) that are
+usually coloured.
+</p>
+
+
+<h3>Day 4: Slamd64-current</h3>
+<p>
+Using the slamd64 DVD install tree as a base, I <b>rsync</b>'d it to get a
+slamd64-current install tree.  Then <b>rsync</b> across to new box preparing
+for a hard drive install.
+</p><p>
+Install from boot to slamd64 DVD to reboot into the new system took 14
+minutes!  This was an install from hard drive.  Slamd64-current uses the
+2.6.18 kernel and I'm pleased to report mounted the localnet system-wide
+NFS export without a hitch.
+</p><p>
+I'm also pleased to report that the colour is back to 'normal', compared
+with the earlier slamd64 install.  Let me explain, the first file I copy
+to a new install is a <tt class="verb">.vimrc</tt> for the root account, then when I edit the
+<tt class="verb">/etc/fstab</tt> I expect a known colour scheme.  The first file I create is
+<tt class="verb">.ssh/authorized_keys</tt> to allow password-less login from localnet machines.
+</p><p>
+Then I add the NFS mounts to the <tt class="verb">/etc/fstab</tt> file and create a user account.
+</p><p>
+
+
+<h3>Day 5: The Two plus <a href="http://www.sflack.com/">Sflack</a></h3>
+<p>
+State of play:
+</p><p>
+Bluewhite64-11.0, bluewhite64-current: waiting for Arny to try installing
+<b>vmware</b> and fix the library issue.
+</p><p>
+Slamd64-11.0: no NFS&mdash;fixed in <tt class="verb">-current</tt>.
+Slamd64-current works on the few tests I've used: NFS, sound in KDE, install
+<b>vmware</b> okay.
+</p><p>
+Sflack-11.0 library issue prevents install of <b>vmware</b>, has sound in KDE, for
+some reason is about 12% slower in the kernel compile benchmark.
+</p><p>
+Sflack-current not sufficiently different (only two packages) to bother
+installing for test.
+</p><p>
+Conclusions?  At this early stage I'm likely to drop Sflack and track
+BW64-current as well as slamd64-current.
+</p><p>
+I'm also running openSUSE-10.2 and WinXP on the new box.  At present the
+openSUSE <b>grub</b> boot loader owns the MBR and can reach any of the eight
+installed OS.  This is too many OS to support in the one box but hey, this
+is for fun, right?
+</p><p>
+No confirmation email for joining slamd64 forum yet :(
+I need to wait for the world to catch up.
+</p>   
+
+
+<h3>Day 6: More on Vmware</h3>
+<p>
+I'm disliking sflack 'cos it's hard to pronounce, besides it
+infringes on Patrick's &quot;don't use slackware or anything sounding
+like slack&quot; (paraphrased) request for slackware clones.  Sflack
+is the least developed of the three, going by the <tt class="verb">-current</tt> offering.
+</p><p>
+I installed nVidia 64bit video driver to slamd64-current without
+a problem.  Also successfully installed 64-bit <b>vmware</b> 6.0beta to
+BW64 but it failed to load a guest OS, again due to the missing
+library&mdash;I assume this 'cos if I symlink <tt class="verb">ld-linux.so.2</tt> in I get
+a 'corrupted shared...' error, same as I had with <b>vmware</b> 5.5.3.
+</p><p>
+The 64bit <b>vmware</b> 6.0beta works in slamd64-current.  As far as a
+64-bit slackware clone goes, slamd64-current is the one that fails
+to fail ;)
+</p>
+
+<h3>Day 7: Why 64?</h3>
+<p>
+Another comparison: why go 64-bit?  Consider that the best kernel compile
+time for 64bit mode was just under two minutes, and with slackware the
+same test returns 2m13 for a '<b>make clean; time make -j4</b>'.  Running 64-bit
+mode would appear to be 10% faster than running 32bit mode on the same
+hardware.  For comparison, on a 2.4GHz P4 HT box the result is 6m25.
+</p><p>
+The <b>vmware</b> 6.0beta comes in 32 or 64-bit versions for linux.  Likewise
+the nVidia display driver.
+</p><p>
+Another comparison between 32 and 64-bit modes, both with latest nVidia
+drivers and kernel 2.6.20.3: <b>glxgears</b> on slackware yields 1638fps, on
+slamd64-current 1760fps which is a 7.5% improvement.
+</p>
+
+<h3>Day 8: YaST (abbr.)</h3>
+<p>
+Bluewhite64 ask EUR39 (USD51) for a DVD.
+Slamd64 asks for an 'appropriate' donation.
+Sflack don't ask for anything.
+</p><p>
+All offer a free download.
+</p><p>
+Last night I sucked slamd64-current and sflack out of the logical
+partitions and into the primaries.  Overwriting the BW64 and Slamd64
+installations.  Why?  So I can use <b>lilo</b> as boot loader&mdash;even the
+latest version of <b>lilo</b> cannot see the second drive logical partitions.
+</p><p>
+Done this because <b>YaST</b> -&gt; system -&gt; boot loader locked up again, the
+thing was respawning a file parser looping forever, 
+I hate <b>YaST</b>&mdash;Yet another Stupid Thing ;)
+</p>
+
+<h3>Day 9</h3>
+<p>
+Sflack also seems slow.  It is going from my list, leaving slamd64-current
+in top place with BW64-current in second.  I'm
+yet to hear from Fred (the maintainer of Slamd64).  Installation of 64-bit 
+nVidia graphics driver to
+BW64 failed due to library issues :(  This promotes slamd64-current to
+being the only useful 64bit variant of slackware, no?  The nVidia install
+also fails for sflack, very early 'file not found' (unspecified).
+</p>
+
+<h3>Conclusions</h3>
+<p>
+Other users do not have the same problems I see with bluewhite64, I can only 
+assume it is the hardware being newer.  
+I installed bluewhite64 again from clean source which failed to resolve 
+the issues.  For me, slamd64-current does the expected.  
+</p><p>
+One needs to take great care when installing from a corrupt DVD image, in 
+retrospect, I would check the install tree first and delete any faulty files, 
+then rsync the replacement files in <em>before</em> installing.  
+Much confusion in the above would then be avoided.
+</p>
+
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005, 2006, 2007 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

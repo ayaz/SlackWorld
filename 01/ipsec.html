@@ -1,0 +1,749 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+ "http://www.w3.org/1999/xhtml">
+<head>
+ <title>The Slack World, Issue 1, 2005. Securing IP traffic with IPsec</title>
+
+ <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st March 2005), see www.w3.org">
+ <meta http-equiv="Content-Type" content=
+  "text/html; charset=us-ascii">
+ <meta name="generator" content="Website XSL Stylesheet V2.5.0">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+ <link rel="first" href="editorial.html" title="Editorial">
+ <link rel="previous" href="news.html" title="Slack News">
+ <link rel="next" href="wisdom.html" title="Slack Wisdom">
+ <link rel="last" href="acknowledgements.html" title="Acknowledgements">
+
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue  #1, April 2005
+  </p>
+
+        <h1>Securing IP traffic with IPsec</h1>
+
+        <h2 class="subtitle">Encrypting host to host communication
+        with ESP</h2>
+
+        <p><b>Author:</b> Daniel de Kok</p>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "id2401462" id="id2401462"></a>Introduction</h2>
+            </div>
+          </div>
+
+          <p>This short article describes how to set up the IPsec
+          functionality in Linux 2.6 kernels, and how to use IPsec
+          on Slackware Linux. Be aware that this is not an in-depth
+          guide of the IPsec tools, please refer to the ipsec-tools
+          documentation for more in-depth information about the
+          various parameters and options that can be set.</p>
+
+          <p>IPsec is a collection of protocols that provide
+          authentication, encryption and compression. The IPsec
+          protocol is defined in several RFCs, and is a mandatory
+          part of the new IETF standard for IP traffic (IPv6). The
+          following protocols are defined in the IPsec
+          standard:</p>
+
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+                <p>AH (Authentication Header) provides authenticity
+                guarantee for transported packets. This is done by
+                checksumming the packages using a cryptographic
+                algorithm. If the checksum is found to be correct
+                by the receiver, the receiver can be assured that
+                the packet is not modified, and that the packet
+                really originated from the reported sender
+                (provided that the keys are only known by the
+                sender and receiver).</p>
+              </li>
+
+              <li>
+                <p>ESP (Encapsulating Security Payload) is used to
+                encrypt packets. This makes the data of the packet
+                confident, and only readable by the host with the
+                right decryption key.</p>
+              </li>
+
+              <li>
+                <p>IPcomp (IP payload compression) provides
+                compression before a packet is encrypted. This is
+                useful, because encrypted data generally compresses
+                worse than unencrypted data.</p>
+              </li>
+
+              <li>
+                <p>IKE (Internet Key Exchange) provides the means
+                to negotiate keys in secrecy. Please note that IKE
+                is optional, keys can be configured manually.</p>
+              </li>
+            </ul>
+          </div>
+
+          <p>In this article we will focus on using ESP to encrypt
+          traffic, and Racoon to do the initial key exchange. To
+          use IPsec two types of entries should be added: security
+          associations (SAs) and security policies (SPs). Security
+          policies define IPsec policies for certain connections.
+          For example, you can specify to encrypt all the packages
+          to host <span class="emphasis"><i>192.168.1.11</i></span>
+          with ESP. The kernel uses security associations to decide
+          how the specified policy is going to be handled. For
+          example, the encryption key and encryption algorithm
+          settings for a connection are specified in a security
+          association. We will manually set up the security
+          policies, and let racoon take care of the security
+          associations.</p>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "ipsec-slackware" id="ipsec-slackware"></a>The state
+              of IPsec in Slackware</h2>
+            </div>
+          </div>
+
+          <p>Slackware Linux has provided a Linux 2.6 kernel since
+          Slackware Linux 10.0. The 2.6 kernel is available in
+          Slackware 10.0 and 10.1 from the <tt>testing</tt>
+          directory on CD2 of the Slackware Linux CD sets, or any
+          of the official Slackware mirrors. The default Slackware
+          2.6 kernel has support for AH, ESP and IPcomp in for both
+          IPv4 and IPv6. If you are compiling a custom kernel
+          enable use at least the following options in your kernel
+          configuration:</p>
+          <pre class="screen">
+CONFIG_INET_AH=y
+CONFIG_INET_ESP=y
+CONFIG_INET_IPCOMP=y
+    
+</pre>
+
+          <p>Or you can compile support for IPsec protocols as a
+          module:</p>
+          <pre class="screen">
+CONFIG_INET_AH=m
+CONFIG_INET_ESP=m
+CONFIG_INET_IPCOMP=m
+    
+</pre>
+
+          <p>When you choose to compile IPsec support as a module,
+          make sure that the required modules are loaded. For
+          example, if you are going to use ESP for IPv4
+          connections, load the <span class=
+          "emphasis"><i>esp4</i></span> module.</p>
+
+          <p>Besides having kernel support you need userland tools
+          to set up IPsec connections, and an IKE daemon for doing
+          key exchanges. For IPsec with Linux 2.6 the Linux port of
+          the KAME IPsec tools are the most widely used utilities.
+          The KAME IPsec tools are not included in Slackware Linux
+          10.0 or 10.1. The next section describes how to install
+          the KAME IPsec tools.</p>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "ipsec-install-ipsec-tools" id=
+              "ipsec-install-ipsec-tools"></a>Installing the KAME
+              IPsec tools</h2>
+            </div>
+          </div>
+
+          <p>This section is divided in two parts, you can install
+          the IPsec tools manually, or use the build script that is
+          provided with this article.</p>
+
+          <div class="section">
+            <div class="titlepage">
+              <div>
+                <h3 class="title"><a name=
+                "ipsec-install-ipsec-tools-manual" id=
+                "ipsec-install-ipsec-tools-manual"></a>Manually
+                compiling the IPsec tools</h3>
+              </div>
+            </div>
+
+            <p>You can download the latest sources for the KAME
+            IPsec tools at <a href=
+            "http://ipsec-tools.sourceforge.net" target=
+            "_top">http://ipsec-tools.sourceforge.net</a>. After
+            downloading the sources you can compile the KAME IPsec
+            tools in the traditional way:</p>
+            <pre class="screen">
+# <b>tar jxf ipsec-tools-x.y.z.tar.bz2</b>
+# <b>cd ipsec-tools-x.y.z</b>
+# <b>CFLAGS="-O2 -march=i486 -mcpu=i686" \
+  ./configure --prefix=/usr \
+              --sysconfdir=/etc \
+              --localstatedir=/var \
+              --enable-hybrid \
+              --enable-natt \
+              --enable-dpd \
+              --enable-frag \
+              i486-slackware-linux</b>
+# <b>make</b>
+# <b>make install</b>
+      
+</pre>
+
+            <p>Replace <span class="emphasis"><i>x.y.z</i></span>
+            with the version of the downloaded sources. The most
+            notable flags that we specify during the configuration
+            of the sources are:</p>
+
+            <div class="itemizedlist">
+              <ul type="disc">
+                <li>
+                  <p><span class=
+                  "emphasis"><i>--enable-dpd</i></span>: enables
+                  dead peer detection (DPD). DPD is a method for
+                  detecting wether any of the hosts for which
+                  security associations are set up is unreachable.
+                  When this is the case the security associations
+                  to that host can be removed.</p>
+                </li>
+
+                <li>
+                  <p><span class=
+                  "emphasis"><i>--enable-natt</i></span>: enables
+                  NAT traversal (NAT-T). Since NAT alters the IP
+                  headers, this causes problems for guaranteeing
+                  authenticity of a packet. NAT-T is a method that
+                  helps overcoming this problem. Configuring NAT-T
+                  is beyond the scope of this article.</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="titlepage">
+              <div>
+                <h3 class="title"><a name=
+                "ipsec-install-ipsec-tools-slackbuild" id=
+                "ipsec-install-ipsec-tools-slackbuild"></a>Automatically
+                compiling the IPsec tools</h3>
+              </div>
+            </div>
+
+            <p>For this article SlackBuild script has been made
+            available. The SlackBuild script builds a package that
+            includes the default Racoon configuration that is used
+            in this article. You can download the SlackBuild script
+            through this link:
+            <a href="ftp://ftp.berlios.de/pub/slackworld/ipsec-tools-slackbuild.tar.gz"
+            target="_top">ipsec-tools-slackbuild.tar.gz</a>.</p>
+
+            <p>You can use this SlackBuild script to build an
+            ipsec-tools package. The procedure is quite simple,
+            unpack the in the usual way:</p>
+            <pre class="screen">
+# <b>tar zxf /path/to/ipsec-tools-slackbuild.tar.gz</b>
+      
+</pre>
+
+            <p>After unpacking the archive, you can drop the
+            ipsec-tools 0.5 source tarball in the
+            <tt>ipsec-tools</tt> directory, and execute <b>sh
+            ipsec-tools.SlackBuild</b>. If the compilation was
+            succesful, the package will be available as
+            <tt>/tmp/ipsec-tools-0.5-i386-1.tgz</tt>, which you can
+            install with <b>installpkg</b>.</p>
+
+            <p>If you are using a newer source tarball you should
+            also update the version number in the
+            <tt>ipsec-tools.SlackBuild</tt> script.</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "ipsec-spd" id="ipsec-spd"></a>Setting up security
+              policies</h2>
+            </div>
+          </div>
+
+          <p>At this point we can start to configure IPsec. The
+          first thing you will want to do is to set up some IPsec
+          policies. These policies define for what connections you
+          would like to apply one of the IPsec protocols. Policies
+          can be added to the security policy database (SPD) in the
+          kernel with the <b>setkey</b> command. <b>setkey</b> can
+          read security policies from a file, so it is a good idea
+          to put the policies in a file, for example
+          <tt>/etc/setkey.conf</tt>. Let's get started by looking
+          at an example:</p>
+          <pre class="screen">
+#!/usr/sbin/setkey -f
+
+# Flush SPD
+spdflush;
+
+spdadd 192.168.1.10 192.168.1.11 any -P out ipsec
+        esp/transport//require;
+
+spdadd 192.168.1.11 192.168.1.10 any -P in ipsec
+        esp/transport//require;
+    
+</pre>
+
+          <p>You should have no trouble recognizing the first line,
+          which sets <b>/usr/sbin/setkey</b> to be the interpreter
+          for this file (in case it is executed). The first thing
+          we do is flushing the security policy database, with the
+          <b>spdflush</b> command. If you have set up any other
+          security policies that you want to keep you should not
+          flush the security policy database.</p>
+
+          <p>The next to commands add policies to the security
+          policy database. The following syntax is used for
+          <b>spdadd</b> commands:</p>
+          <pre class="screen">
+spdadd src_range dst_range upperspec policy ;
+    
+</pre>
+
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+                <p><span class="emphasis"><i>src_range</i></span>:
+                the source of the packet, this can be a network
+                address range or a single IP address.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>dst_range</i></span>:
+                the destination of the packets, this can also be a
+                network address range or a single IP address.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>upperspec</i></span>:
+                this is the upper layer protocol to be used. This
+                is the protocol that is embedded in the new IPsec
+                protocol packages. Any protocol from
+                <tt>/etc/protocol</tt> can be specified, but not
+                all these protocols work with IPsec. Normally the
+                protocol to be Normally either <span class=
+                "emphasis"><i>tcp</i></span>, <span class=
+                "emphasis"><i>udp</i></span>, <span class=
+                "emphasis"><i>icmp</i></span> or <span class=
+                "emphasis"><i>any</i></span> are specified.
+                <span class="emphasis"><i>any</i></span> stands for
+                &ldquo;any protocol&rdquo;.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>policy</i></span>: the
+                policy to be applied to the packet that matches
+                these criteria.</p>
+              </li>
+            </ul>
+          </div>
+
+          <p>We can now deduct that the first command sets up a
+          security policy for packets traveling from 192.168.1.10
+          to 192.168.1.11 with any protocol, and the second command
+          sets up the same policy in reverse direction. The policy
+          specification of the spdadd command can have a few forms,
+          in this example we will only use this (simplified)
+          form:</p>
+          <pre class="screen">
+-P direction ipsec protocol/mode/src-dst/level
+    
+</pre>
+
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+                <p><span class="emphasis"><i>direction</i></span>:
+                this parameter specifies in what direction the
+                packets are going. This can either be <span class=
+                "emphasis"><i>in</i></span>, <span class=
+                "emphasis"><i>out</i></span> or <span class=
+                "emphasis"><i>fwd</i></span> (forward). Simply put,
+                all packets arriving on the machine that you are
+                configuring are in the <span class=
+                "emphasis"><i>in</i></span> direction, packets that
+                are sent out are in the <span class=
+                "emphasis"><i>out</i></span> direction. We will not
+                deal with <span class="emphasis"><i>fwd</i></span>
+                in this article.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>protocol</i></span>:
+                the IPsec protocol to apply.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>mode</i></span>: there
+                are two modes for IPsec, <span class=
+                "emphasis"><i>transport</i></span> and <span class=
+                "emphasis"><i>tunnel</i></span> mode. Transport
+                mode is used for handling packets that are sent
+                between two machines, tunnel mode is used for
+                packets that are sent from one network to another
+                via two gateways.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>src-dst</i></span>:
+                the source and destination gateways, this is only
+                used for tunnel mode.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>level</i></span>: this
+                specifies how this policy should be handled when
+                there are, or are not, set up security
+                associations. We will only use the <span class=
+                "emphasis"><i>require</i></span> level, which will
+                require a security association to be set up. This
+                means that no packets that match the policy will be
+                sent or received, unless the association is set up,
+                guaranteeing that the packets are encrypted.</p>
+              </li>
+            </ul>
+          </div>
+
+          <p>Now that the syntax of the policy is explained, it
+          should be no trouble to read the policies of the two
+          example SPD commands. Both policies specify that we
+          require usage of ESP for packets that match the criteria.
+          The first command specifies a policy for outgoing
+          packets, the second command for incoming packets.</p>
+
+          <p>At this point policies are set up for packets sent out
+          on 192.168.1.10 going to 192.168.1.11, and packets coming
+          in from 192.168.1.11 on 192.168.1.10. On the machine with
+          IP address 192.168.1.11 we can use the same policy with
+          the <span class="emphasis"><i>in</i></span> and
+          <span class="emphasis"><i>out</i></span> parameters
+          swapped:</p>
+          <pre class="screen">
+#!/usr/sbin/setkey -f
+
+# Flush SPD
+spdflush;
+
+spdadd 192.168.1.10 192.168.1.11 any -P in ipsec
+        esp/transport//require;
+
+spdadd 192.168.1.11 192.168.1.10 any -P out ipsec
+        esp/transport//require;
+    
+</pre>
+
+          <p>After setting up some policies you can add them to the
+          kernel security policies database with the <b>setkey
+          -f</b> command, for example: <b>setkey -f
+          /etc/setkey.conf</b>. If you want to set up these
+          policies automatically when a system boots, you can add
+          something along these lines to
+          <b>/etc/rc.d/rc.inet1</b>:</p>
+          <pre class="screen">
+if [ -x /usr/sbin/setkey ] &amp;&amp; [ -r /etc/setkey.conf ]; then
+  /usr/sbin/setkey -f /etc/setkey.conf
+fi
+    
+</pre>
+
+          <p>For a more extensive explanation of the <b>setkey</b>,
+          read the <b>setkey</b>(8) manual page.</p>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "ipsec-racoon" id="ipsec-racoon"></a>Setting up
+              racoon</h2>
+            </div>
+          </div>
+
+          <p>When the kernel handles a packet for which a security
+          policy is set up, the kernel will look up the security
+          associations database (SAD) to see what parameters (e.g.
+          encryption key) should be used for handling the packet.
+          We will use the racoon daemon to set up security
+          associations.</p>
+
+          <p>Racoon establishes a security association after a key
+          exchange that is done in two stages:</p>
+
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+                <p><span class="emphasis"><i>Phase 1</i></span>:
+                during this phase the authenticity of another host
+                is verified. When the verification is successful, a
+                secure channel is set up between the two hosts,
+                that is used to continue the key exchange. One of
+                the commonly used methods of verifying the
+                authenticity of another host is by using a
+                pre-shared key that both hosts should know.</p>
+              </li>
+
+              <li>
+                <p><span class="emphasis"><i>Phase 2</i></span>:
+                during this step the security association for
+                communication with the other host is set up. For
+                ESP this involves choosing the encryption algorithm
+                to be used, and generation of the keys that are
+                used for encrypting packets.</p>
+              </li>
+            </ul>
+          </div>
+
+          <p>An example racoon configuration is listed below. This
+          configuration is also used in the SlackBuild script that
+          is linked from this article. Configuration of racoon is
+          extensively described in the <b>racoon.conf</b>(5) manual
+          page. In short, we define two sections, one for phase 1
+          (<span class="emphasis"><i>remote</i></span>) and one for
+          phase 2 (<span class="emphasis"><i>sainfo</i></span>),
+          that specify which algorithms should be used for
+          encryption and hashing. In addition, we specify in the
+          <span class="emphasis"><i>remote</i></span> section that
+          we would like to use pre-shared keys to verify the
+          authenticity of the other host. As specified with the
+          <span class="emphasis"><i>path pre_shared_key</i></span>
+          option, the <tt>/etc/racoon/psk.txt</tt> file will be
+          used as the pre-shared key database.</p>
+          <pre class="screen">
+# search this file for pre_shared_key with various ID key.
+path pre_shared_key "/etc/racoon/psk.txt";
+
+# racoon will look for certificate file in the directory,
+# if the certificate/certificate request payload is received.
+path certificate "/etc/racoon/certs";
+
+remote anonymous
+{
+        exchange_mode aggressive, main;
+        my_identifier address;
+        proposal {
+                encryption_algorithm 3des;
+                hash_algorithm sha1;
+                authentication_method pre_shared_key;
+                dh_group 2;
+        }
+}
+
+sainfo anonymous
+{
+        pfs_group 2;
+        encryption_algorithm 3des, blowfish 448, rijndael;
+        authentication_algorithm hmac_sha1, hmac_md5;
+        compression_algorithm deflate;
+}
+    
+</pre>
+
+          <p>The pre-shared key database has a very simple
+          two-column format. The first column specifies the host
+          name or IP address, the second column the shared key.
+          Both columns are separated with whitespace. When the key
+          is prefixed with <span class="emphasis"><i>0x</i></span>,
+          the key is interpreted as a hexadecimal number. For
+          example, an entry in the database could look like this
+          (obviously, the key should be a good random string of
+          letters, numbers and other characters):</p>
+          <pre class="screen">
+192.168.1.11    This is some secret key
+    
+</pre>
+
+          <p>Racoon can now be started with the <b>racoon</b>
+          command. The SlackBuild script includes a startup script
+          for racoon. If you want to start racoon when the system
+          boots, make the startup script executable:</p>
+          <pre class="screen">
+# <b>chmod a+x /etc/rc.d/rc.racoon</b>
+    
+</pre>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "id2409820" id="id2409820"></a>Testing your IPsec
+              configuration</h2>
+            </div>
+          </div>
+
+          <p>After you have added the security policies to the
+          security policy database, and started Racoon, you can
+          test your IPsec configuration. For instance, you could
+          ping the other host to start with. The first time you
+          ping the other host, this will fail:</p>
+          <pre class="screen">
+$ <b>ping 192.168.1.11</b>
+connect: Resource temporarily unavailable
+    
+</pre>
+
+          <p>The reason for this is that the security associations
+          still have to be set up. But the ICMP packet will trigger
+          the key exchange. ping will trigger the key exchange. You
+          can see whether the exchange was succesful or not by
+          looking at the Racoon log messages in
+          <tt>/var/log/messages</tt>. A succesful key exhange looks
+          like this:</p>
+          <pre class="screen">
+ Apr  4 17:14:58 terrapin racoon: INFO: IPsec-SA request for 192.168.1.11 queued due to no phase1 found.
+ Apr  4 17:14:58 terrapin racoon: INFO: initiate new phase 1 negotiation: 192.168.1.10[500]&lt;=&gt;192.168.1.11[500] 
+ Apr  4 17:14:58 terrapin racoon: INFO: begin Aggressive mode. 
+ Apr  4 17:14:58 terrapin racoon: INFO: received Vendor ID: DPD 
+ Apr  4 17:14:58 terrapin racoon: NOTIFY: couldn't find the proper pskey, try to get one by the peer's address.
+ Apr  4 17:14:58 terrapin racoon: INFO: ISAKMP-SA established 192.168.1.10[500]-192.168.1.11[500] spi:58c4669f762abf10:60593eb9e3dd7406
+ Apr  4 17:14:59 terrapin racoon: INFO: initiate new phase 2 negotiation: 192.168.1.10[0]&lt;=&gt;192.168.1.11[0] 
+ Apr  4 17:14:59 terrapin racoon: INFO: IPsec-SA established: ESP/Transport 192.168.1.11-&gt;host1ip; spi=232781799(0xddff7e7) 
+ Apr  4 17:14:59 terrapin racoon: INFO: IPsec-SA established: ESP/Transport 192.168.1.10-&gt;192.168.1.11 spi=93933800(0x59950e8) 
+    
+</pre>
+
+          <p>After the key exchange, you can verify that IPsec is
+          set up correctly by analyzing the packets that go in and
+          out with <b>tcpdump</b>. tcpdump is available in the
+          <span class="emphasis"><i>n</i></span> diskset. Suppose
+          that the outgoing connection to the other host goes
+          through the <span class="emphasis"><i>eth0</i></span>
+          interface, you can analyze the packats that go though the
+          <span class="emphasis"><i>eth0</i></span> interface with
+          <b>tcpdump -i eth0</b>. If the outgoing packets are
+          encrypted with ESP, you can see this in the
+          <b>tcpdump</b> output. For example:</p>
+          <pre class="screen">
+# <b>tcpdump -i eth0</b>
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 96 bytes
+17:27:50.241067 IP terrapin.taickim.net &gt; 192.168.1.11: ESP(spi=0x059950e8,seq=0x9)
+17:27:50.241221 IP 192.168.1.11 &gt; terrapin.taickim.net: ESP(spi=0x0ddff7e7,seq=0x9)
+    
+</pre>
+        </div>
+
+        <div class="section">
+          <div class="titlepage">
+            <div>
+              <h2 class="title" style="clear: both"><a name=
+              "id2409937" id="id2409937"></a>Links</h2>
+            </div>
+          </div>
+
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+                <p><a href="http://www.ipsec-howto.org/" target=
+                "_top">The official IPsec Howto for Linux</a></p>
+              </li>
+
+              <li>
+                <p><a href=
+                "http://www.netbsd.org/Documentation/network/ipsec/"
+                target="_top">NetBSD IPsec FAQ</a></p>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+<!--
+        <div id="id2409972" class="bibliography">
+          <div class="titlepage">
+            <div>
+              <h2 class="title"><a name="id2409972" id=
+              "id2409972"></a>Bibliography</h2>
+            </div>
+          </div>
+-->
+
+        <div class="bibliography">
+          <div class="titlepage">
+            <div>
+              <h2 class="title">Bibliography</h2>
+            </div>
+          </div>
+          <div class="biblioentry">
+            <p>[RFC2402] <span class="title"><i>IP Authentication
+            Header</i>.</span> <span class="authorgroup">S. Kent
+            and R. Atkinson.</span> <span class="pubdate">November
+            1998.</span></p>
+          </div>
+
+          <div class="biblioentry">
+            <p>[RFC2406] <span class="title"><i>IP Encapsulating
+            Security Payload (ESP)</i>.</span> <span class=
+            "authorgroup">S. Kent and R. Atkinson.</span>
+            <span class="pubdate">November 1998.</span></p>
+          </div>
+
+          <div class="biblioentry">
+            <p>[RFC2409] <span class="title"><i>The Internet Key
+            Exchange (IKE)</i>.</span> <span class="authorgroup">D.
+            Harkins and D. Carrel.</span> <span class=
+            "pubdate">November 1998.</span></p>
+          </div>
+        </div>
+
+<!-- invariant part -->
+  <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles are copyrighted by their authors.
+ </address><br>
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="news.html" title="Slack News"><b>News</b></a>
+    <a class="menu" href="ipsec.html" title="Slackopaedia"><b>Slackopedia</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="hhkb.html" title="Slack Gear"><b>Gear</b></a>
+    <a class="menu" href="acknowledgements.html" title="Slack Gear"><b>Acks</b></a>
+  </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

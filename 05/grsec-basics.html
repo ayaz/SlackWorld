@@ -1,0 +1,492 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 5, 2006. Slack Notes</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005, 2006 The Slack World">
+ <meta name="keywords" content="Linux, linux, grsecurity">
+ <meta name="description" content="Slack Notes">
+ <meta name="author" content="Mikhail Zotov">
+
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #5, September 2006
+  </p>
+  <h2>
+   Slack Notes: The Very Basics of Using Grsecurity
+  </h2>
+
+  <p>
+   <b>Author:</b> Mikhail Zotov
+  </p>
+
+  <h3>
+   Introduction
+  </h3>
+  <p>
+   It is probably impossible to find a Linux user interested in security
+   who haven't heard about <a href="http://www.grsecurity.net/"><b>grsecurity</b></a>,
+   a project maintained by Bradley Spengler.
+   Essentially, <b>grsecurity</b> consists of a kernel patch (this is
+   <b>grsecurity</b> by itself) and <b>gradm</b>, a userspace
+   <a href="http://en.wikipedia.org/wiki/Role-Based_Access_Control">Role Based Access
+   Control</a> (RBAC) administration system.
+   Here, we won't dig into depth of the project but will only
+   "scratch the surface" by demonstrating how one can
+   <em>easily</em> enhance security and privacy of a multi-user Linux system
+   by just applying the kernel patch.
+   The last section provides references for further reading and advanced
+   using of <b>grsecurity</b>.
+  </p><p>
+   In what follows, we will focus on achieving the following goals:
+  <ul>
+   <li> we will restrict users to allow them only view their own processes,</li>
+   <li> we will introduce (pseudo-)randomness in process IDs and
+     TCP source ports, i.e., we will enable a number of
+     features implemented in <a href="http://www.openbsd.org">OpenBSD</a> for
+     protection against certain classes of attacks,</li>
+   <li> we will enable a number of other protections.</li>
+  </ul>
+  <p>
+   This is only a small fraction of what can be done with <b>grsecurity</b>.
+   A complete list of features provided by the project can be found
+   <a href="http://www.grsecurity.org/features.php">here</a>.
+  </p>
+
+  <h3>
+   1. Download and patch
+  </h3>
+  <p>
+   <b>Grsecurity</b> can be downloaded from the project
+   <a href="http://www.grsecurity.net/download.php">download page</a>.
+   The developer prefers 2.4 series kernels over 2.6 ones, and we
+   shall use 2.4.33 kernel in what follows.
+   With 2.6 series kernels, the procedure is similar to the described below.
+  </p><p>
+   Patching the kernel source with <b>grsecurity</b> doesn't differ
+   from the usual way:
+  </p>
+  <pre class="listing">
+   $ ls
+   linux-2.4.33
+   grsecurity-2.1.9-2.4.33-200608131429.patch.gz
+
+   $ zcat grsecurity-2.1.9-2.4.33-200608131429.patch.gz | patch -p0</pre>
+
+  <p>
+   <em><b>Remark.</b></em>
+   Previously, one had to use a a version of <b>grsecurity</b> corresponding
+   to the version of the kernel to be patched. With the release of a
+   patch for the 2.4.33.3 kernel, things changed. The
+   <a href="http://grsecurity.net/news.php#grsec2195">announcement</a>
+   reads, "each upcoming 2.4.x.y release will not require a new
+   grsecurity patch to patch all files cleanly."</p>
+  <p>
+   A look at the main <tt class="verb">Makefile</tt> reveals that the
+   patch now adds the following two lines to the file:</p>
+
+  <pre class="listing">
+#do this so we don't have to release a new patch for each .x.y unless necessary      
+EXTRAVERSION :=$(EXTRAVERSION)-grsec</pre>
+
+  <p>
+   The older <b>grsecurity</b> patches <em>overwrote</em> the
+   <tt class="verb">EXTRAVERSION</tt> string in
+   the <tt class="verb">Makefile</tt> to look like this:</p>
+
+  <pre class="listing">
+   EXTRAVERSION = -grsec</pre>
+
+  <p>
+   Starting with the patch for the 2.4.33.3 kernel, the
+   <tt class="verb">EXTRAVERSION</tt>
+   string is only <em>suffixed</em> with the string "<tt class="verb">-grsec</tt>".
+   Thus, a newly built kernel will not have the "name" one may expect after
+   "blindly" editing the first <tt class="verb">EXTRAVERSION</tt> line
+   because string
+   "<tt class="verb">-grsec</tt>" is suffixed to their
+   supplied <tt class="verb">EXTRAVERSION</tt> string.</p>
+
+
+  <h3>
+   2. Configuration
+  </h3>
+  <p>
+   <b>Grsecurity</b> adds a new group of options to the kernel configuration
+   menu, which expands in the following way:
+  </p>
+  <p class="center"><img src="./images/00-grsecurity_menu.png" alt="grsecurity menu"></p>
+  <p>
+   Surely, we enable <b>Grsecurity</b>, and choose the "Customized"
+   Security level.
+   (Those even more lazy than I can choose one of the three pre-defined levels:
+   Low, Medium, and High. Click the "Help" button to read an overview
+   of each of the three levels.)
+  </p><p>
+   Now, let's go through the menu.
+  </p>
+
+  <h4>"PaX Control"</h4>
+  <p>
+   We are not going to play with <a href="http://en.wikipedia.org/wiki/PaX">PaX</a>
+   and <a href="http://en.wikipedia.org/wiki/Mandatory_Access_Control">Mandatory
+   Access Control</a> (MAC) thus we disable all items in the menu:
+  </p>
+  <p class="center"><img src="./images/01-pax_control.png" alt="PaX control"></p>
+  <p>
+   Actually, the first three options are disabled by default.
+  </p>
+
+  <h4>
+   "Address Space Protection"
+  </h4>
+  <p>
+   Due to the fact that we disabled PaX Control at the previous step,
+   a part of the menu is disabled, and for the purposes of this writeup
+   we will only enable two of the remaining features, namely,
+   "Deter exploit bruteforcing" and "Hide kernel symbols":
+  </p>
+  <p class="center"><img src="./images/02-address_space_protection.png" alt="Address Space Protection"></p>
+  <p>
+   They will protect us from a number of exploits but won't anyhow
+   impact performance of the machine.
+  </p>
+
+  <h4>
+   "Role Based Access Control"
+  </h4>
+  <p>
+   Here we choose to hide all kernel threads to all  processes but those
+   whose subject has the "view hidden processes" flag by setting <tt class="verb">&lt;y&gt;</tt> in the
+   "Hide kernel processes" field:
+  </p>
+  <p class="center"><img src="./images/03-RBAC_options.png" alt="RBAC options"></p>
+  <p>
+   We can either preserve or change the default settings for two other
+   options since they only apply to the RBAC system, which we are not
+   enabling at the moment.
+  </p>
+
+  <h4>
+   "Filesystem Protections"
+  </h4>
+  <p>
+   This group of settings "hardens" the permissions of the <tt class="verb">/proc</tt>
+   filesystem to enhance privacy and security of the system. If you choose
+   to enable "Restrict to user only", non-root users will only be able to
+   view their own processes. Besides this restriction, they will not be
+   able to view network-related information, kernel symbol and module
+   information.  Personally, I have found it more convenient to enable
+   "Allow special group" setting. Members of this special group are able
+   to view information hidden from the rest of the mortals on your machine.
+   Here, the ID of the <tt class="verb">wheel</tt> group (10) is chosen.
+  </p>
+  <p class="center"><img src="./images/04-filesystem_protections.png" alt="Filesystem Protections"></p>
+  <p>
+   Besides this, we also enable Linking and FIFO restrictions.
+   They improve security of world-writable
+   directories with the sticky bit set (like <tt class="verb">/tmp</tt>)
+   and prevent users from creating hard links to files they don't own.
+   Those running a service in <b>chroot</b> environment, may want
+   to enable Chroot jail restrictions.
+   Click the corresponding "Help" buttons in the menu to find more
+   information on the option.
+  </p>
+
+  <h4>
+   "Kernel Auditing"
+  </h4>
+  <p>
+   This group of settings provides useful tools for auditing the system
+   activity.
+  </p>
+  <p class="center"><img src="./images/05-kernel_auditing.png" alt="Kernel Auditing"></p>
+  <p>
+   Here we enable Resource, Signal, and Fork failure auditing,
+   as well as <tt class="verb">/proc/&lt;pid&gt;/ipaddr</tt> support.
+   When enabled,  the settings will respectively
+  </p>
+  <ul>
+     <li>
+        log all attempts to overstep resource limits,
+     </li>
+     <li>
+        log certain important signals, such as SIGSEGV,
+        which in some cases could mean a possible exploit attempt,
+     </li>
+     <li>
+        log all failed <b>fork()</b> attempts,
+     </li>
+     <li>
+        add a new entry (readable only by the owner of the process and root)
+        to each <tt class="verb">/proc/&lt;pid&gt;</tt>
+        directory that contains the IP address of the person using the task.
+     </li>
+  </ul>
+  <p>   
+   On a machine with a lot of different users, one may want to choose a
+   group to audit by enabling "Single group for auditing" and choosing
+   next what to log.
+  </p>
+
+  <h4>
+   "Executable Protections"
+  </h4>
+  <p>
+   This is a group of settings where we enable randomized PIDs:
+  </p>
+  <p class="center"><img src="./images/06-executable_protections.png" alt="Executable Protections"></p>
+  <p>
+   Besides this, we prohibit an ordinary user to view an output of
+   <tt class="verb">dmesg</tt> and enable a couple of other features. If you enable "Trusted
+   path execution", you will be able to implement a concept of
+   "untrusted" users who are permitted to execute files
+   only in directories owned by root and writable only by root, and thus
+   cannot, for example, run executables in their own directories, e.g.,
+   on mounted flash cards.
+  </p>
+
+  <h4>
+   "Network Protections"
+  </h4>
+  <p>
+   Here we enable randomized TCP source ports:
+  </p>
+  <p class="center"><img src="./images/07-network_protections.png" alt="Network Protections"></p>
+  <p>
+   We also enable larger entropy pools, which is recommended by the
+   developer.
+  </p>
+
+  <h4>
+   "Sysctl Support"
+  </h4>
+  <p>
+   <b>Grsecurity</b> provides an opportunity to change some of its settings
+   without recompiling the kernel and rebooting the machine.  This is
+   done by introducing "Sysctl Support".  When it is enabled, root
+   can change certain settings "on the fly" by just "echoing" 1 or 0
+   to the respective files in <tt class="verb">/proc/sys/kernel/grsecurity</tt>.
+   This can be useful at the initial stage of using <b>grsecurity</b> but
+   it is usually considered to be more safe to disable this feature:
+  </p>
+  <p class="center"><img src="./images/08-sysctl_support.png" alt="Sysctl Support"></p>
+
+
+  <h4>
+   "Logging Options"
+  </h4>
+  <p>
+   As is clear from the title, the last group of settings
+   regulates logging:
+  </p>
+  <p class="center"><img src="./images/09-logging_options.png" alt="Logging Options"></p>
+  <p>
+   As the Help page says, "The default should be suitable for most 
+   people".
+  </p>
+  <p>
+   Thus, we are done with configuration. The resulting grsecurity part of the
+   <tt class="verb">.config</tt> file can be found <a href="./files/grsecurity_config">here</a>.
+   Now, save the settings, compile and install the kernel
+   <a href="http://slackworld.berlios.de/03/kuac.html">as usual</a>.
+  </p>
+
+  <h3>
+   3. Grsecurity In Action
+  </h3>
+  <p>
+   Before rebooting the machine, let us check two things.  First, let
+   us run <b>ps aux</b> as an ordinary user called <tt class="verb">guest</tt>
+   and filter out his own processes:
+  </p>
+  <p class="center"><img src="./images/ps_aux-nogrsec.png" alt="Output of ps au without grsecurity"></p>
+  <p>
+   Notice that <tt class="verb">guest</tt> sees a list of processes owned by
+   others.  Notice also how the numbers of PIDs are assigned.
+  </p><p>
+   Besides this, let us establish a couple of connections with remote hosts
+   and run as root:
+  </p>
+  <pre class="listing">
+~# cat /proc/net/ip_conntrack | grep tcp
+tcp  6 78  TIME_WAIT  src=172.16.0.4 dst=64.57.102.34  sport=33311 dport=80 ...
+tcp  6 110 TIME_WAIT  src=172.16.0.4 dst=66.249.91.99  sport=33312 dport=80 ...
+tcp  6 53  CLOSE_WAIT src=172.16.0.4 dst=66.249.91.104 sport=33313 dport=80 ...
+</pre>
+  <p>
+   Here, notice source ports (<tt class="verb">sport</tt>) of the packets.
+  </p><p>
+   Now reboot, and do exactly the same.  Here is an output:
+  </p>
+  <p class="center"><img src="./images/ps_aux-grsec.png" alt="Output of ps au with grsecurity"></p>
+  <pre class="listing">
+~# cat /proc/net/ip_conntrack | grep tcp
+tcp  6 116 TIME_WAIT src=172.16.0.4 dst=64.57.102.34 sport=42312 dport=80 ...
+tcp  6 24  TIME_WAIT src=172.16.0.4 dst=66.249.91.99 sport=60552 dport=80 ...
+</pre>
+  <p>
+   The differences are obvious, aren't they?
+  </p>
+
+
+  <h3>
+   Further Reading
+  </h3>
+  <ul>
+  <li>
+     <a href="http://www.grsecurity.net/papers.php">Original papers on grsecurity</a>, including
+     <a href="http://www.grsecurity.net/quickstart.pdf">Quick-Start Guide</a>,
+     <a href="http://www.grsecurity.net/wiki/index.php/GrsecurityFAQ">Grsecurity FAQ</a>, and
+     a <a href="http://www.grsecurity.net/researchpaper.pdf">research paper</a>
+     "Increasing Performance and Granularity in Role-Based Access Control Systems,"
+     by Bradley Spengler
+  </li>
+  <li>
+   The project has a <a href="http://www.grsecurity.org/cgi-bin/mailman/listinfo/grsecurity">mailing list</a>
+   with an archive available <a href="http://grsecurity.net/pipermail/grsecurity/">here</a>.
+   Besides this, there are a number of helpful
+   <a href="http://forums.grsecurity.net/">forums</a>.
+  </li>
+  <li>
+     <a href="http://www.gentoo.org/proj/en/hardened/grsecurity.xml">
+     Gentoo Grsecurity v2 Guide</a>
+  </li>
+  <li>
+     <a href="http://www.linuxjournal.com/article/8674">
+     Greater Security with GrSecurity</a>, an excerpt from
+     "Linux Firewalls, 3rd Edition"
+     by Steve Suehring and Robert Ziegler (LinuxJournal, 2005-11-17)
+  </li>
+  <li>
+     <a href="http://archiv.debianhowto.de/en/grsecurity/c_grsecurity.html">
+     Grsecurity-patch HOWTO</a>, by Florian Schiessl
+     (A part of Debian HOWTO project)
+  </li>
+  <li>
+     <a href="http://security.linux.com/article.pl?sid=05/10/21/1715251&amp;tid=35">Enhancing kernel security with grsecurity</a>,
+     by Paul Virijevich (security.linux.com, November 15, 2005)
+  </li>
+  <li>
+     <a href="http://security.linux.com/article.pl?sid=05/02/11/2017218&amp;tid=35">
+     Securing Linux with Mandatory Access Controls</a>, by Paul Virijevich
+     (security.linux.com, February 15, 2005)
+  </li>
+  <li>
+     <a href="http://www.securityfocus.com/infocus/1551">Grsecurity</a>,
+     by David "Del" Elson (SecurityFocus, February 28, 2002)
+  </li>
+  <li>Section 9.2 "Role-Based Access Control with Grsecurity" of
+     <a href="http://www.powells.com/biblio?isbn=1584503963">
+     "Linux Network Security"</a> by Peter&nbsp;G&nbsp;Smith
+  </li>
+  <li>
+     <a href="http://www.linuxinsider.com/story/Developer-Raps-Linux-Security-39565.html">
+     Developer Raps Linux Security, by John P.&nbsp;Mello Jr.</a>
+     (LinuxInsider 01/11/05)
+  </li>
+  <li>
+     <a href="http://lwn.net/Articles/118251/">Grsecurity 2.1.0 and kernel vulnerabilities</a>
+     (Posted on LWN on January 7, 2005 by corbet)
+  </li>
+  <li>
+     <a href="http://www.eth0.us/2.6.10_grsecurity">Compiling 2.6.10 Kernel + Grsecurity</a>,
+     by eth00 (2005-04-02)
+  </li>
+  <li>
+     <a href="http://www.samag.com/documents/s=9384/sam0309g/sam0309g.htm">
+     Securing Linux Systems with grsecurity</a>, by Keith McDuffee
+     (SysAdmin Magazine)
+  </li>
+  <li>
+     <a href="http://www.cs.virginia.edu/~jcg8f/GrsecuritySELinuxCaseStudy.pdf">
+     SELinux and grsecurity: A Case Study Comparing Linux Security</a> (pdf)
+  </li>
+  <li>
+     Unix Host Security:
+     <a href="http://www.devshed.com/c/a/Security/Unix-Host-Security-Hacks-11-20/2/">
+     Lock Down Your Kernel with grsecurity Hack #13</a>,
+     <a href="http://www.devshed.com/c/a/Security/Unix-Host-Security-Hacks-11-20/3/">
+     Restrict Applications with grsecurity Hack #14</a>
+  </li>
+  <li>
+     <a href="http://kerneltrap.org/node/4453/print">Increased baseline security</a>,
+     by bluefoxicy (KernelTrap.org, 12/26/2004)
+  </li>
+  <li>
+     There are a number of distributions that provide grsecurity-enabled
+     kernels, for example, <a href="http://www.devil-linux.org/home/index.php">Devil-Linux</a>
+     and <a href="http://marksman.beplaced.com/">NetSecL</a>.
+  </li>
+  <li>
+     <a href="http://kerneltrap.org/node/4654">Linux: TCP Random Initial Sequence Numbers</a>, 
+     by Jeremy (KernelTrap.org, January 31, 2005)
+  </li>
+  <li>
+     <a href="http://kerneltrap.org/node/3072">Feature: Understanding TCP Reset Attacks, Part&nbsp;I</a>,
+     by Jeremy (KernelTrap.org, May 10, 2004
+  </li>
+  <li>
+     <a href="http://www.vanheusden.com/Linux/rnd_pid_faq.php">The Random PID FAQ</a>
+  </li>
+  <li>
+     <a href="http://www.securityfocus.com/columnists/361/2">Randomness in OpenBSD's
+     network stack</a>, in an article by Federico Biancuzzi, SecurityFocus, 2005-10-12
+  </li>
+<!--
+  <li>
+     <a href="http://www-128.ibm.com/developerworks/aix/library/au-openbsd.html?ca=dgr-lnxw07OpenBSD">
+     On usage of random numbers in OpenBSD</a>
+  </li>
+-->
+  </ul>
+<!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005, 2006 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="toc.html" title="Table of contents"><b>ToC</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="grsec-basics.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="what.html" title="What?"><b>What</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

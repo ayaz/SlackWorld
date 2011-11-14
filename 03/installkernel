@@ -1,0 +1,73 @@
+#!/bin/bash
+# installkernel, by Grant Coady, July 2004
+# Copyright (C) 2004-2005 Grant Coady <gcoady@gmail.com>
+# based on linux/arch/i386/boot/install.sh
+# GPL v2 per linux/COPYING by reference
+
+# note: /root/bin/installkernel overrides /sbin/installkernel
+
+VERSION="2005-07-20" # remove hosted install option
+echo -e "\nGrant's $0, $VERSION"
+
+# call: installkernel kernel_version image_file map_file install_path
+BOOT="/boot" #        $1             $2         $3       $4
+
+if [ -n "$4" -a "$4" != "$BOOT" ]; then # bail out if non-standard install
+	echo "* refusing install to $4, do it yourself :op"
+	exit 1
+fi
+
+if [ -f '.config' ]; then
+	DOT_CONFIG=".config"		# for 2.6
+	INSTALL2_6="yes"
+else
+	DOT_CONFIG="../../../.config"	# for 2.4
+	INSTALL2_6=""
+fi
+
+MODULE="/lib/modules/$1"
+CONFIG="$BOOT/config-$1"
+KERNEL="$BOOT/bzImage-$1"
+SYSMAP="$BOOT/System.map-$1"
+
+echo "* Destination files:
+	config:		$CONFIG
+	kernel:		$KERNEL
+	modules:	$MODULE
+	map:		$SYSMAP
+"
+if [ -f $CONFIG -o -f $KERNEL -o -f $SYSMAP -o -d $MODULE ]; then
+	echo "* Moving old kernel files to $BOOT/*.old"
+	if [ -f $CONFIG ]; then mv $CONFIG "$CONFIG.old"; fi
+	if [ -f $KERNEL ]; then mv $KERNEL "$KERNEL.old"; fi
+	if [ -f $SYSMAP ]; then mv $SYSMAP "$SYSMAP.old"; fi
+
+	if [ -d $MODULE ]; then
+		echo -e "\n* Moving $MODULE to $MODULE.old"
+		if [ -d "$MODULE.old" ]; then
+			rm -rf "$MODULE.old"
+		fi
+		mv $MODULE "$MODULE.old"
+	fi
+fi
+
+if [ -n "$INSTALL2_6" ]; then # 2.6 only
+	echo -e "\n* Installing modules"
+	make modules_install
+fi
+
+echo -e "\n* Writing new kernel files to $BOOT"
+cp $DOT_CONFIG $CONFIG
+cat $2 > $KERNEL # Linus dunnit :o)
+cp $3 $SYSMAP
+
+if [ -x /sbin/lilo ]; then
+	echo -e "\n* Run lilo"	
+	/sbin/lilo
+fi
+
+if [ -z "$INSTALL2_6" ]; then # 2.4 reminder
+	echo -e "\n* Reminder: make modules && make modules_install\n"
+fi
+#end
+

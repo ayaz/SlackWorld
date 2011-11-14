@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# ip-down.firewall
+#
+# Prototype firewall teardown script for ppp-down
+# $1 is i'face
+# $4 is local IP address
+
+IPTABLES=/usr/sbin/iptables
+
+# Disable MASQUERADE, remove from POSTROUTING chain
+$IPTABLES -t nat    -D POSTROUTING -o $1                        -j MASQUERADE
+
+# Disonnect fwd chain from FORWARD chain
+$IPTABLES -t filter -D FORWARD					-j $1.fwd
+
+# Disonnect input chain from INPUT chain
+$IPTABLES -t filter -D INPUT -i $1				-j $1.in
+
+# Disonnect output chain from OUTPUT chain
+$IPTABLES -t filter -D OUTPUT -o $1				-j $1.out
+
+# clear out old input, output chains
+$IPTABLES -t filter -F $1.fwd
+$IPTABLES -t filter -X $1.fwd
+$IPTABLES -t filter -F $1.in
+$IPTABLES -t filter -X $1.in
+$IPTABLES -t filter -F $1.out
+$IPTABLES -t filter -X $1.out
+

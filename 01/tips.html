@@ -1,0 +1,456 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 1, 2005. Slack Tips</title>
+
+ <meta name="content-language" content="en">
+ <meta name="author" content="Mikhail Zotov">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="description" content="SlackTips">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+ <link rel="first" href="editorial.html" title="Editorial">
+ <link rel="previous" href="wisdom.html" title="Slack Wisdom">
+ <link rel="next" href="hhkb.html" title="Slack Gear">
+ <link rel="last" href="acknowledgements.html" title="Acknowledgements">
+
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue  #1, April 2005
+  </p>
+
+  <h2>SlackTips</h2> (pdf versions: <a href="./files/tips_A4.pdf">A4</a>,
+   <a href="./files/tips_letter.pdf">Letter</a>)
+
+  <p>
+   <b>Author:</b> Mikhail Zotov
+  </p>
+
+  <p>
+   The section is aimed at new Slackware Linux users and intends to
+   help them make their life in Linux more effective.
+   In this issue, we'll take a look how aliases and functions can
+   speed up some everyday operations in bash.
+  </p>
+
+  <p>
+   First, a quote from <b>man bash</b>:
+  </p>
+
+  <blockquote><p>
+   When <b>bash</b> is invoked as an interactive login shell, or as
+   a non-interactive shell with the <b>--login</b> option, it first reads and
+   executes commands from the <tt class="verb">/etc/profile</tt>, if that file exists.
+   After reading that file, it looks for <tt class="verb">~/.bash_profile</tt>,
+   <tt class="verb">~/.bash_login</tt>, and <tt class="verb">~/.profile</tt>, in that order, and reads and
+   executes commands from the first one that exists and is readable...
+   When an interactive shell that is not a login shell is started,
+   <b>bash</b>
+   reads and executes commands from <tt class="verb">~/.bashrc</tt>, if that file exists.</p>
+  </blockquote>
+
+  <p>
+   In a freshly installed Slackware system, users have none of these
+   files in their home directories.  Thus we first need to create them:
+  </p>
+
+  <pre class="listing">
+   $ touch ~/.bash_profile ~/.bashrc</pre>  
+
+  <p>  
+   We want our aliases be read every time an interactive shell is started
+   (e.g., when we start <b>xterm</b>) and will thus use
+   <tt class="verb">~/.bashrc</tt> for our purpose.
+   To ensure that it is read every time we start an interactive shell,
+   let's put the following lines in <tt class="verb">~/.bash_profile</tt>:
+  </p>
+
+  <pre class="listing">
+   # .bash_profile
+   if [ -f ~/.bashrc ]; then
+     . ~/.bashrc
+   fi</pre>  
+
+  <p>  
+   From now on, I assume that all aliases and functions are put in
+   <tt class="verb">~/.bashrc</tt>.
+  </p>
+  <p>  
+   The first thing to keep in mind is that every time we add something
+   to <tt class="verb">~/.bashrc</tt> we should make the shell know about the changes.
+   Thus we must <b>source</b> the file  (see <b>man bash</b> or <b>help
+   source</b>). To do this, one may run either
+  </p>
+
+  <pre class="listing">
+   $ source ~/.bashrc</pre>  
+   
+  <p>
+   or
+  </p>
+   
+  <pre class="listing">
+   $ . ~/.bashrc</pre>  
+   
+  <p>
+   Let's avoid doing this manually.
+  </p>
+   
+  <p>
+   Suppose your favourite editor is <b>mcedit</b>.
+   Let's open <tt class="verb">~/.bashrc</tt> with it and put the following 
+   <b>alias</b>&nbsp;[1]:
+  </p>
+
+  <pre class="listing">
+   alias edb='mcedit ~/.bashrc && . ~/.bashrc'</pre>  
+
+  <p>
+   Now, exit <b>mcedit</b> and <b>source</b> <tt class="verb">~/.bashrc</tt>.
+   From now on, the only thing we need to do when we decide to add a new
+   alias to <tt class="verb">~/.bashrc</tt> and make the shell know about it, is to run
+  </p>
+  <pre class="listing">
+   $ edb
+  </pre>  
+  <p>
+   Here I use <b>edb</b> as an abbreviation for EDit <tt class="verb">~/.Bashrc</tt>&nbsp;[2].
+  </p>
+
+  <p>
+   Now we are ready to do something useful.  Let's begin with a trivial task,
+   namely, let us mount and unmount a floppy.
+   As is well known, this can be done as follows:
+  </p>
+
+  <pre class="listing">
+   $ mount /mnt/floppy
+   $ umount /mnt/floppy</pre>  
+
+  <p>
+   These commands look too long for an everyday usage. Yes, one can
+   surely use <tt class="verb">&lt;Ctrl&gt;+&lt;r&gt;</tt> or arrow keys or
+   <b>history</b> to invoke commands that has already been run but I
+   believe it is more convenient to use short aliases in this case.  Let
+   us run <b>edb</b> once again and add the following lines to
+   <tt class="verb">~/.bashrc</tt>:
+  </p>
+
+  <pre class="listing">
+   # Mount Floppy
+   alias mf='mount /mnt/floppy && cd /mnt/floppy && ls'
+   # Unmount Floppy
+   alias uf='cd && umount /mnt/floppy'</pre>  
+   
+  <p>
+   Exit from the editor, insert a floppy in the drive, and try
+   our brand new aliases.
+   Notice that we not only mount the floppy but also <b>cd</b> to it
+   and list its contents. This can be handy.
+  </p>
+
+  <p>
+   Using CDs calls us to invent more aliases since we can open and close
+   trays from the command line.
+   Let's put the following aliases in <tt class="verb">~/.bashrc</tt> (once again, 
+   <b>$&nbsp;edb</b>):
+  </p>
+   
+  <pre class="listing">
+   CDROM="/mnt/cdrom"
+   alias mcd='mount $CDROM && cd $CDROM && ls'
+   alias ucd='cd && umount $CDROM && eject && sleep 10 && eject -t'
+   # Eject CD:
+   alias ecd='eject'
+   # Close CD tray:
+   alias ccd='eject -t'</pre>  
+
+  <p>
+   Notice that now we not just <b>umount</b> a CD but also eject it, give
+   ourselves 10 seconds to take it, and then close the tray automatically.
+   Besides this, we define a variable, <tt class="verb">CDROM</tt>.
+   It can be useful if one day we decide to use another mount point.
+  </p>
+
+  <p>
+   Here I assume that we only have one CD drive.  During installation,
+   Slackware creates the corresponding link in the <tt class="verb">/dev</tt> directory.
+   You will have to adopt the above aliases in case there are two CD drives
+   attached to your machine.  In particular, you will have to indicate
+   explicitly the second device in <b>eject</b>.
+  </p>
+   
+  <p>
+   Now, assuming that we have a CD-RW drive, let's do something interesting.
+   Yes, let's burn a disk.
+   Everybody surely knows how to burn a CD `at once' from an image
+   downloaded from a Slackware mirror.
+   This doesn't happen too often thus one can forget how this is done.
+   Let's define an alias for this operation, e.g., this way:
+  </p>
+   
+  <pre class="listing">
+   DEV="dev=0,0,0"
+   alias burn='ccd && cdrecord -eject $DEV -dao'</pre>  
+   
+  <p>
+   Here, ``0,0,0" is taken from the output of <b>cdrecord -scanbus</b>.
+   (One may want to add, say <b>speed=16</b> or whatever to be sure that
+   the drive will burn CDs at the desired speed.)
+   We also define another variable, <tt class="verb">DEV</tt>, which will be used below.
+  </p>
+   
+  <p>
+   Now, to burn a Slackware CD, one only has to eject the CD tray
+   (<b>ecd</b>), put a blank CD, and execute the following command:
+  </p>
+
+  <pre class="listing">
+   $ burn /path/to/the/image/slackware-10.1-install-d1.iso</pre>  
+  
+  <p>
+   Voila!
+   Notice that we don't even have to close the CD tray.
+  </p>
+   
+  <p>
+   Let's see now how we can easily burn multi-session CDs from the CLI.
+   We shall use bash functions to accomplish the feat.
+  </p>
+
+  <p>
+   First, let us begin a new CD.  I assume that we are using a CD-RW
+   thus we'll blank it first to be sure it is clean.  Next,
+   we shall make an iso image from files prepared in a directory
+   the name of which will be passed as a parameter.  The image will
+   be saved in the home directory.
+   Finally, we shall burn the CD, eject it, and delete the iso image.
+  </p>
+
+  <pre class="listing">
+   # iso image:
+   ISO="/tmp/a.iso"
+
+   # Make the iso image:
+   alias mkiso='mkisofs -R -J -v -hide-rr-moved -o $ISO'
+
+   # Time cdrecord waits before burning a CD
+   WAIT="gracetime=5"
+
+   # Another handy alias:
+   alias BURN="cdrecord -v -eject $DEV $WAIT -tao -multi $ISO && \
+     rm -f $ISO && sleep 10 ; ccd"
+
+   begincd() {
+     ccd && \
+     cdrecord -v blank=fast $DEV $WAIT && \
+     mkiso $1 && BURN
+   }
+   
+   addtocd() {
+     ccd && \
+     mkiso -C `cdrecord -msinfo $DEV` -M /dev/cdrom $1 && \
+     BURN
+   }</pre>  
+     
+  <p>
+   A few comments are in order.
+   First, we define a file to be used as an iso image (<tt class="verb">ISO</tt>).
+   Next, we define an alias that will not only save us some keystrokes
+   in the next two functions but can also be used when we just need to
+   create an iso image, e.g., in case we want to burn a complete CD
+   of our own.
+   Besides this, we introduce a variable <tt class="verb">WAIT</tt>, which will
+   save us another couple of seconds. (We are in a hurry, aren't we?)
+   Finally, we define another alias, <tt class="verb">BURN</tt>.
+   It will be only used in our two functions thus I choose to put
+   its name in capitals.
+  </p>
+   
+  <p>
+   Thus, to begin a CD with files from the <tt class="verb">dir1</tt> directory,
+   one now only
+   has to eject the CD tray (<b>ecd</b>), put a CD-RW, and execute
+   the following command:
+  </p>
+  <pre class="listing">
+   $ begincd dir1</pre>  
+   
+  <p>
+   Similarly, to add files from <tt class="verb">dir2</tt> to the CD, one
+   ejects the CD tray, puts the CD, and executes the command
+  </p>
+
+  <pre class="listing">
+   $ addtocd dir2</pre>  
+
+  <p>
+   Quick and easy, isn't it?  
+   Actually, we can even put <b>ecd</b> at the beginning of our definitions
+   and then <b>sleep</b> for some time.&nbsp;:-)
+  </p>
+
+  <p>
+   As we have seen, aliases and functions are powerful tools.
+   They can be employed to do numerous different things:
+  </p>
+  <ul>
+   <li>
+     to navigate directories:
+   
+    <pre class="listing">
+     alias cda='cd ~/some/directory/where/I/writing/an/Article'</pre>  
+
+   <li>
+     to pack and unpack tar balls:
+   
+    <pre class="listing">
+     alias tgz='tar czpvf'
+     alias utgz='tar xzvf'</pre>  
+
+     as easy as:
+
+  <pre class="listing">
+     $ tgz arxiv.tgz slaxercises/
+     $ utgz arxiv.tgz</pre>  
+
+   <li>
+     to backup files, say, configuration files:
+   
+    <pre class="listing">
+     BACKUP_DIR="/path/to/the/backup/directory"
+     alias back="cd $BACKUP_DIR && tgz conf-`date +%F`.tgz ~/.??* && \
+       ls && cd"</pre>  
+
+   <li>
+     to keep a record of upgraded and removed packages (surely, these
+     are for root's <tt class="verb">.bashrc</tt>&nbsp;[3]):
+
+    <pre class="listing">
+     UPLOG="~/upgradepkg.log"
+     uplog() {
+       date >> $UPLOG
+       upgradepkg $@ | tee -a $UPLOG
+     }
+
+     REMLOG="~/removepkg.log"
+     remlog() {
+       date >> $REMLOG
+       removepkg $@ | tee -a $REMLOG
+     }</pre>  
+
+   <li>
+     to verify PGP signatures of freshly downloaded Slackware packages:
+
+    <pre class="listing">
+     alias gpgv="for i in ./*.tgz ; do echo $i ; \
+       gpg --no-secmem-warning --verify $i.asc $i ; echo ; done"</pre>  
+
+   <li> 
+     to listen music, e.g., to play all mp3 or wav files in the 
+     current directory:
+
+    <pre class="listing">
+     alias mp3='madplay -v --display-time=current ./*.mp3'
+     alias wav='for i in ./*.wav ; do play $i ; done'</pre>  
+
+   <li>
+     watch a collection of, say, jpg pics:
+   
+    <pre class="listing">
+     alias slide='qiv -f -s --delay=5 -i ./*.jpg'</pre>  
+  </ul>
+  <p>
+   and do dozens of other things that make using Slackware even more
+   fun than it is.  Use your imagination!
+  </p>
+
+<h4>Remarks</h4>
+  <p>
+   [1] A more generic way is the following:
+  </p>
+
+  <pre class="listing">
+   alias edb='$VISUAL ~/.bashrc && . ~/.bashrc'</pre>  
+
+  <p>
+   I suggest that you check first whether <tt class="verb">$VISUAL</tt> really
+   points to the desired editor
+   (<b>$&nbsp;declare&nbsp;|&nbsp;grep</b>&nbsp;<tt class="verb">VISUAL</tt>)
+   in order not to find yourself playing with <b>elvis</b> 
+   unintentionally.&nbsp;;-)
+  </p>
+
+  <p>
+   [2]
+   Feel free to choose another one.
+   The only thing one should check before inventing a new name is
+   to check that it is not already occupied by a shell built-in or a
+   program in your PATH.  To do this, one can run
+  </p>
+   
+  <pre class="listing">
+   $ help new_name
+   $ which new_name</pre>  
+   
+  <p>
+   The <b>new_name</b> is free if you get no help and nothing is found.
+  </p>
+
+  <p>
+   [3]
+   These records can, in particular, be used to check whether this or that
+   package left any undeleted files after being removed or upgraded.
+  </p>
+
+<!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles are copyrighted by their authors.
+  </address><br>
+ </div>
+
+ <p class="menu">
+  <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+  <a class="menu" href="news.html" title="Slack News"><b>News</b></a>
+  <a class="menu" href="ipsec.html" title="Slackopaedia"><b>Slackopedia</b></a>
+  <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+  <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+  <a class="menu" href="hhkb.html" title="Slack Gear"><b>Gear</b></a>
+  <a class="menu" href="acknowledgements.html" title="Slack Gear"><b>Acks</b></a>
+ </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

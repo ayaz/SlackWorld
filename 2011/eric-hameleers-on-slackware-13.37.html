@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World. Interview with Eric Hameleers</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2011 The Slack World">
+ <meta name="author" content="The Slack World">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware Linux 13.37 Eric Hameleers interview developer">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+ <h2>Slackware is everything. And you can make it do anything.<br>
+	Eric Hameleers
+	Answers a Few Questions on the Occasion of Slackware-13.37 Release
+ </h2>
+
+ <p>
+  Published: May 15, 2010
+ </p>
+
+<p>Dear fellow Slackers! We are happy to publish an interview with
+<a href="../hearts.html#alien">Eric Hameleers</a>, a core Slackware developer,
+he has kindly given us on the occasion of the Slackware-13.37 release. Enjoy!
+An earlier interview can be found <a href="../2010/eric-hameleers-on-slackware-13.1.html">here</a>.
+</p>
+
+<p><em>
+ It seems it was a long and winding road from Slackware 13.1 to
+ Slackware 13.37, with a series of massive updates of the -current
+ branch. What was the most hard work on the road? What didn't satisfy
+ you all the time?
+</em></p>
+
+<p>
+As you are well aware, a primary objective for Slackware (and essentially
+that of its creator Pat Volkerding) is to release &quot;when it is ready&quot;.
+I think that the first time I mentioned to Pat that he should be thinking
+about finalizing what would become Slackware-13.2, was as far back as
+November or December. But Pat held out, waiting for a kernel version that
+he was satisfied with. That took a while! And the situation of driver
+stability in X.Org is a permanent source of frustration. It seems that we
+can never make everybody happy at the same time using any combination of
+X.Org, mesa and dri versions. That is the reason why you find alternative
+versions of mesa and the nouveau driver in the <tt>/testing</tt> directory
+of Slackware 13.37.
+</p>
+
+<p>
+I think that the involvement of the Slackware community in testing
+slackware-current has helped a lot in determining what would be the best
+time to release 13.37. I personally believe it was stamped &quot;final&quot; on
+a golden moment in time.
+</p>
+
+<p>
+Important to note is that there has been a lot more interaction between
+the &quot;core developers&quot; including Pat, and the community during this
+development cycle. Especially on the <a href="http://www.linuxquestions.org/questions/slackware-14/">Slackware forum</a>
+there were many
+threads which had contributions from the team. Good input has been coming
+from Freenode's ##slackware IRC channel as well. Those discussions have
+absolutely been beneficial to the QA testing of this release. So many
+small and big issues were quickly resolved by having someone mention them
+in a public place where we could pick them up. Slackware does not have a
+public bug tracker but it does not need one either. The lines between
+developers and community are extremely short.
+</p>
+
+<p><em>
+ There were quite a lot of diverse packages added to Slackware this
+ time, for example, <b>xaos</b>, <b>yasm</b>, <b>moc</b> (a killer, IMHO! :-), <b>ddrescue</b>,
+ and <b>lxc</b> to mention a few.  How do new apps find their way to
+ Slackware? Is there some generic way or each new app has its own way?  
+</em></p>
+
+<p>
+New packages usually don't get added for no reason at all. Some of
+these additions are born out of need (<b>ddrescue</b>) or desire (<b>moc</b>). The most
+noteworthy addition was that of <b>xaos</b>, to commemorate the death of Benoit
+Mandelbrot. <b>Yasm</b> is a requirement for building several packages now&mdash;I
+think in Slackware only mozilla-firefox absolutely needs it. I was glad
+about the addition anyway because my own <b>vlc</b>, <b>ffmpeg</b> and <b>x264</b> packages
+(and perhaps more) require it too, and having it present in Slackware by
+default makes my life as a packager easier.
+</p>
+
+<p>
+The list of new packages for 13.37 is not all that big. I expect a lot
+more additions when the new KDE and XFCE which Robby and I are
+maintaining outside of Slackware finally get merged into
+slackware-current.
+</p>
+
+
+<p><em>
+What do you think are the most remarkable changes in this release
+besides `just' updates of software like compilers, browsers, KDE, etc.?
+</em></p>
+
+<p>
+Even the &quot;just updates&quot; to software can have a big effect on
+the way you experience the distro. For instance, the version of KDE in
+Slackware 13.37 is a lot more enjoyable than that of 13.1. The new
+version of X.Org delivers a lot of punch, leaving HAL behind and working
+much better with a lot of hardware. The same is true for the new kernel. 
+</p>
+
+<p>
+I was very pleased with the updates to the Slackware installer. I
+personally think that the first experience of any person with Slackware
+is a very important moment, because that initial emotion largely
+determines whether the person will stick with Slackware or not. That is
+the reason why I like to work on the installer, and the documentation in
+the root of the DVD. I can only hope to influence that first experience
+with Slackware and make it more enjoyable. The HTTP/FTP network install
+was born out of that belief. And now I was able to add an easy to setup
+PXE server, very handy if you have a netbook for instance without a DVD
+drive and no USB stick to boot from. But large-scale Slackware
+deployments should benefit from it too.
+</p>
+
+<p>
+And no&#8230; with that first experience I do not mean pretty GUI
+installers or hiding the kernel's boot messages behind a splash screen.
+Slackware targets a specific type of users, and already I can see the
+effect of Slackware becoming more desktop-friendly. People get confused
+sometimes; is Slackware a desktop distro? Is it a server distro? None of
+that&mdash;Slackware is everything. And you can make it do anything.
+</p>
+
+<p>
+Since 13.37 was released, there is a larger amount than usual of people
+that come to the Slackware forum and IRC channel with what I would call a
+&quot;Ubuntu mind&quot;. Of course there are some that give up quickly when
+they discover that knowledge and a desire to learn is required for using
+Slackware. I thoroughly enjoy it when people are not scared away by the
+command prompt or when they are told to use vi for editing configuration
+files, and show determination in mastering our beautiful distro.
+</p>
+
+<p><em>
+ There are more than a thousand packages included in the release. Some
+ projects maintain mailing lists or RSS feeds but some do not. How do
+ you solve the problem of tracking changes that take place with the
+ programs and libraries that ship with Slackware?  
+</em></p>
+
+<p>
+I think that Pat Volkerding has a good eye for available updates. He has
+feelers everywhere it seems. The other members of the team that
+contribute to the package updates (for instance Robby&nbsp;Workman, Piter&nbsp;PUNK
+and me) each have an affinity with parts of Slackware. I stick with
+tracking updated to software like KDE and its dependencies, but I rarely
+look at stuff like UDEV, X.Org or XFCE.
+</p>
+
+<p>
+This time, Slackware includes a number of kernels of different
+versions: the 2.6.37.6 kernel as the main one, the 2.6.38.4 kernel
+in the /testing directory, and even configs for kernels 2.6.35.12
+and 2.6.39-rc4.
+With the kernel releases appearing more often than seasons change,
+how do you decide which kernel to choose for the release (besides
+making a cute name for the release :-)?
+</p>
+
+<p>
+There are these silent periods in Slackware development when new stuff is
+being tested. I believe a lot of time is spent working on kernel
+configurations and picking exactly the right one for Slackware. Even if
+that kernel is not a &quot;long-term-support&quot; version. A typical Slacker
+will eventually upgrade his kernel anyway and recompile it to suit his or
+her needs.
+</p>
+
+<p><em>
+ A question by Douglas Mayne, an AOLS regular:
+ I am interested in hearing about cgroup process scheduling that are
+ available for the first time in the default kernel. I would like some 
+ general information about it. Perhaps, some benchmarks could be
+ generated for a similar group of desktop applications running on 13.1
+ vs. 13.37.  
+</em></p>
+
+<p>
+If someone would run these benchmarks and publish the results, I would be
+happy to look at them. I never touched cgroups before but after reading
+this question, I explored the Internet a bit about process scheduling and
+light virtualization and it sure looks interesting. I will certainly
+experiment with it in the near future. Maybe even write a Wiki article
+about it.
+</p>
+
+<p>
+How do you personally update/patch your Slackware systems and what do
+you think is the recommended way of doing this for rank-and-file Slackers?
+Is it slackpkg, a combination of crond and rsync or what?
+</p>
+
+<p>
+I usually hesitate at any form of automation in Slackware's package
+management. Having said that, I have been using <b>slackpkg</b> since when it
+was still in <tt>/extra</tt> and rely on it to upgrade my systems between
+stable releases. With a bit of care that will never go wrong. And because
+I run slackware-current on a couple of computers and do experiments with
+new versions of packages, that tends to &quot;pollute&quot; my Slackware. I use
+<b>slackpkg</b> to bring these computers back into a &quot;sane&quot; condition.
+</p>
+
+<p>
+I do not schedule automatic package updates as a cron job because I
+believe that it is the responsibility of the system's administrator
+(you!) to know the exact status of the system. That means: you have to
+manually run any system update.
+</p>
+
+<p>
+The one thing that I never let any tool do, is to upgrade the kernel. I
+use a generic kernel, combined with an initial ramdisk image. My approach
+is to install new kernel (-generic, -firmware, -modules) packages in
+parallel with the running kernel (using installpkg, not upgradepkg) so
+that I can always go back to the old kernel if the new one has issues. I
+then create a new initrd.gz file using my
+<tt>mkinitrd_command_generator.sh</tt> script which got added to the mkinitrd
+package sometime ago, update <tt>/etc/lilo.conf</tt> and run <b>lilo</b>. Better
+safe than sorry!
+</p>
+
+<p>
+Of course, manually keeping my system up to date does not mean that I do
+not have a warning system in place. I have another script running as a
+nightly cron job which checks the Slackware ChangeLog.txt for updates and
+downloads these updates to my home&mdash;and then sends me an email so that I
+know there is work to do. Works really well!
+</p>
+
+<p><em>
+Are there any chances of bringing back GNOME into stock Slackware releases?
+</em></p>
+
+<p>
+You know, I was a Gnome user until it got removed from Slackware. I
+switched to KDE then but I did not like the look and feel of it (it
+looked too much like an unsuccessful attempt to copy another well-known
+Operating System)&#8230; that is why I used (and still am using) XFCE on a
+few of my computers. That is to say, until they released KDE4. That is
+how an integrated Linux desktop should look and work!
+</p>
+
+<p>
+I still use Gnome on computers at work and really have no issues with it.
+I also think that the <a href="http://gnomeslackbuild.org/">GNOME SlackBuild</a>
+project delivers a high-quality
+version of Gnome for Slackware. But it requires a pretty large effort to
+maintain Gnome for Slackware. The packaging and integration process is so
+much more convoluted and complex than it is for KDE. These factors make
+it unlikely that Gnome will ever return to Slackware's core.
+</p>
+
+<p><em>
+What are the nearest plans for the next development cycle?
+Do you plan to update openssl, XFCE, anything else?
+Are there any definite plans for the next release or does much depend
+on the `upstream' developers?
+</em></p>
+
+<p>
+At the start of a new development cycle, there is this wide empy field of
+vision. Anything can happen! Personally I would be happy to see KDE 4.6
+or 4.7 added to Slackware's core. I am quite satisfied with the KDE
+version 4.5.5 which shipped with Slackware 13.37 because it really is
+better than the first releases in the 4.6 series.
+</p>
+
+<p>
+I believe that KDE 4.6.4 and onwards could become the preferred choice
+for KDE in Slackware -current. The changes that this update requires
+(such as adding <b>udisks</b> and <b>upower</b>, the successors of our old HAL) will
+almost automatically clear up the path for a XFCE upgrade. The new XFCE
+shares a lot of depedencies with the new KDE.
+</p>
+
+<p>
+There are other ideas for the next release of course, but I am not at
+liberty to discuss them and anyway, it is Pat who decides what goes and
+what not.
+</p>
+
+<p>
+I will keep myself busy with things like building future versions of KDE,
+and providing LibreOffice and VLC packages for the community. That gives
+me a lot of satisfaction. I also found that my blog can act as a medium
+to discuss my activities with interested people. There is of course the
+LinuxQuestions.org forum but some things I like to keep close at heart.
+</p>
+
+<p><em>Eric, thanks a lot for another exciting interview!
+We wish you the best of luck in all your activities!
+</em></p>
+
+<hr>
+<p style="text-align: right;"><tt>http://slackworld.berlios.de/2011/eric-hameleers-on-slackware-13.37.html</tt></p>
+
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005&ndash;2011 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+
+</body>
+</html>

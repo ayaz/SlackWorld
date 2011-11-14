@@ -1,0 +1,984 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 2, 2005. Slack Classes</title>
+
+ <meta name="content-language" content="en">
+ <meta name="author" content="Ayaz Ahmed Khan">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="description" content="Slack Classes">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages, forum, newsgroup, documents">
+ <meta http-equiv="Content-Type" content="text/html;charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+
+ <link rel="first" href="editorial.html" title="Editorial">
+ <link rel="last" href="acks.html" title="Acknowledgements">
+
+ <link rel="previous" href="wisdom.html" title="Slack Wisdom">
+ <link rel="next" href="tips.html" title="Slack Tips">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de">
+  <img src="../share/slackworld.png" class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+
+  <p>
+   Issue #2, June 2005
+  </p>
+
+  <h2>Slack Classes:  GNU/find for Dummies (Part 1)</h2>
+
+  <p>
+   <b>Author:</b> Ayaz Ahmed Khan
+  </p>
+
+
+   <h3>1.  &nbsp;Preface</h3>
+   <p>
+What better way to describe in a few words what GNU find(1) is than to
+quote straight from the horse's mouth, the man page of GNU find(1):
+   </p>
+
+   <blockquote><p>
+   find(1)
+         <blockquote><p>
+         find - search for files in a directory hierarchy
+
+         This manual page documents the GNU version of find.  find
+         searches the directory tree rooted at each given file name by
+         evaluating the given expression from left to right, according
+         to the rules of precedence (see section OPERATORS), until the
+         outcome is known (the left hand side is false for and
+         operations, true for or), at which point find moves on to the
+         next file name.
+	 </p></blockquote>
+   </blockquote>
+
+   <h3>2.  &nbsp;Filesystem and Files on GNU/Linux</h3>
+   <p>
+Everything one sees on a running GNU/Linux system is a file.
+Everything!  Even a directory is nothing more than an innocuous file.
+One consequence of this simplistic, everything-is-a-file abstraction
+is that files become central to both the underlying operating system
+and the set of users using the system regularly.  As an extension, it
+is obvious that user data, which is almost always important to users,
+is a vast collection of numerous files of different types.
+   </p>
+   <p>
+System files, which are crucial for an operating system to work
+properly, on most GNU/Linux systems are laid out in accord with what
+has come to be known as the Linux Filesystem Heirarchy&nbsp;[<a href="./classes.html#link0">0</a>] (LFH)
+standard.  The LFH standard, in brief, dictates that, for example, all
+system and other configuration files be placed inside the /etc
+directory, system logs in /var/log, temporary files inside /tmp, et
+cetera.  Such a standard, if followed, ensures that a filesystem stays
+clean in the sense that all files of a particular nature go inside a
+single, particular directory, and that applications running on top of
+the system find it easier to manipulate files.  Users' files are by
+convention and according to the LFH stored inside the /home directory,
+in which each user is assigned a separate directory by the same name
+as the user's username.  Despite this clean, systematic structure in
+which the filesystem is maintained on a GNU/Linux system, there is
+almost always a need to search for some file lying somewhere on the
+system.  Given that on average there are thousands of files on a
+desktop GNU/Linux system, manually listing the contents in each of
+several hundred directories and groping for the missing file is a
+nightmare.  It gets even worse when that missing file becomes a larger
+set of missing files strewn all over across the filesystem.  If the
+nature of the missing file is known in advance, the drill can usually
+be narrowed down to a particular directory.  But, even then, it is an
+excruciatingly annoying exercise to hunt down the missing file.
+    </p><p>
+What we need in such situations is a little--or a lot of--help from
+GNU's find(1).  Even a fundamental knowledge of how to use find(1) can
+go a very long way.  Let us know try and tame the syntax of GNU's
+find(1).
+    </p><p>
+On a Slackware system, there are a few other utilities which can be
+used to search for files.  Some of them are discussed in <a href="./classes.html#appa">Appendix A</a>.
+What you should note is that none of the utilities mentioned in
+<a href="./classes.html#appa">Appendix A</a> are as flexible and powerful as find(1).
+    </p>
+
+
+    <h3>3.  &nbsp;The Gory Details</h3>
+    <p>
+The man page of find(1) is the authoritative reference for find(1), but
+often it is difficult to go through the man page and find what one
+needs.  In its very basic form, find(1) takes the following arguments:
+    </p>
+    <pre class="listing">
+  find [path] -name [pattern]</pre>
+or
+    <pre class="listing">
+  find [path] -iname [pattern]</pre>
+    <p>
+Let's dissect the arguments.  Note that square brackets--'<tt><b>[</b></tt>' and
+'<tt><b>]</b></tt>'--are not part of the syntax.  They are only there to show that
+they are placeholders for some value determined at the time the
+command in being run.
+     </p>
+     <pre class="listing">
+
+   [path]                   This is the directory in which we want find(1)
+                            to look in.  If the directory name is
+                            omitted, the present working directory is
+                            used to search for files.
+
+   <b>-name</b>, <b>-iname</b>            It can either be "-name" or "-iname".
+                            Anything following either of them is taken
+                            as a pattern which is looked for as
+                            find(1) descends into each directory under
+                            the specified directory, or if the
+                            directory name is not specified, under the
+                            present working directory.
+
+             <b>-name</b>          Is used when the pattern is
+                            case-sensitive.  For example, when you are
+                            sure that, say, the file "jack" is what
+                            you want to search for, and not "Jack" or
+                            "JAck", you use "-name".
+
+             <b>-iname</b>         It switches case-insensitivity on.  Which
+                            means that if you give it the pattern
+                            "jack" to search for, find(1) will match
+                            "jack", "jacK", "JaCk", or any variation
+                            thereof.  It is useful when you know that
+                            the missing file has, say, the word
+                            "jack" in its name, but not all of them
+                            are necessairly in lower-case.
+
+   [pattern]                It is a pattern which you want find(1) to
+                            look for.  It can either be the complete
+                            name of a file, part of the name, or
+                            anything.  find(1) will report back
+                            anything it finds that matches that
+                            pattern.  If the pattern is part of the
+                            name, use a wild-card (*) to match
+                            anything containing that pattern.
+
+       </pre>
+
+
+       <h3>4.  &nbsp;-name, -iname, patterns, wild-cards    ``Specifying search patterns.''</h3>
+       <p>
+Now, let's try some examples.  In my home directory, /home/ayaz, I
+remember I created a file I named ramblings.txt.  Only, I don't
+remember where I put it.  Here's how I would find it:
+       <p><pre class="listing">
+
+        $ find /home/ayaz -name "ramblings.txt"
+        /home/ayaz/txt/ramblings.txt
+	</pre>
+        <p>
+There you go.  You might have noticed that I placed the pattern, which
+was the complete name of the file I was looking for, inside double
+quotes.  Use of double quotes is optional, but I suggest that you make
+it a habit to put the pattern inside them.  It helps especially when
+the pattern has whitespaces in it, such as "My Documents" (now, why
+does that sound appallingly familiar?).  There is one other time when
+double quotes can come in handy.  However, discussion of that is
+postponed to a time when we will discuss regular expressions.
+        </p><p>
+For a brief overview of what regular expressions are, scroll down to
+<a href="./classes.html#appb">Appendix B</a>.  Or not, if you're not interested.
+        </p><p>
+Let's try another.  I remember I had placed some random thoughts of
+mine in a file I think I named "random" or something.  Let's see what
+find(1) reports.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -name "random*"
+        /home/ayaz/txt/random-thoughts
+        /home/ayaz/public_html/ayaz/random-text
+        </pre>
+        <p>
+Aha!  "random-thoughts" is what I was looking for.  Note the wild-card
+(*) at the end of the pattern.  Because I didn't know the complete
+name of the file, I used the wild-card to match anything with the
+first 6 letters "random" in the name.  You can just as easily put the
+wild-card at the beginning of the pattern.  Like, for example, let's
+see what ".txt" files I have:
+        </p><pre class="listing">
+
+        $ find /home/ayaz -name "*.txt"
+        /home/ayaz/programming/c++/c-src/refactor.txt
+        /home/ayaz/programming/c++/license.txt
+        /home/ayaz/programming/c++/projects/data-struct/src/compile.txt
+        /home/ayaz/programming/c++/projects/data-struct/README.txt
+        /home/ayaz/programming/perl/encryption/data.txt
+        /home/ayaz/programming/perl/grades.txt
+        /home/ayaz/programming/perl/autoquote/slack-fortunes-vol-7.txt
+        /home/ayaz/programming/perl/begperl/text-sorted.txt
+        /home/ayaz/programming/perl/begperl/nlexample.txt
+        /home/ayaz/programming/perl/begperl/text.txt
+        /home/ayaz/programming/perl/perl-hard-way/fraud.txt
+        /home/ayaz/programming/perl/separator-data.txt
+        /home/ayaz/programming/php/score-server/services.txt
+        /home/ayaz/programming/php/score-server/score.txt
+        ...
+        </pre>
+        <p>
+Oops!  My home directory is swarming with ".txt" files.  But, wait!  I
+remember I write blogs a lot and keep them in my home directory.  But,
+sadly, I don't just name them "blog*" and don't keep them in a
+directory named "blogs".  Let's use a combination of wild-cards to
+list down all blogs that I might have written.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -name "*blog*"
+        /home/ayaz/txt/blogs
+        /home/ayaz/public_html/ayaz/pakcon/archives/pakcon-1/dotnet-blog.txt
+        /home/ayaz/public_html/ayaz/pakcon/archives/pakcon-1/blog-saqib.txt
+        /home/ayaz/tmp/pakcon/archives/pakcon-1/dotnet-blog.txt
+        /home/ayaz/tmp/pakcon/archives/pakcon-1/blog-saqib.txt
+        </pre>
+        <p>
+But, what if I don't know whether the pattern I'm using has the same
+case as in the name of the file I'm looking for?  We'll use the
+"-iname" switch instead of "-name" now.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -iname "*todo*"
+        /home/ayaz/honeynet/projects/win-reg-chckr-1.2/TODO
+        /home/ayaz/honeynet/projects/windows-reg-checker-utility/TODO
+        /home/ayaz/TODO
+        /home/ayaz/local/prism54-1.1/ksrc/TODO
+        /home/ayaz/local/gplflash-0.4.13/TODO
+        </pre>
+        <p>
+Woah!  As a free software developer, I like both maintaining TODO
+files for my projects and reading those of others'.  But, you may ask,
+what happens if I had used "-name" instead?  Just go ahead and check
+it.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -name "*todo*"
+        </pre>
+        <p>
+Nothing!  The pattern was taken as case-sensitive, so didn't match
+TODO, or anything that wasn't "todo" specifically.  Confusing?  Try
+this instead:
+        </p><pre class="listing">
+
+        $ find -iname "*tex*"
+        ./12.tex
+        ./19.TEX
+        ./Magnificent_TeX.pdf
+        ...
+        </pre>
+	<p>
+I hope the use of "-iname" and "-name" is clear by now.
+        </p>
+
+        <h3>5.  &nbsp;stderr, re-direction    ``Standard Error and Re-Direction.''</h3>
+        <p>
+Let's move onto something else.  Perform this search on your terminal
+as a non-root user:
+        </p><pre class="listing">
+
+        $ find / -name "*todo*"
+        find: /lost+found: Permission denied
+        find: /var/log/setup/tmp: Permission denied
+        find: /var/log/setup/apache: Permission denied
+        find: /var/man/cat1: Permission denied
+        find: /var/man/cat2: Permission denied
+        ...
+        </pre>
+        <p>
+I bet you will see find(1) spewing out a bunch of "Permission denied"
+errors.  That doesn't mean find(1) will quit or anything, just that
+the user with which find(1) was run didn't have permission to look
+into some directories.  That is why find(1) complained.  Now, that
+just looks annoying, doesn't it?  You wish there was some way to get
+rid of it.  Would you believe me if I told you there is?  No?  Let's
+re-direct the "standard error" stream, which is where all errors like
+the ones we got above are displayed, to /dev/null.
+        </p><pre class="listing">
+
+        $ find / -name "*todo*" 2> /dev/null
+        /usr/bin/todos
+        /usr/bin/install-todos
+        /usr/bin/install-todo
+        /usr/bin/read-todos
+        ...
+        </pre><p>
+See?  All the errors ran away.  That doesn't mean find(1) suddenly got
+permission to access restricted directories, only that all the errors
+that find(1) generated or encountered were sent to /dev/null, which is
+just a black hole that eats anything sent its way.  Instead of
+/dev/null, we could have given the name of a file, such as "err.out",
+and all the errors would have been stored in that file.  This is
+useful when we want to save the errors generated from running some
+command and want to inspect the errors later.
+        </p><p>
+Scroll down to <a href="./classes.html#appc">Appendix C</a> for an overview of standard error stream and
+file re-direction operators.
+        </p><p>
+Now that we know how to use wild-cards in patterns and to distinguish
+between case-sensitive and case-insensitive patterns, let's move onto
+other arguments which find(1) accepts.
+        </p>
+
+
+        <h3>6.  &nbsp;-path, -ipath, -prune    ``Skipping files and directories.''</h3>
+	<p>
+In most of our examples, we were searching inside /home/ayaz.  find(1)
+would descend into that directory and any other directories inside it
+and search for anything matching the given pattern.  But, what happens
+when we don't want find(1) to look inside, say,
+/home/ayaz/programming?
+We use the "-path" and "-prune" switches.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -path "programming/" -prune -name "*.c"
+	</pre><p>
+	
+Hm.  That gives me nothing.  Let's drop both -path and -prune and see
+what find(1) comes up with.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -name "*.c"
+        /home/ayaz/programming/c++/adv-linux-prog/main.c
+        /home/ayaz/programming/c++/adv-linux-prog/param.c
+        /home/ayaz/programming/c++/adv-linux-prog/print-env.c
+        /home/ayaz/programming/c++/adv-linux-prog/zombie.c
+        /home/ayaz/programming/c++/adv-linux-prog/getopt_long.c
+        /home/ayaz/programming/c++/adv-linux-prog/test.c
+        /home/ayaz/programming/c++/adv-linux-prog/app.c
+        /home/ayaz/programming/c++/adv-linux-prog/print-pid.c
+        /home/ayaz/programming/c++/adv-linux-prog/fork.c
+        /home/ayaz/programming/c++/adv-linux-prog/fork-exec.c
+        /home/ayaz/programming/c++/adv-linux-prog/sigusr1.c
+        ...
+	</pre><p>
+Woah!  Did you see what happened?  All my C files are inside the
+programming/ directory.  When I used
+        </p><pre class="listing">
+
+        -path "programming/" -prune
+	</pre><p>	
+I told find(1) to match the pattern "programming/" (yes, it is a
+pattern too) and skip anything that is matched.  And that is what
+find(1) did.  When I ran
+        </p><pre class="listing">
+
+        $ find /home/ayaz -path "programming/" -prune -name "*.c"
+        </pre><p>
+the pattern "programming/" matched the directory "programming/" under
+/home/ayaz, and find(1) skipped it as instructed.  find(1) skipped the
+complete directory and didn't go in it to search for any .c files.
+        </p><p>
+Since -path takes a "pattern" as its argument, we can use wild-cards
+in its patterns too.  Like -name and -iname, -path also has -ipath,
+which, you guessed it, does case-insensitive pattern matching.  I
+don't think I need to put down an example to demonstrate how -ipath
+works.
+        </p>
+
+
+        <h3>7.  &nbsp;-user, -uid, -group, -gid    ``Search by user and group ownership.''</h3>
+	<p>
+Earlier, I said that except for their respective home directories, one
+other place where users can arbitrarily and at will write data is the
+/tmp directory.  Imagine yourself as a system administrator managing a
+shell server running Slackware GNU/Linux.  Depending on how popular
+your shell server is, numerous users log in and use your system.  One
+day, out of nowhere, you decide to check up on a particular user's use
+of the /tmp resource (/tmp is a resource, actually).  If the user is
+"ayaz", you'd do something like:
+        </p><pre class="listing">
+
+       # find /tmp -user ayaz
+       /tmp/tmp_plainSSlOxA.txt
+       /tmp/sv7mk.tmp
+       /tmp/sv7mk.tmp/sv86k.tmp
+       /tmp/sv7mk.tmp/sv831.tmp
+       /tmp/.gnomeicu-ayaz
+       /tmp/rf983601
+       /tmp/#pico.106500#
+       /tmp/rf214900
+       /tmp/gpg
+       ...
+       </pre><p>
+As root, you won't get any "Permission denied" errors, but if you are
+running that as a non-root user, re-direct standard error to /dev/null
+("2> /dev/null", remember?).
+       </p><p>
+Observe the output.  Those are some of the files the user "ayaz" has
+created in the /tmp resource.
+       </p><p>
+Likewise, with the "-group" switch instead of "-user", you can filter
+out files in the /tmp resource that have their group ownership set to
+the pattern supplied to -group switch.  For example, which files
+existing in /tmp with their group set as root:
+       </p><pre class="listing">
+
+       # find /tmp -group root
+       /tmp/.ICE-unix/950
+       /tmp/.ICE-unix/937
+       /tmp/kde-ayaz
+       /tmp/ksocket-ayaz
+       /tmp/mcop-ayaz
+       /tmp/orbit-ayaz
+       /tmp/scrollkeeper-tempfile.0
+       /tmp/gconfd-ayaz
+       </pre><p>
+Are you sure root created those files in /tmp?  Nooo ....
+       </p><p>
+If you, however, don't know the user or group by name, find(1) can
+still make your life easier by providing you with the "-uid" and
+"-gid" switches.  Both "-uid" and "-gid" work exactly similar to
+"-user" and "-group", only both take numeric IDs as arguments instead
+of names.
+       </p><p>
+For security reasons, most services, notably the httpd service, on a
+Slackware system run as the user "nobody" and "nogroup".  Let's try
+to find which files are owned by the user "nobody" and group
+"nogroup".
+       </p><pre class="listing">
+
+       # find / -user nobody
+       /var/cache/proxy
+
+       # find / -group nogroup
+       /var/log/xferlog
+       /var/run/proftpd/proftpd.scoreboard
+       /opt/kde/bin/kdesud
+       </pre><p>
+Wait!  What the ...
+       </p><pre class="listing">
+
+       # ls -l /opt/kde/bin/kdesud
+       -rwxr-sr-x 1 root nogroup 43844 Sep 15 2003 /opt/kde/bin/kdesud
+       </pre><p>
+Curses!
+       </p>
+
+
+       <h3>8.  &nbsp;-type, -xtype, -ls    ``Search by file type and list in long format.''</h3>
+       <p>
+find(1) is all-powerful.  Apart from searching for files with
+particular extensions, find(1) can also scour for files of a
+particular type, regardless of the file extension.  Although the
+man page does not mention this, I think find(1) uses internally the
+file(1) utility to determine the file type.  And, then, it ought to,
+for file(1) is pretty darn reliable as a tool--unless the minds behind
+find(1) loved reinventing the wheel and wrote the code which is
+responsible for determining file types from scratch, but I really
+doubt that.
+        </p><p>
+Back to our tutorial, now.  With find(1), you can use the "-type"
+switch and a single character specifiying a particular filetype to
+look for files of that type only.  The valid single characters are,
+from the man page:
+        </p><pre class="listing">
+
+   -type c
+                    File is of type c:
+
+             b      block (buffered) special
+             c      character (unbuffered) special
+             d      directory
+             p      named pipe (FIFO)
+             f      regular file
+             l      symbolic link
+             s      socket
+             D      door (Solaris)
+	 </pre><p>
+Almost three quarters of the time, you would only be looking for files
+with "f", "d", and "l" filetypes.  If you are curious what a "block
+special", "character special", "named pipe", et cetera are, drop down
+to <a href="./classes.html#appd">Appendix D</a>.
+         </p><p>
+Let's play with find(1), then
+         </p><pre class="listing">
+
+        $ find /home/ayaz -type d
+        /home/ayaz
+        /home/ayaz/.kde
+        /home/ayaz/.kde/share
+        /home/ayaz/.kde/share/doc
+        /home/ayaz/.kde/share/doc/HTML
+        /home/ayaz/.kde/share/icons
+        /home/ayaz/.kde/share/applnk
+        /home/ayaz/.kde/share/applnk/Applications
+        /home/ayaz/.kde/share/applnk/Development
+        /home/ayaz/.kde/share/applnk/Editors
+        /home/ayaz/.kde/share/applnk/Edutainment
+        ...
+         </pre><p>
+Really, I swear, I don't use KDE, only fluxbox.  By using the "-type
+d" switch, we instructed find(1) to list only directories in
+/home/ayaz.  And that is what find(1) loyally did.  Of course, you
+could use "-type f" to list all files in /home/ayaz, but I won't do
+that, otherwise you'd get intimidated by seeing the number of files I
+have in my home directory.  Let's try searching which symbolic links,
+or shortcuts, we have in /home/ayaz.
+         </p><pre class="listing">
+
+       $ find /home/ayaz -type l
+       /home/ayaz/msf
+       /home/ayaz/secforest
+       /home/ayaz/local/john-1.6/src/arch.h
+       /home/ayaz/local/john-1.6/run/unshadow
+       /home/ayaz/local/john-1.6/run/unafs
+       /home/ayaz/local/john-1.6/run/unique
+       /home/ayaz/local/john-1.6/README
+       /home/ayaz/local/pinepg-1.02/clearsign
+       /home/ayaz/local/pinepg-1.02/decrypt
+       /home/ayaz/local/pinepg-1.02/encrypt
+       /home/ayaz/local/pinepg-1.02/verify
+       ...
+        </pre><p>
+Hehe!  I'm not a hacker, really.  All those are symbolic links that
+point somewhere.  What?  You want to know where they point to?  Is
+that so?  Use the "-ls" switch.
+        </p><pre class="listing">
+
+        $ find /home/ayaz -type l -ls
+        lrwxrwxrwx 1 ayaz ayaz 37 Apr 25 22:33 /home/ayaz/msf ->
+        /home/ayaz/local/framework-2.3/msfcli
+        lrwxrwxrwx 1 ayaz ayaz 54 Apr 25 22:16 /home/ayaz/secforest ->
+        /home/ayaz/programming/exploits/sec-forest/ExploitTree
+        lrwxrwxrwx 1 ayaz ayaz  9 Apr 15 00:11
+        /home/ayaz/local/john-1.6/src/arch.h -> x86-any.h
+        ...
+        </pre><p>
+Okay!  I think I'm exposing too much here.  But, pst, don't tell the
+feds.
+        </p><p>
+Note the use of the "-ls" switch.  All it does is instruct find(1) to
+display each file it finds that matches whatever pattern specified in
+a long list format--pretty much what you get when you execute "ls -l"
+on the console.  It can come in handy sometimes.
+        </p><p>
+Observe this:
+        </p><pre class="listing">
+
+        $ file /home/ayaz/msf
+        /home/ayaz/msf: symbolic link to
+        /home/ayaz/local/framework-2.3/msfcli
+
+        $ file /home/ayaz/local/framework-2.3/msfcli
+        /home/ayaz/local/framework-2.3/msfcli: a /usr/bin/perl script
+        text executable
+        </pre><p>
+Now, try this:
+        </p><pre class="listing">
+
+        $ file /home/ayaz -type f | grep msf
+        /home/ayaz/local/framework-2.2/msfcli
+        ...
+        </pre><p>
+And,
+        </p><pre class="listing">
+
+        $ find /home/ayaz -type l | grep msf
+        /home/ayaz/msf
+        </pre><p>
+Even though /home/ayaz/msf is a symbolic link that points to an actual
+file, find(1) sees it only when looking for symbolic links.  What if
+we are looking for files and want find(1) to list even symbolic links
+that point to regular files?  We use the "-xtype" switch instead of
+"-type".  Here is how we use it:
+        </p><pre class="listing">
+
+        $ find /home/ayaz -xtype f | grep msf
+        /home/ayaz/msf
+        /home/ayaz/local/framework-2.2/msfcli
+        </pre><p>
+Aha!  The man page says of "-xtype":
+        </p>
+	<blockquote><p>
+ -xtype c
+              <blockquote><p>
+              The same as -type unless the file is a symbolic link.
+              For symbolic links: if -follow  has  not  been
+              given,  true  if the file is a link to a file of type c;
+              if -follow has been given, true if c is `l'.
+              In other words, for symbolic links, -xtype checks the
+              type of the file that -type does not check.
+	      </p></blockquote>
+        </blockquote><p>
+Pretty much self-explanatory in the light of the example presented
+earlier.
+        </p>
+
+
+        <h3>9.  &nbsp;-amin, -atime  ``Searching files accessed n time units ago.''</h3>
+        <p>
+Even though I'm a sophomore (2nd year student) at my University, I am
+the only person who is considered by anyone who knows me as the Linux
+guru.  And that is true--I like talking about myself.  There is one
+person in the senior batch (4th year student) who is adept with
+Linux.  The other day, while on his day job at some programming
+company, his Fedora GNU/Linux box got owned.  Someone found their way
+into his box through a default Apache configuration and played around
+in his box.  Later that day, he was online and expressed his wish to
+see which files the attacker had accessed or modified.  I instantly
+told him to use this:
+        </p><pre class="listing">
+
+        # find / -amin +4*60
+        ...
+        </pre><p>
+I didn't own his system, so can't tell you what output the above come
+gives.
+        </p><p>
+And, there, he had a long list of files that had been modified more
+than four hours (4 times 60 minutes) ago.  But, wait.  During that
+time, a non-root user called "darik" was logged in to the system and
+doing his work in his home directory.  He didn't want to list all
+those files darik had accessed in the last four or more hours
+ago--darik was too lame to commit the crime anyway.  So, I said, just
+-path and -prune it.
+        </p><pre class="listing">
+
+        # find / -path "/home/darik" -prune -amin +4*60
+        ...
+        </pre><p>
+I said I didn't own his box.
+        </p><p>
+That was slick.  One of the files the attacker had modified was
+/etc/passwd.  Pretty much typical, if you ask me.  I mean, not that
+I'd ... never mind.
+        </p><p>
+Like "-amin", find(1) has "-atime".  "-atime" takes a number as an
+argument, multiplies it by 24 to get time in days, and looks for files
+last accessed that many days ago.  For example:
+        </p><pre class="listing">
+
+        # find /var -atime 2
+        /var/log/XFree86.0.log
+        /var/run/cardmgr.pid
+        /var/run/syslogd.pid
+        /var/lock/subsys/pcmcia
+        /var/spool/slrnpull/news/alt/os/linux/Slackware/56679
+        ...
+        </pre><p>
+To look for files last accessed two or more days ago, try:
+        </p><pre class="listing">
+
+        # find /var -atime +2
+        /var/log/setup/setup.timeconfig
+        /var/log/setup/setup.mouse
+        /var/log/setup/setup.hotplug
+        ...
+        </pre>
+
+
+       <h3>10.  &nbsp;-mtime, -mmin, -ctime, -cmin  ``Searching for files modified n time units ago.''</h3>
+       <p>
+When you need to know which files were last accessed n time units ago,
+you use the "-atime" and "-amin" switches to find(1).  find(1) also
+provides "-mtime" and "-mmin" to check for files last modified n time
+units ago.  And, if all that is required is a list of files whose
+status (file status) was changed some n time units ago, the "-ctime"
+and "-cmin" switches are used.  All these pair of switches work the
+same way "-atime" and "-amin" did in our last examples.
+       </p><p>
+Let's see which files were last modified 2 days ago in the /root
+directory.
+       </p><pre class="listing">
+
+        # find /root -mtime 2
+       </pre><p>
+None!  That is reassuring.  Let's try /etc now:
+       </p><pre class="listing">
+
+        # find /etc -mtime 2
+        /etc/motd
+        /etc/ld.so.cache
+        /etc/random-seed
+        /etc/ioctl.save
+        /etc/adjtime
+       </pre><p>
+Okay.  Nothing suspicious here.
+       </p>
+
+
+       <h3>11.  &nbsp;Conclusion</h3>
+       <p>
+        find(1) is a flexible, all-powerful tool.  Granted, it takes time to
+        get familiar with it, but time spent learning to use it is time pretty darn
+        well spent.  
+        </p><p>
+        In this issue, we focused on and experimented more or less with find(1)'s
+	various options and test switches.  find(1), being all-powerful, has a
+	slew of other superb features which we will deal with in the next issue
+	of this article.  'Till then, happy find(1)ing.  And, don't let find(1) ever
+	intimidate you!
+       </p>
+
+       <p>
+       &nbsp;
+       </p>
+
+       <h3>12.  &nbsp;Appendices</h3>
+       <blockquote><p>
+       <h4>12.1  &nbsp;<a id="appa">Appendix A -- Less efficient alternatives to find(1)</a></h4>
+       <p>
+  On a Slackware system, find(1) isn't the only utility at your
+  disposal for searching for files.  There are others, and we will
+  discuss few of them here.
+        </p><p>  
+    slocate(1) - Security Enhanced version of GNU locate
+        </p><blockquote><p>
+    slocate(1) is a quick way to search for files on a system.
+    slocate(1) works by maintaining a database in which it indexes
+    each and every file found on a filesystem.  When it is executed
+    with an argument, it just gropes through its database, looking for
+    any entries matching the argument.  However, for slocate(1) to
+    return accurate results, its database has to be kept updated.
+    updatedb(1) is used to update the slocate database.  If the
+    database isn't kept up-to-date, slocate(1) is essentially useless.
+    Fortunately, default Slackware systems are configured with a cron
+    job which runs updatedb(1) on regular basis (in fact, daily, as it
+    happens).
+       </p></blockquote><p>
+  which(1)
+       </p><blockquote><p>
+    which(1) is not a general purpose file searching utility.  First,
+    it searches for only executable files.  Second, it looks for
+    executables only in directories listed in the PATH variable.
+    Everything else considered, which(1) is a fast means of finding
+    out the complete path of any executable file present in any of the
+    directories listed in the PATH variable.
+       </p></blockquote><p>
+  whereis(1)
+       </p><blockquote><p>
+    From the man page, "whereis - locate the binary, source, and
+    manual page files for a command".  whereis(1) is also not a
+    general purpose file searching utility.  Despite that, as any
+    console user would attest, whereis(1) is one of the most
+    frequently used of all file searching utilities.
+       </p></blockquote><p>
+  There are others, but those won't be discussed here.  What you
+  should note is that find(1) is a much more flexible, more powerful,
+  yet more cryptic tool to use for file searching needs.  Whether it
+  is more or less efficient depends on the task at hand.
+       </p></blockquote>
+
+       <blockquote><p>
+       <h4>12.2  &nbsp;<a id="appb">Appendix B -- Regular Expressions</a></h4>
+       <p>
+       
+  Simply put, a regular expression (regexp, in short) is a pattern or
+  part of a pattern which is tried for a match against something.
+  Regular expressions are used for advanced searching as well as text
+  editing.  Regular expressions in themselves are a vast topic.  For a
+  beginning tutorial on regular expressions, please refer to UNIX
+  Basics: Regular Expressions&nbsp;[<a href="./classes.html#link1">1</a>].
+       </p></blockquote>
+
+      <blockquote><p>
+      <h4>12.3  &nbsp;<a id="appc">Appendix C -- Standard Error Stream and Re-Direction Operators.</a></h4>
+      <p>
+  A bit about "standard error" and re-direction.  When you open a file
+  in any programming language, you get back, upon success, a file
+  descriptor which points to the file requested.  This file descriptor
+  is almost always a number, almost always greater than 0 (if it is
+  less than 0, then that means some error occurred during the opening
+  of the file).  "Standard Output" (stdout), "Standard Input" (stdin),
+  and "Standard Error" (stderr) are all file descriptors.  stdout is
+  1, stdin is 0, and stderr is 2.  In our example above, we used the
+  output "re-direction" operator, the arrow operator (<tt><b>></b></tt>), to send the
+  output to somewhere else other than stdout.  By default, both stderr
+  and stdout are directed to the terminal, so you see both the output
+  and any errors on the screen.  By using "<tt><b>2> /dev/null</b></tt>", we specified
+  that the file descriptor "2", which is stderr, should send its data
+  to /dev/null.  If we had used "<tt><b>1> /dev/null</b></tt>", we would have sent all
+  output to /dev/null, and would only be seeing error messages.
+      </p></blockquote>
+
+   
+      <blockquote><p>
+      <h4>12.4  &nbsp;<a id="appd">Appendix D -- File Types</a></h4>
+      <p>
+  When we were tackling the "-type" switch to find(1), we came across
+  this from the man page of find(1):
+       </p><pre class="listing">
+
+     -type c
+                      File is of type c:
+
+               b      block (buffered) special
+               c      character (unbuffered) special
+               d      directory
+               p      named pipe (FIFO)
+               f      regular file
+               l      symbolic link
+               s      socket
+               D      door (Solaris)
+       </pre><p>
+  Let's see what these "block special", "character special", et
+  cetera, are.
+       </p><blockquote>
+    <p class="motto_noalign">Block Special and Character Special types: </p>
+    <p>
+    By convention, devices attached to a system are represented on a
+    UNIX system by, you guessed it, files.  However, the files
+    representing devices are called "special files, or device files,
+    or simply nodes".  We won't go into a discussion why we call them
+    that.  By devices, what is meant is hard-disks, hard-disk
+    partitions, CD-ROMs, floppy disk drives, modems, Ethernet cards,
+    et cetera.
+       </p><p>
+    /dev/hda, for example, is a special file which usually points to
+    the first hard-disk mounted on the primary IDE 1 interface on a
+    typical workstation system (but, it doesn't have to be an IDE
+    disk).  Anything read from that hard-disk or written to it is done
+    through this special file, /dev/hda.  Let's "<tt><b>ls -l</b></tt>" /dev/hda:
+       </p><pre class="listing">
+
+            $ ls -l /dev/hda
+            brw-rw---- 1 root disk 3, 0 Jun 10 2002 /dev/hda
+       </pre><p>
+    Ignore everything except the first character, which is "<tt><b>b</b></tt>".  It
+    stands for "block special", and defines the type of file /dev/hda
+    is.  By block, what is meant is that data written to and read from
+    the device to which the file points to is done in blocks of bytes.
+    Further, what data is read from /dev/hda, it is read a block of
+    bytes at a time.  A single byte forms a character, so a block of
+    bytes means a bunch of characters.
+       </p><p>
+    My modem is also a device attached to my system.  The special file
+    which points to the modem is /dev/ttyLT0.  Let's list it:
+       </p><pre class="listing">
+
+            $ ls -l /dev/ttyLT0
+            crw-r----- 1 root uucp 62, 64 May 27 14:10 /dev/ttyLT0
+       </pre><p>
+    Lookee' here: No "<tt><b>b</b></tt>", but a single "<tt><b>c</b></tt>" instead.
+    The character "<tt><b>c</b></tt>"
+    stands for "character special".  What this means is that
+    /dev/ttyLT0 points to a character device, that is a device which
+    reads data one character (one byte) at a time.  Contrast this with
+    a block device, one which reads data a block of bytes at a time.
+       </p></blockquote>
+       <p>
+       <blockquote>
+       <p class="motto_noalign">
+        Sockets </p><p>
+    The man page for socket(2) says:
+           </p><blockquote><p>
+           socket - create an endpoint for communication
+           </p><p>
+           Socket creates an endpoint for communication and returns a
+           descriptor.
+           </p></blockquote><p>
+    You don't really need to understand what a socket(2) is at this
+    level.  A socket(2) creates a pipe with two endpoints.  Data can
+    be written to and read from either end.  And this is why the man
+    page mentions the word "communication" often.  Sockets are used as
+    communication links, both locally between different processes in
+    the system and remotely between, say, a web server and a web
+    browser.
+       </p><p>
+    As a small example, let's check what sockets we have in the /dev/
+    directory:
+       </p><pre class="listing">
+
+           # find /dev -type s
+           /dev/log
+           /dev/gpmctl
+       </pre><p>
+    Huh?
+       </p></blockquote>
+       <p><blockquote><p class="motto_noalign">
+       Symbolic Link
+       </p><p>
+    Here is what the man page for ln(1) has to say about soft links or
+    symbolic links, as they're known:
+        </p><blockquote><p>
+         A soft link (or symbolic link, or symlink) is an entirely
+         different animal: it is a small special file that contains a
+         pathname.  Thus, soft links can point at files on different
+         filesystems (possibly NFS mounted from different machines),
+         and need not point to actually existing files.  When accessed
+         (with the open(2) or stat(2) system calls), a reference to a
+         symlink is replaced by the operating system kernel with a
+         reference to the file named by the path name.  (However, with
+         rm(1) and unlink(2) the link itself is removed, not the file
+         it points to.  There are special system calls lstat(2) and
+         readlink(2) that read the status of a sym- link and the
+         filename it points to.  For various other system calls there
+         is some uncertainty and variation between operating systems
+         as to whether the operation acts on the symlink itself, or on
+         the file pointed to.)
+         </p></blockquote><p>
+    Symbolic link is pretty much the same thing as a shortcut.  It can
+    be a shortcut to a file, a directory, a special file, or anything
+    (what else is there on a UNIX system besides files).  It is just a
+    bloody shortcut.
+         </p></blockquote><p>
+	 <blockquote><p class="motto_noalign">
+	 Named Pipe (FIFO)
+         </p><p>
+    Remember sockets?  Yes, they are endpoints for communication.
+    More importantly, sockets create a communication link for data to
+    pass both ways.  That is where "pipes" differ.  Pipes also create
+    a link for communication, but only a one way link.  What that
+    means is that data is fed into the pipe at one end and read from
+    the other end.  It can be used to make data flow in the reverse
+    direction.  FIFO stands for First In First Out, meaning, the datum
+    that is fed first in the pipe, gets out first from the other end.
+         </p></blockquote>
+
+    </blockquote>
+
+
+    <h3>13.  &nbsp;Links</h3>
+    <blockquote><p>
+  <a id="link0">[0] </a><a href="http://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/">Linux Filesystem Hierarchy</a>
+    </p><p>
+  <a id="link1">[1] </a><a href="http://www.linuxfocus.org/English/July1998/articl53.html">UNIX Basics:  Regular Expressions</a>
+    </p></blockquote>
+
+
+<!-- invariant part -->
+  <hr>
+
+ <address class="copyright">
+  Copyright &copy; 2005 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles are copyrighted by their authors.
+ </address><br>
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="classes.html" title="Slack Classes"><b>Classes</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="humour.html" title="Slack Humour"><b>Humour</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

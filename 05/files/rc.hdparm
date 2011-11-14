@@ -1,0 +1,69 @@
+#!/bin/sh
+# /etc/rc.d/rc.hdparm
+# This script is used to optimice IDE hard disks devices.
+#
+
+############################
+# READ DEVICES CONFIG FILE #
+############################
+
+# Get the configuration information from /etc/rc.d/rc.hdparm.conf:
+. /etc/rc.d/rc.hdparm.conf
+
+# Compose a list of devices from /etc/rc.d/rc.hdparm.conf (with a maximum
+# of 4 devices, but you can easily enlarge the device limit)
+MAXDEVS=4
+i=0
+disk[0]=a; disk[1]=b;  disk[2]=c;  disk[3]=d;  disk[4]=e;
+disk[5]=f; disk[6]=g;  disk[7]=h;  disk[8]=i; disk[9]=j;
+disk[10]=k; disk[11]=l; disk[12]=m; disk[13]=n; disk[14]=o;
+disk[15]=p; disk[16]=q; disk[17]=r; disk[18]=s; disk[19]=t; 
+disk[20]=u; disk[21]=v; disk[22]=w; disk[23]=x; disk[24]=y;
+disk[25]=z;
+
+while [ $i -lt $MAXDEVS ];
+do
+  device[$i]=hd${disk[$i]}
+  i=$(($i+1))
+done
+
+
+if [ -x /usr/sbin/hdparm ]; then
+  i=0
+  while [ $i -lt $MAXDEVS ];
+  do  
+    HDFLAGS=
+    if [ ! "${MULTIPLE_IO[$i]}" == "" ]; then
+      HDFLAGS="-qm${MULTIPLE_IO[$i]}"
+    fi
+    if [ ! "${USE_DMA[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS -qd${USE_DMA[$i]}"
+    fi
+    if [ ! "${EIDE_32BIT[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS -qc${EIDE_32BIT[$i]}"
+    fi
+    if [ ! "${LOOKAHEAD[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS -qA${LOOKAHEAD[$i]}"
+    fi
+    if [ ! "${READAHEAD[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS -qa${READAHEAD[$i]}"
+    fi
+    if [ ! "${UNMASK_IRQ[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS -qu${UNMASK_IRQ[$i]}"
+    fi
+    if [ ! "${EXTRA_PARAMS[$i]}" == "" ]; then
+      HDFLAGS="$HDFLAGS ${EXTRA_PARAMS[$i]}"
+    fi
+    if [ -e "/proc/ide/${device[$i]}/media" ]; then
+      hdmedia=`cat /proc/ide/${device[$i]}/media`
+      if [ "$hdmedia" = "disk" ]; then
+        if [ ! "$HDFLAGS" == "" ]; then
+          echo "Setting hard drive parameters for
+${device[$i]}: /sbin/hdparm $HDFLAGS /dev/${device[$i]}"  
+          /usr/sbin/hdparm $HDFLAGS /dev/${device[$i]}
+        fi
+      fi
+    fi
+    i=$(($i+1))
+  done
+fi

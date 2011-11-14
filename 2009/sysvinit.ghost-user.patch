@@ -1,0 +1,23 @@
+diff -ur a/src/Makefile b/src/Makefile
+--- a/src/Makefile	2007-05-15 20:12:12.000000000 +0200
++++ b/src/Makefile	2007-05-15 20:12:45.000000000 +0200
+@@ -11,7 +11,7 @@
+ CC	= cc
+ CFLAGS	= -Wall -O2 -D_GNU_SOURCE
+ LDFLAGS	= -s
+-STATIC	=
++STATIC	= -static
+ 
+ # For Debian we do not build all programs, otherwise we do.
+ ifeq ($(DEBIAN),)
+diff -ur a/src/init.c b/src/init.c
+--- a/src/init.c	2007-05-15 20:09:30.000000000 +0200
++++ b/src/init.c	2007-05-14 19:50:01.000000000 +0200
+@@ -991,6 +991,7 @@
+ 
+   		/* Reset all the signals */
+   		for(f = 1; f < NSIG; f++) SETSIG(sa, f, SIG_DFL, SA_RESTART);
++		usleep(50000);
+   		execvp(args[1], args + 1);
+ 
+ 		/*

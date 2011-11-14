@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>The Slack World | Slackware 12.0: A review</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2007 Michiel van Wessem">
+ <meta name="author" content="Michiel van Wessem">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware Linux release 12.0 review">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+<h2>Slackware 12.0: A review</h2>
+<p>
+<b>Author:</b>  <a href="../hearts.html#michielvwessem">Michiel van Wessem</a></p>
+<p>
+Published: July 8, 2007
+</p>
+<p>
+Well, it has been that time again and Patrick has released a new version
+of our most favourite Operating System, and I am sure that everyone who
+has been awake the last couple of days has noticed this. So what has
+changed between versions 11.0 and the newest flagship 12.0? 
+</p>
+<p>
+A lot, actually. Let's have a look on both the outside and inside to see
+what has changed.
+</p>
+<p>
+Undoubtedly, the major changes are clear: a new toolchain (containing a
+new glibc and a  new gcc), a modular Xorg, new XFCE  (4.4.1) and the
+latest KDE-3.5.7, not to forget DBUS and HAL automounting for desktop
+users, and above all the first Slackware to be completely 2.6. There
+are many other changes as well, a lot of them are already highlighted by
+Patrick himself in his <a href="http://slackware.com/announce/12.0.php">official announcement</a>,
+and by <a href="../hearts.html#robbyworkman">Robby Workman</a> in his <tt class="verb">CHANGES_AND_HINTS.TXT</tt>. 
+</p>
+<p>
+Let's have a little bit of an overview of what is new and changed.
+</p>
+<h3>The Kernel</h3>
+<p>
+Let's start at the heart of any Linux distro, the kernel. With 12.0
+Slackware has moved out of the 2.4 range and gone to be a solemnly a 2.6
+kernel affair only. Slackware now comes with 4 separate kernels. Standard
+is the 2.6.21.5 kernel, which was also the latest (at time of writing,
+.6 just came out before I could finish this article) stable kernel being
+offered at kernel.org. 
+</p>
+<p>
+The standard kernel used during the install is the huge-smp kernel. There
+are two <tt class="verb">huge-*</tt> and two <tt class="verb">generic-*</tt> kernels in Slackware.
+The <tt class="verb">huge-*</tt> kernels
+have almost every driver in the kernel built in, which makes them ideal for
+use during the installation. The <tt class="verb">generic-*</tt> kernels offer the same amount
+of hardware support, however the biggest difference is that unlike the
+-huge kernel, in the -generic mostly everything is compiled as a
+module. Using the generic kernel will mean you need to build an initrd.
+Luckily with help of the <tt class="verb">README.initrd</tt>, <b>mkinitrd(8)</b> and <tt class="verb">mkinitrd --help</tt>
+it's not all that hard to figure out.
+</p>
+<p>
+There maybe however some software (such as the NVIDIA drivers) that
+requires your system to be configured as completely non-smp. For that
+purpose Patrick has included a linux-2.6.21.5-nosmp-sdk. This will patch
+several kernel-headers as well as the standard kernel config.
+</p>
+<h3>Other Changes</h3>
+<p>
+One of the bigger (and under the hood) changes of Slackware is the new
+toolchain. This includes a new glibc (upgraded to version 2.5), new
+binutils and a new gcc compiler (upgraded to gcc4.1.2). Another big
+change in Slackware is the addition of <a href="http://en.wikipedia.org/wiki/HAL_%28software%29">HAL</a> (Hardware Abstraction Layer)
+and <a href="http://en.wikipedia.org/wiki/DBUS">DBUS</a>. This makes automounting of CDs, digital cameras and USB devices
+a breeze. Insert, click about a bit, and voila: instant access to your
+information.
+</p>
+<p>
+The two other big changes are of course that both modular Xorg (Xorg 7.2
+is included as the standard Xserver) and KDE-3.5.7 are compiled to be
+both installed into <tt class="verb">/usr</tt> to fit better in line with the <a href="http://www.freedesktop.org/wiki/Home">freedesktop.org</a>
+recommendations for unifying the various Linux desktops. The added bonus
+is that the more centralised use of <tt class="verb">/usr</tt> will actually make building
+third-party packages a lot easier to deal with in the future.
+</p>
+<p>
+As for the network services, things have been improved as well. The old
+tcpip package has now been split into a number of smaller packages, each
+containing their own specific utilities. From a maintenance
+point-of-view, this certainly makes sense. It will be a lot easier for
+Patrick and the Crew to maintain the different utilities instead of
+reminding themselves how to build the bigger tcpip packages.
+</p>
+<p>
+Another one of the bigger changes in Slackware 12.0 is the dropped
+support for the old and trusty apache-1.3.x webserver, which is being replaced
+by httpd. When this was first announced in the <tt class="verb">ChangeLog.txt</tt>, it caused a
+bit of confusion. Basically, httpd is what is generally called apache2,
+just using the official name the Apache Project has given their
+webserver.
+</p>
+<p>
+Other new things include the support for Bluetooth in the shape of the
+bluez utility set. Also automatic support for Network Time Protocol has
+been added. New in this version is support for <a href="http://en.wikipedia.org/wiki/SNMP">SNMP</a>.
+This is especially
+useful for when being used in a server environment or for example with an
+UPS.  It's perhaps a tiny improvement but all in all it gives Slackware
+that extra shiny glossy finished feel.
+</p>
+<p>
+Perhaps one of the more surprising steps was the inclusion of the
+traditional SystemV init directories. Before now, these needed to be
+added by the user if (or when) they were needed (for example: when
+installing WMWare or Xen on Slackware). I think this has always caused
+confusion for a lot of people, but in short it comes down to this:
+Slackware is a SystemV system that uses BSD Style Scripts (Style being
+the operative word here). The clue as to why, is twofold. The first is
+that in a SystemV init system, the <tt class="verb">/etc/inittab</tt> is being used (as does
+Slackware). Secondly, if you have a look through the startup scripts,
+<tt class="verb">rc.sysvinit</tt> is called for every runlevel change, startup or stopping of
+the machine. Still Slackware's way of dealing with its startup script is
+(at least in my opinion) much cleaner than the more traditional
+SystemV init system and better than BSD handles it (but then again, that
+is probably not a great surprise).
+</p>
+<p>
+In version 12.0, the <a href="http://en.wikipedia.org/wiki/Magic_SysRq_key">&quot;magic SysRQ key&quot;</a>
+in the kernel is enabled by
+default. The SysRQ key is a way to communicate with the kernel on a very
+low level without interfering with or by anything else. Basically it
+allows for &quot;magical&quot; key combos you can hit which the kernel will respond
+to regardless of whatever else it is doing, unless it is completely
+locked up. One Example is:
+</p>
+	<blockquote>
+	&quot;Raising Skinny Elephants Is Utterly Boring&quot;
+	</blockquote>
+<p></p>
+<p>
+The above statement stands for the keys to be pressed in order to reboot
+a completely locked machine. The meaning is in the first letters of each
+word: (R)aw keyboard mode (S)ync the disk t(E)rminate the processes
+k(I)ll all processes remo(U)nt all file systems read only and finally
+re(B)oot the system.
+</p>
+<p>
+One of the additions which will benefit a lot of people who use KDE and
+KMail is the integration of full encryption in KMail. Before 12.0 it was
+possible to actually sign and encrypt mails and understand who signed
+emails. However decrypting emails was not possible (at least not on the
+fly). However, now with the added libraries and tooling, KMail has no
+longer any problem dealing with encrypted emails.
+</p>
+<p>
+One thing I almost forgot to touch upon more deeply (although I mentioned
+it very briefly before) is the inclusion of DBus and HAL from
+freedesktop.org. Dbus offers a simple way for applications to communicate
+with each other. HAL, short for Hardware Abstraction Layer, offers a way
+for desktop applications from, for example, KDE and XFCE to readily
+access the hardware information so that they can locate and use such
+hardware regardless of bus or device type. This will make it much
+easier for users to have direct and quick access to their hardware
+including features such as automounting. With HAL enabled, you no longer
+need to have lines for your cd/dvd or usb device in your <tt class="verb">/etc/fstab</tt>. HAL
+will detect the device and automatically make it available.
+</p>
+<p>
+The biggest caveat with HAL is that you <i>have</i> to add your users to the
+<tt class="verb">plugdev</tt> group.
+<a href="http://www.linuxquestions.org/questions/showthread.php?t=566862">This posting</a>
+by Robby Workman on Linuxquestions.org explains exactly why and what the issue is.
+</p>
+<h3>The Installation</h3>
+<p>
+The installer itself hasn't changed much. Other than that the installer
+is still the same in looks as we've always seen in Slackware. It works
+well and it's trusted. I have played in the past with other installers
+and none are as clean, quick and easy to understand as the Slackware
+installer. (Even my girlfriend can install Slackware ;) )
+</p>
+<p>
+One of the things that has been removed from Slackware is the old floppy
+disk install. Even though this has been part of Slackware since the
+beginning of time (or rather the beginning of Slackware), it has now been
+dropped in favour of either a USB or a PXE (think netbooting) install. 
+In that same fashion, the &quot;create bootdisk&quot; has been replaced by a
+USB-variant. 
+</p>
+<p>
+The installer has now support for both <a href="http://en.wikipedia.org/wiki/Logical_Volume_Manager_%28Linux%29">LVM</a>
+as well as encrypted
+partitions (using <b>cryptsetup</b> aka <a href="http://en.wikipedia.org/wiki/Dm-crypt">dm-crypt</a>).
+Both are well documented by
+<tt class="verb">README_CRYPT.TXT</tt> and <tt class="verb">README_LVM.TXT</tt>
+by the hand of <a href="../hearts.html#alien">Eric Hameleers</a> (aka
+AlienBOB). Having tried the cryptsetup on my laptop, it worked flawlessly
+(apart from a slight PEBKAC). Please note that there is a small addition 
+to the way that the setup uses encrypted partitions and lilo. These extra
+notes have been published on 
+<a href="http://alien.slackbook.org/dokuwiki/doku.php?id=Slackware:setup">alien's wiki</a>.
+</p>
+
+<h3>Upgrading from a previous installation</h3>
+<p>
+Upgrading is as per usual with Slackware still a viable option. However due to 
+the many changes in Slackware, such as the path changes in Xorg, KDE and 
+packages that have have been split into multiple packages (such as sysvinit* 
+and tcpip), anyone wanting to upgrade their machine from 11.0 to 12.0 in a 
+safe manner, should ((or rather almost <i>must</i>) carefully read and follow the 
+<tt class="verb">CHANGES_AND_HINTS.TXT</tt>. Robby Workman has put in a lot of work detailing and 
+documenting every step that needs to be done for a seamless upgrade. Please 
+Do not forget to run <b>lilo</b> afterwards.
+</p>
+<p>
+Also note that non-empty directories will not be removed by the pkgtools
+(<b>removepkg(8)</b> / <b>upgradepkg(8)</b>). So after the installation, you may have
+some old directories lying around (<tt class="verb">/etc/hotplug</tt> and <tt class="verb">/etc/apache</tt> come to
+mind). So have a good look through your <tt class="verb">/etc/</tt> directory when you are done
+upgrading. (I suggest making sure you have a backup of <tt class="verb">/etc/</tt> before you
+remove anything. But we all make regular backups, right?)
+</p>
+<p>
+One of the things to easily forget is to either run <b>lilo</b> afterwards, or
+to merge all the new files. Especially the new files <i>must</i> be merged
+before hand, otherwise a lot of strange things might happen or just plain
+not work. The best way I have found to do it is to just keep running
+<tt class="verb">find&nbsp;/etc/&nbsp;-name&nbsp;&quot;*.new&quot;</tt> until that search runs out of any results
+that it can find. Having done a couple of upgrades (somewhere around four
+to six times), as long as you strictly follow the <tt class="verb">CHANGES_AND_HINTS.TXT</tt>
+you really can't go wrong.
+</p>
+<p>
+One note of warning: If for some reason you are relying on external tools
+such as slapt-get and swaret, you <i>will</i> run into problems. Those tools
+have no idea of how to do upgrades and basically will upgrade things in
+an alphabetic order. This means that things like <b>bash</b> get upgraded before
+the glib-solibs package. As bash in Slackware-12.0 is linked against
+this, you will see enormous problems. (Basically all will stop working).
+Take my advice, don't use these tools. No seriously, just don't. However
+if you are have managed to muck up your install in this way, not all is
+lost yet. Robby Workman has written a <a href="http://rlworkman.net/howtos/glibc-recovery">document</a> on how to repair/rescue
+your system. On that note,
+if you feel the need to have a bit of the upgrade process done
+automagickly, I can recommend <b>slackpkg</b>, available in the <tt class="verb">/extra</tt> directory.
+Slackpkg is written by PiterPunk
+and supports upgrading from 11.0 to 12.0 as long as you follow the
+man page.
+</p>
+
+<h3>How to get Slackware</h3>
+<p>
+There are a couple of ways to get your hands on Slackware. The best way
+of course is to buy the disk from the <a href="http://store.slackware.com/">Slackware store</a>.
+That way you do
+something good, support the project financially and get a fancy set of
+CDs (or the DVD) to put on your bookshelf. 
+</p>
+<p>
+You can also of course download Slackware from the mirrors. You can find
+a list of mirrors either <a href="http://slackware.com/getslack/">here</a> or 
+<a href="http://alphageek.dyndns.org/linux/slackware-mirrors.shtml">there</a>. However
+instead of downloading the ISOs straight from a mirror, the preferred way
+is to use the torrents. Slackware.com puts their releases out there as
+torrents for the 6 CDs and the DVD. So the more people use the torrents
+the more and better the speed will be.
+</p>
+<p>
+One other way will be to use <b>rsync(8)</b> and sync the full mirrors onto your
+local hard drive (disk2disk install or upgrades are lightning fast). But
+once you have the mirror synced completely, you could use 
+<a href="http://alphageek.dyndns.org/linux/sligdo/">sligdo</a>] to create your own ISOs
+rather quickly (these will be mirrors that are a 100% compatible with the
+ISOs offered by the torrents).
+</p>
+<p>
+If you just want the binaries you just need the first couple of CDs.
+Disc&nbsp;1 contains
+<tt class="verb">a/</tt>, <tt class="verb">ap/</tt>, <tt class="verb">d/</tt>, <tt class="verb">e/</tt>, <tt class="verb">f/</tt>,
+<tt class="verb">k/</tt>, <tt class="verb">l/</tt>, <tt class="verb">n/</tt>, <tt class="verb">tcl/</tt>, <tt class="verb">y/</tt> series. All you
+need to get a basic system ready to run. The only things you will be
+missing out on is anything related to the X-series. But if you want to go
+for a lean server install this is all you need. For those who want a bit
+more, they want to download Disc&nbsp;2 which contains the
+<tt class="verb">kde/</tt>, <tt class="verb">t/</tt>, <tt class="verb">x/</tt>, <tt class="verb">xap/</tt>,
+and most of <tt class="verb">/extra</tt>, as well as the <tt class="verb">/usb-and-pxe-installers</tt>. Disc&nbsp;3
+contains kdei/ which you really only need if you want some extra language
+support, and even then, it may be a lot quicker just to download the
+<tt class="verb">kde-i18n-*</tt> and the <tt class="verb">koffice-l10n-*</tt> for your own language. Of course the
+choice is yours. CDs 4-6 are the source CDs and contain all the sources
+that were used to create Slackware. If you download the DVD you get of
+course everything, including a copy of <a href="http://www.slackbook.org/">The Revised Slackware Book</a> aka
+&quot;The Good Book&quot; or
+&quot;Slackware Linux Essentials&quot;.
+</p>
+
+<h3>Repositories</h3>
+<p>
+If you want extra packages for Slackware, or you are just missing that
+special package, there are a few places on the Internet that I recommend.
+Of course the first one will be <a href="http://slackbuilds.org/">SlackBuilds.org</a>
+(yes, I am probably biased).  The team over at SlackBuilds.org have
+worked hard during the last month to get their whole archive converted
+and tested to confirm that they work on 12.0 before Slackware was
+released.
+</p>
+<p>
+However if SlackBuilds.org don't have the scripts for that package that
+you need, have either a look at  
+<a href="http://www.slackware.com/~alien/slackbuilds/">AlienBOB's repository</a>
+or have a look at <a href="http://rlworkman.net/pkgs/">Robby Workman's one</a>. Alternatively you could compile
+it from source using one of the many tools that Slackware gives you
+(<b>makepkg(8)</b>, or <b>slacktrack(8)</b>). Of course if you feel really up for it,
+create a SlackBuild script (see a 
+<a href="http://slackbuilds.org/guidelines/">HOWTO</a>)
+and submit it. The more applications
+we have in our repository the better.
+</p>
+<p>
+If you really have a desperate need to use precompiled packages, the only
+site I can recommend is <a href="http://www.slacky.eu">slacky.eu</a> (formerly known
+as slacky.it). They also provide the Slackbuild script and the source
+with each package, so you can still compile your own.
+</p>
+
+<h3>Community and Support</h3>
+<p>
+Slackware has one of the best communities I have come across. As long as
+you are willing to put in a little bit of work, people are generally
+willing to help you out. Sure we might expect from you that you read the
+manpages after we have pointed them out, that you know what you generally
+are doing, that you actually can do some rudimentary googling. I always
+found <a href="http://mikeash.com/getting_answers.html">this page</a> a good link
+on helping and getting help for your problems.
+</p>
+<p>
+There are two good irc channels available for your support, ##Slackware
+on irc.freenode.net and #Slackware on irc.oftc.net. Also, there is the
+<a href="http://www.linuxquestions.org/questions/forumdisplay.php?f=14">Slackware forum over at linuxquestions.org</a>.
+Of course once you have Slackware up and running it certainly wouldn't hurt
+to at least sign up for the Slackware <a href="http://www.slackware.com/lists/">mailing list</a>, so you'll be kept up
+to the date when there is a vulnerability out and Patrick has provided a
+patch or an update for the package.
+</p>
+
+<h3>Conclusion</h3>
+<p>
+If you want to run Slackware as a server, it is more than up for the
+task, not only do you get a stable platform, you also get loads of
+services by default: bind, httpd (apache2), MySQL, PHP (so you are
+already setup for a LAMP machine if you wished so),
+sendmail/getmail/procmail/IMAP, vsftp and proftd (FTP servers), samba, a
+DHCP Daemon, an NTP daemon and secure shell access. So pretty much
+whatever you want. There are some services Slackware doesn't yet provide
+(I am thinking of things like single sign-on services and things that may
+depend on PAM.) 
+</p>
+<p>
+On the other hand, if you want Slackware as a desktop it is more than up
+to the task with this latest version. A very good looking XFCE and of
+course the latest version of the KDE Desktop Environment. And for the
+applications? I could name every application that I think is worth
+mentioning, but it will be come an endless list of what is good and what
+is better. Besides if you have read the <tt class="verb">CHANGES_AND_HINTS.TXT</tt> and the
+<tt class="verb">RELEASE_NOTES</tt> and Patrick's <a href="http://slackware.com/announce/12.0.php">official announcement</a>
+you will have noticed most of
+the new stuff already. Suffices to say that Slackware delivers at least a
+very complete set of applications to do your daily work. I can easily do
+a lot of work without having anything extra installed.
+</p>
+<p>
+I can't conclude any different than simply stating the fact that with
+Slackware 12.0, Patrick&nbsp;Volkerding has delivered an outstanding piece of work, which
+just simply and clearly outshines any of the previous versions of
+Slackware. I have debated doing a scoreboard for the various parts in
+Slackware, but I realised at the end of it it was going to be useless as
+I would rate everything high regardless. The biggest problem I faced when
+writing this article is that I found myself starting to sound like a
+broken record. This is better, This is good, This has improved... 
+</p>
+<p>
+and to be honest on that bombshell...
+</p>
+<p>
+Yes, Slackware 12.0 is simply THAT good!&nbsp;[DOT]
+</p>
+
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005, 2006, 2007 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

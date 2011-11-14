@@ -1,0 +1,361 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0.1//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 4, 2005. Slack Notes</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005 The Slack World">
+ <meta name="keywords" content="Slackware, slackware, Linux, linux, packages,
+  forum, newsgroup, documents, ppp, dialin, mgetty">
+ <meta name="description" content="Slack Notes">
+ <meta name="author" content="Mikhail Zotov">
+
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+ <link rel="first" href="editorial.html" title="Editorial">
+
+ <link rel="previous" href="story.html" title="Slack Story">
+ <link rel="last" href="acks.html" title="Acknowledgments">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #4, November 2005
+  </p>
+
+  <h2>Slack Notes: Setting up mgetty+ppp to build a simple
+  Slackware dialin server</h2>
+
+  <p>
+   <b>Author:</b> Mikhail Zotov
+  </p>
+
+  <p>
+	The procedure consists of two main parts, which can be done in any order:
+	installing and configuring <b>pppd</b>, and installing and 
+   configuring <b>(m)getty</b>.  Let's begin with <b>pppd</b>.
+  </p>
+
+  <h3>I. PPPD</h3>
+
+  <p>
+	1. Install <tt class="verb">slackware/n/ppp-2.4.?-i486-1.tgz</tt> package.
+  </p>
+  <p>
+   2. Feel free to
+  </p>
+
+  <pre class="listing">
+   # rm -rf /etc/radiusclient</pre>
+
+  <p>
+	3. Configure <b>pppd</b>.  Basically, there are two main ways to start <b>pppd</b>
+   	on a dialin server:
+  </p>
+  <ol>
+   <li> a user logs in and starts pppd.  In its turn, this can also
+        be accomplished in different ways: this user shell can be
+        defined as <tt class="verb">/sbin/pppd</tt>,
+        or this can be a user with an "ordinary"
+        shell who issues the corresponding command upon login (if
+        needed; in this case <b>pppd</b> must be set suid root).
+        Anyway, a user must exist in the system.</li>
+
+	<li> no additional user is defined in the system, and it is
+        <em>impossible</em> to login via ppp (only via <b>telnet</b> or
+        <b>ssh</b>).</li>
+  </ol>
+  <p>I prefer the second way and it will be covered in what follows.</p>
+
+  <p>
+   <b>3.1 PPP options.</b>
+	First, let's obtain a copy of <tt class="verb">/etc/ppp/options</tt>
+   convenient to work with:
+  </p>
+  <pre class="listing">
+   # cd /etc/ppp
+   # cp options options.orig
+   # egrep -v "^#|^$" options.orig > options
+   # cat options
+
+   asyncmap 0
+   crtscts
+   lock
+   modem
+   proxyarp
+   lcp-echo-interval 30
+   lcp-echo-failure 4</pre>
+
+  <p>
+   Now, edit <tt class="verb">/etc/ppp/options</tt> to look this way
+   (<b>man pppd</b>):
+  </p>
+
+  <pre class="quest">
+-detach
+# default settings:
+asyncmap 0
+crtscts
+modem
+lcp-echo-interval 30
+lcp-echo-failure 4
+
+# lock the port
+lock
+
+# require a client to authenticate itself:
+auth
+
+# define a DNS server for windoops clients if needed:
+ms-dns 1.2.3.4
+
+# local_IP_address:remote_IP_address
+10.0.0.1:10.0.0.2
+
+# additional logging for the case anything goes wrong:
+debug</pre>
+
+  <p>
+   <b>3.2</b> Define the authentication way by editing either
+   <tt class="verb">/etc/ppp/pap-secrets</tt>
+   or <tt class="verb">/etc/ppp/chap-secrets</tt> (or both).
+   A <tt class="verb">pap-secrets</tt> file may look this way:
+
+<pre class="quest">
+# Secrets for authentication using PAP
+# client      server   secret                     IP addresses
+client_name   *        "A very secret p4$$m0Rd"   *
+</pre>
+
+  <p>
+   Here, <tt class="verb">client_name</tt> is whatever you like
+   as a name used by a client.
+   No need to <b>useradd client_name</b>!
+  </p>
+  <p>
+   Asterisks are not mandatory but they work.
+  </p>
+  <p>
+   Make sure <tt class="verb">pap-secrets</tt> are not readable/writable by
+   anybody but root.</p>
+
+  <p>
+   Voila!  PPP is ready.</p>
+  <p>
+   <em>Remark</em>. CHAP is considered to be more secure than PAP (see, e.g.,
+   <a href="http://www.tldp.org/LDP/nag2/x-087-2-ppp.authentication.html#AEN7101">Sect.&nbsp;8.8.1</a> of
+   the <a href="http://www.tldp.org/LDP/nag2/index.html">Linux Network Administrators Guide</a>).
+   A <tt class="verb">chap-secrets</tt> file for two-sided
+   authentication may look this way:</p>
+
+<pre class="quest">
+client_name   server_name    "We believe in having fun"    *
+server_name   client_name    "and Slacking all the time"   *
+</pre>
+
+  <p>
+   This file must be present both on the server and the client sides.
+   Also, it may be necessary to add another line to the <tt class="verb">/etc/ppp/options</tt>
+   file on the server:</p>
+
+<pre class="quest">
+# The name declared by the server:
+name server_name
+</pre>
+
+  <p>
+   and a similar line on the client machine.</p>
+
+<h3>II. Mgetty</h3>
+
+  <p>
+   <b>Mgetty</b> is not the only getty program available in the Net but the one
+   that is often recommended for the purpose.  Unfortunately, it doesn't
+   come with Slackware thus we have to build it by ourselves.</p>
+
+  <p>
+   1. Download mgetty from <a href="http://alpha.greenie.net/mgetty/index.html">here</a>
+   or from <a href="http://www.leo.org/~doering/mgetty/index.html">here</a>.
+   The tarball has
+   clear build instructions but one may want to save some time and use
+   an <tt class="verb">mgetty.SlackBuild</tt>
+   script available at <a href="http://slackpack.tripleg.net.au/">SlackPack</a>.
+   Also, grab their <tt class="verb">policy.h</tt>.
+   (Well, I couldn't stand and have modified their script slightly.
+   It can be found <a href="./files/mgetty.SlackBuild">here</a>.)</p>
+
+  <p>
+   2. Edit <tt class="verb">policy.h</tt> before
+   building <b>mgetty</b> or running <tt class="verb">mgetty.SlackBuild</tt>.
+   It is commented intensively thus no problems should appear.  In case
+   of doubts, leave it as is because (almost all) settings can be changed
+   later.  (As for me, I redefined
+   <tt class="verb">MODEM_INIT_STRING</tt> and
+   <tt class="verb">DEFAULT_PORTSPEED</tt> because I had to use a slow modem.)</p>
+
+  <p>
+   Now, build <b>mgetty</b>.  And don't forget to install it.&nbsp;:-)</p>
+
+  <p>
+   3. Time to configure <b>mgetty</b>:</p>
+
+  <pre class="listing">
+   # cd /etc/mgetty</pre>
+
+  <p>
+   or, <tt class="verb">cd /etc/mgetty+sendfax</tt>
+   if you have followed the talon way of installation.</p>
+
+  <p>
+   Two files should be filled:</p>
+
+  <ul>
+   <li>
+    <tt class="verb">mgetty.config</tt> (optional).  It may look this way:
+
+  <pre class="quest">
+# port speed (not needed if coincides with the one defined
+# in policy.h or defined in /etc/inittab)
+speed 115200
+
+# roughly, a level of verbosity in logging
+debug 3
+
+# don't expect faxes:
+data-only y</pre></li>
+
+   <li>
+    <tt class="verb">login.config</tt> (<b>chmod 600</b>)
+
+  <pre class="quest">
+# See login.cfg.in for extensive comments
+/AutoPPP/ -	-	/usr/sbin/pppd
+* nobody @ /bin/false</pre></li>
+  </ul>
+
+  <p>
+   4. <b>Mgetty</b> will log its activities in
+   <tt class="verb">/var/log/mgetty.ttyS0</tt>
+   (replace <tt class="verb">ttyS0</tt> with your device).
+   Thus we need to think about
+   rotating the log.  The following lines added to
+   <tt class="verb">/etc/logrotate.conf</tt> will do the job:</p>
+
+  <pre class="quest">
+# mgetty logs:
+/var/log/mgetty.ttyS0 {
+   create 0640 root root
+}</pre>
+
+  <p>
+   Once again, feel free to edit them up to your taste and needs.</p>
+
+
+  <h3>III. Putting it all together</h3>
+
+  <p>
+   Add the following line to <tt class="verb">/etc/inittab</tt>:</p>
+
+  <pre class="quest">
+s1:2345:respawn:/usr/sbin/mgetty -D ttyS0</pre>
+
+  <p>
+   Here, "<b>-D</b>" disables faxes, if needed.  (Actually, we have already
+   disabled them in <tt class="verb">mgetty.config</tt>
+   but this doesn't hurt.)
+   Next, "<b>ttyS0</b>" defines the port our modem
+   is attached to.  (There may be many different modems attached to the
+   machine.  Each modem parameters can be defined in
+   <tt class="verb">mgetty.config</tt>.)</p>
+
+  <p>
+   The final thing to do:</p>
+
+  <pre class="listing">
+   # telinit q</pre>
+
+  <p>
+   Frankly speaking, there is one more thing to do.  We do want to use our
+   phone during working hours, do we?  In order to prevent <b>mgetty</b>
+   from replying to incoming calls when we are at work, let's add
+   the following lines to
+   <tt class="verb">/var/spool/cron/crontabs/root</tt> (assuming
+   we are at work from 9&nbsp;a.m. till 6&nbsp;p.m. five days a week):</p>
+
+  <pre class="quest">
+0 9 * * mon-fri /bin/touch /etc/nologin.ttyS0
+0 18 * * mon-fri /bin/rm -f /etc/nologin.ttyS0</pre>
+
+  <p>
+   Congratulations!!!  The work is done.  High time to go home
+   and test our brand new dialin server.&nbsp;:-)</p>
+
+  <p>
+   <em>Remark</em>.  Don't forget to enable port forwarding on the server:</p>
+
+  <pre class="listing">
+   # echo 1 > /proc/sys/net/ipv4/ip_forward</pre>
+
+
+  <h3>References (besides those coming with ppp and mgetty)</h3>
+  <ul>
+   <li>
+    Linux Network Administrators Guide,
+    <a href="http://www.tldp.org/LDP/nag2/x-087-2-ppp.html">Chapter&nbsp;8. The Point-to-Point Protocol</a>
+     </li>
+   <li>
+    <a href="http://www.tldp.org/HOWTO/PPP-HOWTO/index.html">Linux PPP HOWTO</a>
+     by Corwin Light-Williams and Joshua Drake</li>
+   <li>
+    <a href="http://www.theory.physics.ubc.ca/ppp-linux.html">How to Hook up PPP in Linux</a>
+    and <a href="http://www.theory.physics.ubc.ca/mgetty.html">MGETTY Setup for Dialin</a>
+    by Bill Unruh</li>
+  </ul>
+<!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="editorial.html" title="Editorial"><b>Editorial</b></a>
+    <a class="menu" href="person.html" title="Persona Grata"><b>Person</b></a>
+    <a class="menu" href="essence-1.html" title="Essence-1"><b>Essence-1</b></a>
+    <a class="menu" href="essence-2.html" title="Essence-2"><b>Essence-2</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="story.html" title="Slack Story"><b>Story</b></a>
+    <a class="menu" href="notes.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

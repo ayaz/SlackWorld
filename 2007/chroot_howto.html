@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+ <title>A How To on Creating a chroot Environment</title>
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2007 Tom Newsom">
+ <meta name="author" content="Tom Newsom">
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <meta name="keywords" content="Slackware Linux chroot">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+  <p class="topmenu">
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+  </p>
+ </div>
+
+ <div id="content">
+
+<h2>A How To on Creating a chroot Environment</h2>
+
+ <p>
+  <b>Author:</b> Tom Newsom
+ </p>
+ <p>
+  Published: February 17, 2007
+ </p>
+
+<p> The <b>chroot</b> program, <b>man chroot</b> for details, enables us
+to run different instances of the GNU/Linux environment on a single
+system simultaneously without rebooting. There could be many reasons why
+one would want or need to do this so doing it securely is a Good Thing(c)
+right? Do it in a way that does not disrupt ones running installation is
+surely the Right Thing(c) to do. In this document I will show you exactly
+how to achieve these stated aims whilst having fun at the same time.</p>
+
+<p> In this document I shall be showing you how you can run, for testing
+purposes perhaps, two versions of Slackware simultaneously. Both will be
+fully fledged installs and both will be fully usable. It is possible to
+run other distributions via this method as well but I shall leave that
+aim as an exercise for the reader. Once you know how it is done then
+doing it for alternative distributions is a natural progression of your
+newly acquired skills.</p>
+
+<p> It is also possible to run the Slackware tool set under the
+<b>chroot</b> of a fast host while NFS-mounting a slower machine on the
+network to the host as read/write and the <b>chroot</b> point being the
+mount point of the slower machine.</p>
+
+<p> But for this mini How To I shall concentrate on implementing a
+<b>chroot</b> on a single host.</p>
+
+<h3>Slackware within chroot</h3>
+
+<p> A <b>chroot</b> Slackware environment is not a hard thing to do. We
+must be careful however that we do not affect our main install. We must
+also determine what we want from the <b>chroot</b> environment as this
+will affect what we install with it. Do we just want a basic CLI
+environment? Do we want a CLI with network environment? Do we want a full
+blown environment with X&nbsp;+ DTE/WM (Desktop Environment&nbsp;+ Window
+manager)? The list of possibilities can be a long one. For the purposes
+of this document however we shall go with a CLI&nbsp;+ Network
+environment. Once this foundation is laid we can expand on it once we are
+within the <b>chroot</b> just like any normal install of Slackware.</p>
+
+<p> Everything we do for the <b>chroot</b> will have to be done as the
+root user at first. This is because we need to use Slackware's own
+pkgtools. Plus, we want to ensure whatever we install has the correct
+permissions and user attributes. First we must decide where our
+<b>chroot</b> environment will be. For this document we will use
+<tt class="verb">/mnt/chroot</tt>. That directory will probably not exist
+so create it:</p>
+
+<pre class="listing">
+slackbox # mkdir -p /mnt/chroot</pre>
+
+<p> Next we install the basic environment. For the following to work we
+will need to <b>cd</b> to wherever your local slacktree resides. There is
+bash script at the end of this document that will download the slackpaks
+for you and install these if you do not have a local copy of the
+Slackware Install tree. For example my own local Slackware tree resides
+on <tt class="verb">/mnt/sources/slackware-11.0</tt> so, we would
+<b>cd</b> to there before installing the basic package set. Let us
+install our basic setup which we have decided is CLI&nbsp;+ Network. This
+means we need to install packages of series a, ap, l and n. For the sake
+of simplicity, we install all of these series. If your local Slackware
+tree resides on a CD-ROM then make sure you have it mounted and that you
+<b>cd</b> into the relevant directory before doing the <b>installpkg</b>
+lines below.</p>
+
+<pre class="listing">
+slackbox # cd /mnt/sources/slackware-11.0/slackware # Edit to suit.
+slackbox # installpkg -root /mnt/chroot a/*.tgz
+slackbox # installpkg -root /mnt/chroot ap/*.tgz
+slackbox # installpkg -root /mnt/chroot l/*.tgz
+slackbox # installpkg -root /mnt/chroot n/*.tgz</pre>
+
+<p> Next we will copy the local <tt class="verb">hosts</tt> file and the local
+<tt class="verb">fstab</tt> file to our <b>chroot</b> environment. This will enable us to
+have the local network work within our <b>chroot</b> environment and also allow
+all local devices to be used within our <b>chroot</b>:</p>
+
+<pre class="listing">
+slackbox # cp /etc/hosts /mnt/chroot/etc/hosts
+slackbox # cp /etc/fstab /mnt/chroot/etc/fstab</pre>
+
+<p> Copying your main system <tt class="verb">/etc/fstab</tt> may or may not be
+required, depending on how your main system and the <b>chroot</b> environment
+are setup. For example, if you have a multiple partition setup on your
+main system then unless you have setup the <b>chroot</b> environment exactly the
+same then copying <tt class="verb">/etc/fstab</tt> is not required. In this case you
+should manually create (or copy then edit)
+<tt class="verb">/mnt/chroot/etc/fstab</tt>. If, however, you have a simple
+partition layout then copying <tt class="verb">/etc/fstab</tt> to
+<tt class="verb">/mnt/chroot/etc/fstab</tt> will be okay.</p>
+
+<p> At this stage we have a fully functioning Slackware install within
+our <b>chroot</b> environment so now we shall <b>chroot</b> into it.
+Before we do that we have a little magic to do to ensure it works as
+expected:</p>
+
+<pre class="listing">
+slackbox # mount -o bind /proc /mnt/chroot/proc
+slackbox # mount -o bind /dev /mnt/chroot/dev
+slackbox # chroot /mnt/chroot /bin/bash</pre>
+
+<p> By binding the running system, our main system, <tt class="verb">/proc</tt> and
+<tt class="verb">/dev</tt> we ensure that all connected hardware works in our
+<b>chroot</b>. If, however, you have installed the Slackware <tt class="verb">dev</tt>
+package you may not need to bind <tt class="verb">/dev</tt> to
+<tt class="verb">/mnt/chroot/dev</tt>. Your Mileage May Vary on this particular
+thing.</p>
+
+<p> It is worth noting that if you decide to (re)build a <b>chroot</b>
+kernel and if it is a different version from your main systems kernel
+then you may run into incompatibily problems when you bind <tt class="verb">/proc</tt>
+to <tt class="verb">/mnt/chroot/proc</tt>. To maintain stability and compatibilty I
+recommend that unless you know precisely what you are doing and that you
+know precisely what issues can happen and how to get around those issues
+then you do not build a kernel within your <b>chroot</b>. That said, for
+the more technically inclined amongst you, if you do decide or want to
+test vastly differing kernels within your <b>chroot</b> then do not do the
+<tt class="verb">/proc</tt> binding line above but instead do the following line once
+you are within your <b>chroot</b>:
+
+<pre class="listing">
+chroot-1 # mount -t proc none /proc</pre>
+
+<p> Mounting <tt class="verb">/proc</tt> is this manner may also remove the need to
+issue <b>startx&nbsp;--&nbsp;:1</b> when we setup our X environment later
+in this how to.</p>
+
+<p> The first thing you should do once you are sat within your chroot is to
+ensure libraries, and if using X, fonts are available.</p>
+
+<pre class="listing">
+chroot-1 # ldconfig</pre>
+
+<p> And for fonts do:</p>
+
+<pre class="listing">
+chroot-1 # fc-cache</pre>
+
+<p> You are now sat on your newly created chrooted Slackware install.</p>
+
+<p> What can we do now? Well, how about give your <b>chroot</b> environment a
+hostname other than darkstar?</p>
+
+<pre class="listing">
+slackbox # cp /etc/HOSTNAME /mnt/chroot/etc/</pre>
+
+<p> The above line will give your <b>chroot</b> the same hostname as your
+main environment. Not everyone wants this so make the change permanent in
+<tt class="verb">/mnt/chroot/etc/rc.d/rc.M</tt> by editing the <b>hostname</b> line in
+that file. Next time you login to your <b>chroot</b>, your <b>chroot</b>
+will now have its very own name.</p>
+
+<p> If you have followed this document from the beginning then what you
+have created is a fully functioning Slackware install within which you
+can do anything you like without infecting your main Slackware
+installation. To exit from a chroot jail simply type `<b>exit</b>'. Once
+you have typed that and hit &lt;Enter&gt; you will be back on your main
+environment.</p>
+
+
+<p> Typing <b>chroot /mnt/chroot /bin/bash</b> is all well and good but
+this could create all sorts of problems further down the line. It is much
+better to start another login process where you can login to the
+<b>chroot</b> directly and ensure the environment is clean.</p>
+
+<p> On a typical Slackware setup tty1 through tty6 are linux consoles.
+Xorg typically runs on the first available one counting from tty1 up
+until it finds the first free one which will be tty7 on a typical
+Slackware install so it is safe for us to use tty8:</p>
+
+<pre class="listing">
+slackbox # echo "c7:1235:respawn:/usr/bin/chroot /mnt/chroot "\
+           "/sbin/agetty 38400 tty8" >>/etc/inittab
+slackbox # init q                           # This reloads init</pre>
+
+<p> Now whenever you press ALT-F8 (from console) or CTRL-ALT-F8 (from
+within X) your <b>chroot</b> environment will be launched if not started
+or you will rejoin it if it is.</p>
+
+
+<h3>Setting up X for chroot</h3>
+
+<p> Running X with KDE or Gnome2 or WindowMaker within your <b>chroot</b>
+is entirely possible.</p>
+
+<p> First we should install the packages and copy our working
+<tt>Xorg.conf</tt> from our main environment to our chrooted one:</p>
+
+<pre class="listing">
+slackbox # installpkg -root /mnt/chroot x/*.tgz
+slackbox # installpkg -root /mnt/chroot xap/*.tgz
+slackbox # installpkg -root /mnt/chroot kde/*.tgz
+slackbox # cp /etc/X11/xorg.conf /mnt/chroot/etc/X11/xorg.conf</pre>
+
+<p> If you use GDM, KDM or XDM then we should edit those to reflect the
+<b>chroot</b>. Because you are likely to have X running already GDM, KDM
+and friends will have to be started on another free Virtual terminal. My
+own preference is to type <b>startx</b> (<b>startx&nbsp;--&nbsp;:1</b>) at
+the prompt so my skills in this are severely restricted. Therefore I
+cannot advise on how one should go about doing this for GDM/KDM and
+friends. Can GDM/KDM etc be started with something similar to 
+<b>startx&nbsp;--&nbsp;:1</b>? I have no idea. Sorry.</p>
+
+
+<h3>Final Remarks</h3>
+<p> Here is a recap up to being able to <b>chroot</b>.</p>
+
+<pre class="listing">
+slackbox # mkdir -p /mnt/chroot
+slackbox # cd /mnt/sources/slackware-11.0/slackware # Edit to suit.
+slackbox # installpkg -root /mnt/chroot/ a/*.tgz
+slackbox # installpkg -root /mnt/chroot ap/*.tgz
+slackbox # installpkg -root /mnt/chroot l/*.tgz
+slackbox # installpkg -root /mnt/chroot n/*.tgz
+slackbox # cp /etc/hosts /mnt/chroot/etc/hosts
+slackbox # cp /etc/fstab /mnt/chroot/etc/fstab
+# Now we chroot into our chroot environment
+slackbox # mount -o bind /proc /mnt/chroot/proc
+slackbox # mount -o bind /dev /mnt/chroot/dev
+slackbox # chroot /mnt/chroot /bin/bash</pre>
+
+<p> We did more but the above is enough to get us a <b>chroot</b>
+environment. What extras you add from here is up to you. Above I showed
+you how to add X&nbsp;+ GUI and how to set up <tt class="verb">/etc/inittab</tt> so
+that our <b>chroot</b> environment has its own tty and I also showed you
+how to setup a chrooted X environment so that it too has its own VC
+separate from the main X VC. All these things and more are only limited
+by your imagination so go and play and most of all enjoy yourself.</p>
+
+<p> Finally, that script I promised you that will download the Slackware
+packages and install them within the <b>chroot</b> directory.</p>
+
+<pre class="quest">
+#!/bin/bash
+#
+# This will download Slackware 11.0 packages and install them
+# within a directory into which we will chroot.
+# change this to wherever your own chroot directory is
+CHROOTDIR=/mnt/chroot # Edit this to wherever you want your chroot.
+ncftp <<**
+open slackware.at
+cd slackware-11.0/slackware
+mget -r a/*
+mget -r ap/*
+mget -r l/*
+mget n/*
+# if you want X then uncomment these 3 lines
+#mget -r x/*
+#mget -r xap/*
+#mget -r kde/*
+exit
+**
+for FILE in *
+do
+installpkg -root $CHROOTDIR $FILE
+done
+</pre>
+
+<p> Once the above script has been executed then your <b>chroot</b>
+environment is ready. Follow this document from where we <b>chroot</b>
+in.</p>
+</div>
+<!-- the 2nd invariant part -->
+
+ <address class="copyright">
+  Copyright &copy; 2005, 2006, 2007 by The Slack World, check
+  <a href="../license.html" title="Copyright info">here</a> for the
+  details.<br>
+  The individual articles and posts are copyrighted by their authors.
+ </address>
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>

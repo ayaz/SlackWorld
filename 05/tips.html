@@ -1,0 +1,572 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+ <title>The Slack World, Issue 5, 2006. Slack Tips</title>
+
+ <meta name="content-language" content="en">
+ <meta name="copyright" content="2005, 2006 The Slack World">
+ <meta name="keywords" content="Linux, linux, tips">
+ <meta name="description" content="Slack Tips">
+
+ <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+ <link rel="stylesheet" href="../share/sw.css" type="text/css" media="screen">
+
+ <link rel="top" href="../index.html" title="Front page">
+ <link rel="up" href="./toc.html" title="Table of contents">
+</head>
+
+<body>
+ <div>
+  <a class="logo" href="http://slackworld.berlios.de"><img src="../share/slackworld.png"
+   class="banner" alt="The Slack World logo"></a>
+ <p class="topmenu">
+  <a class="menu" href="./toc.html" title="Table of contents"><b>ToC</b></a>
+  <a class="menu" href="../index.html" title="Front page"><b>Home</b></a>
+  <a class="menu" href="../issues.html" title="Issues"><b>Issues</b></a>
+  <a class="menu" href="../hearts.html" title="SlackHearts"><b>Hearts</b></a>
+  <a class="menu" href="../links.html" title="A collection of Slackware-related links"><b>Links</b></a>
+ </p>
+ </div>
+
+ <div id="content">
+  <p>
+   Issue #5, September 2006
+  </p>
+  <h2>
+   Slack Tips
+  </h2>
+
+  <p>
+   In this issue, you will find the following materials:</p>
+  <ul>
+   <li><a href="#kernels">Cleaning out old kernels &amp; modules</a>, by
+    <b>Grant&nbsp;Coady</b></li>
+   <li><a href="#lilo">Restoring LILO</a>, by <b>Ron&nbsp;Gibson</b></li>
+   <li><a href="#multi-ip">Setup multi-ip on one card</a>, by 
+    <b>Eric&nbsp;Hameleers</b></li>
+   <li><a href="#rc.local">rc.local not finishing</a>, by <b>Joost&nbsp;Kremers</b></li>
+   <li><a href="#dma">How to turn on DMA?</a> by <b>Diego&nbsp;Rodriguez</b></li>
+   <li><a href="#ttf">Installing TTF fonts in Slackware</a>, by
+    <b>Thomas&nbsp;Ronayne</b></li>
+   <li><a href="#stop_ssh">How do I stop ssh tunneling?</a> by <b>Mikhail&nbsp;Zotov</b></li>
+  </ul>
+  <hr>
+  <!-- 1 -->
+  <h3 id="kernels">
+   Cleaning out old kernels &amp; modules
+  </h3>
+
+  <p><em>
+   From:		<b>Grant Coady</b><br>
+   Date:		June 9 2006<br>
+   Newsgroup: 		alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/9a1a69022343b21a">Original post</a>)
+  </p>
+  <p>
+   Hi there,
+  </p>
+  <p>
+   I build lots of linux-kernels, old ones accumulate, along with their
+   <tt class="verb">/lib/modules/`uname&nbsp;-r`</tt> files.
+   For years, I'd occasionally go into
+   a machine as root and manually delete the accumulated dross in
+   <tt class="verb">/boot</tt>
+   and <tt class="verb">/lib/modules</tt>.
+  </p><p>
+   Finally got around to writing a bash script that reads
+   <tt class="verb">/etc/lilo.conf</tt>
+   and deletes unreferenced kernel files.  Two runs, one through <tt class="verb">/boot</tt>,
+   another through <tt class="verb">/lib/modules</tt> discover stale kernels and modules and
+   remove them.
+  </p><p>
+   The script is part of a set of updated kernel-build scripts I'm
+   writing, see it here:</p>
+  <p>
+     <a href="http://bugsplatter.mine.nu/bash/kernel/rm-old-kernels">http://bugsplatter.mine.nu/bash/kernel/rm-old-kernels</a>
+  </p><p>
+   Along with some notes and other kernel build scripts under:</p>
+  <p>
+     <a href="http://bugsplatter.mine.nu/bash/kernel/">http://bugsplatter.mine.nu/bash/kernel/</a></p>
+  <p>
+   Cheers,<br>
+   Grant.</p>
+
+  <p>A local copy of the script is available <a href="./files/rm-old-kernels">here</a>.</p>
+  <hr>
+
+  <!-- 2 -->
+  <h3 id="lilo">
+   Restoring LILO
+  </h3>
+
+<pre class="quest">
+From: Terrance N. Phillip
+Date: 18 November, 2005
+Newsgroup: alt.os.linux.slackware (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/d7967f4dc6419d1c">Original post</a>)
+
+Okay, suppose I have a dual boot machine, something like this:
+    hda1 - small, vendor proprietary partition
+    hda2 - windows 98
+    hda3 - linux swap
+    hda4 - linux (reiserfs)
+And everything's working smoothly. Lilo was installed using MBR.
+Someone, NOT SAYING WHO, does a fdisk /mbr from Windows, and now
+the computer boots only to windows, never see the Lilo screen.
+
+Is there a quick way to restore Lilo using the installation CD
+without re-installing?
+</pre>
+
+  <p><br><em>
+   From:	 	<b>Ron Gibson</b><br>
+   Date:		November 23 2005<br>
+   Newsgroup: 		alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/21ad00c718390c45">Original post</a>)
+  </p>
+  <p>
+   In general one can always use any bootable CD nearly
+  </p>
+  <ol>
+   <li>Boot CD</li>
+   <li><tt class="verb">mkdir /mount</tt></li>
+   <li><tt class="verb">mount /dev/&lt;your old root partition&gt; /mount</tt></li>
+   <li><tt class="verb">chroot /mount</tt></li>
+   <li><tt class="verb">source /etc/profile</tt></li>
+   <li><tt class="verb">lilo -b /dev/&lt;your old root partition&gt; -v -t</tt></li>
+   <li>If above reports no errors...</li>
+  </ol>
+  <pre class="listing">
+   lilo -b /dev/&lt;your old root partition&gt; -v</pre>
+  <p>
+   Since your old <tt class="verb">lilo.conf</tt> is still intact and you had it in
+   the MBR the OP could simply do a...
+  </p>
+  <pre class="listing">
+   lilo -v -t
+   lilo -v</pre>
+
+  <p>
+   However I would check <tt class="verb">/etc/lilo.conf</tt> first to be sure.
+   One could use <b>mc</b> for a fast check.
+  </p>
+  <p>
+   The above steps should cover most cases.</p>
+  <hr>
+
+  <!-- 3 -->
+
+
+
+  <h3 id="multi-ip">
+   Setup multi-ip on one card
+  </h3>
+  <pre class="quest">
+From: pipehappy@gmail.com
+Date: April 24 2006
+Groups: alt.os.linux.slackware (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/d4b3aa38eee0fced">Original post</a>
+
+Hello everyone here:
+
+I have installed 10.2 on the box and want to set up two ip on one card,
+one is for outer connection and the other one is for private network.
+Can anyone here show me how to do this work? I write some ifconfig in
+my rc.local. But I think /etc/rc.d/rc.inet1.conf is prefered place to
+tell slackware what I want. And I know ip alias may be necessary. But
+at last, what should I do?
+</pre>
+
+  <p><br><em>
+   From: <b>Eric Hameleers</b><br>
+   Date: April 24 2006<br>
+   Newsgroup: 		alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/275454b5f5b5dbad">Original post</a>)</p>
+
+  <p>
+   You can just as well configure eth0 as, say, <tt class="verb">eth0:1</tt>
+   in <tt class="verb">rc.inet1.conf</tt>. For instance:</p>
+
+  <pre class="listing">
+   # Config information for eth0
+   IPADDR[0]="192.168.0.1"
+   NETMASK[0]="255.255.255.0"
+   USE_DHCP[0]=""
+   DHCP_HOSTNAME[0]=""
+
+   # Config information for eth0:1
+   IFNAME[1]="eth0:1"
+   IPADDR[1]="192.168.1.12"
+   NETMASK[1]="255.255.255.0"
+   USE_DHCP[1]=""
+   DHCP_HOSTNAME[1]=""</pre>
+
+  <p>
+   This will work, as long as you place the definition of the alias
+   (<tt class="verb">eth0:1</tt> in this example) after the definition of the interface
+   (eth0) itself.</p>
+
+  <hr>
+  <!-- 4 -->
+  <h3 id="rc.local">
+   rc.local not finishing
+  </h3>
+
+<pre class="quest">
+From: cyber0ne
+Date: March 10 2006
+Newgroup: alt.os.linux.slackware (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/acfe182f527f731a">Original post</a>)
+
+I'm trying to add some services to my boot sequence, and I'm under the
+impression that I can accomplish this by adding their SysV init scripts
+to rc.local, right?  So here is my rc.local file:
+
+--------------------------------
+#!/bin/sh
+#
+# /etc/rc.d/rc.local:  Local system initialization script.
+#
+# Put any local setup commands in here:
+
+# Start IMAP
+if [ -x /etc/rc.d/rc.imap ]; then
+  . /etc/rc.d/rc.imap start
+fi
+
+# Start IMAP-SSL
+if [ -x /etc/rc.d/rc.imaps ]; then
+  . /etc/rc.d/rc.imaps start
+fi
+
+# Start SpamAssassin
+if [ -x /etc/rc.d/rc.spamd ]; then
+  . /etc/rc.d/rc.spamd
+fi
+
+# Start Authlib
+if [ -x /etc/rc.d/rc.authlib ]; then
+  . /etc/rc.d/rc.authlib
+fi
+
+# All done.
+--------------------------------
+
+Problem is, no matter what order I put these in, only the first one
+gets executed.  The other three are ignored.  Did I do something wrong
+here that would cause the whole thing to exit once the first one is
+done?  How can I get all four (and subsequent future additions) to be
+executed?
+
+Regards,
+David P. Donahue
+http://www.cyber0ne.com
+</pre>
+  <p><br><em>
+   From:	<b>Joost Kremers</b><br>
+   Date:		March 10 2006<br>
+   Newsgroup: alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/30decf1117d210b4">Original post</a>)</p>
+
+  <p>
+
+   i had the same problem in my <tt class="verb">rc.local</tt>, and your message
+   prompted me to do some searching. i found my problem, and i'm guessing
+   yours is the same: my guess is that each of the <tt class="verb">rc</tt> scripts
+   that you <b>source</b> in your <tt class="verb">rc.local</tt> ends in '<tt class="verb">exit
+   0</tt>'. the problem is that the <tt class="verb">rc</tt> scripts are
+   <em>sourced</em>, i.e., the commands in them are executed in the same
+   shell as <tt class="verb">rc.local</tt>. that means that when an <tt class="verb">exit</tt>
+   command is encountered in one of the sourced scripts, the shell
+   running <tt class="verb">rc.local</tt> will terminate.</p>
+
+  <p>
+
+   note that if you <b>grep</b> the <tt class="verb">rc</tt> scripts, you won't find
+   that many that actually use <b>exit</b> statements. and the ones that do
+   (<tt class="verb">rc.cups</tt> is one) are not sourced, but executed. <tt class="verb">rc.M</tt> for
+   example has this:</p>
+
+  <pre class="listing">
+   #v+
+
+   if [ -x /etc/rc.d/rc.cups ]; then
+     # Start CUPS:
+     /etc/rc.d/rc.cups start
+   elif [ -x /etc/rc.d/rc.lprng ]; then
+     # Start LPRng (lpd):
+     . /etc/rc.d/rc.lprng start
+   fi
+
+   #v-</pre>
+  <p>
+   notice how <tt class="verb">rc.cups</tt> is executed, but <tt class="verb">rc.lprng</tt> is sourced?</p>
+
+  <p>
+
+   so the solution to your problem is obviously not to <b>source</b> your
+   <tt class="verb">rc</tt> scripts in <tt class="verb">rc.local</tt> but to call them.</p>
+
+  <hr>
+  <!-- 5 -->
+
+  <h3 id="dma">
+   How to turn on DMA?
+  </h3>
+  <p><em>
+   From:	 	<b>dieymir</b><br>
+   Date:		June 29 2006<br>
+   Groups: 		alt.os.linux.slackware</em>
+   (<a href="http://groups.google.com/group/alt.os.linux.slackware/msg/bef32629843224e8">Original post</a>)</p>
+  <p>
+   I have done a script to set <b>hdparm</b> options, maybe some of you find it
+   useful: put both files, <a href="files/rc.hdparm"><tt class="verb">rc.hdparm</tt></a>
+   and <a href="files/rc.hdparm"><tt class="verb">rc.hdparm.conf</tt></a> in <tt class="verb">/etc/rc.d</tt>.
+  </p>
+
+  <p>
+   I call it from <tt class="verb">rc.S</tt> just bellow synchronizing UMSDOS file
+   system and before setup <tt class="verb">/etc/motd</tt>.</p>
+
+  <hr>
+
+  <!-- 6 -->
+  <h3 id="ttf">
+   Installing TTF fonts in Slackware
+  </h3>
+  <p><em>
+   From:	 	<b>Thomas Ronayne</b><br>
+   Date:		December 23 2005<br>
+   Groups: 		alt.os.linux.slackware</em>
+   <a href="http://groups.google.com/group/alt.os.linux.slackware/msg/f28c77c7e7cfa1e4?hl=en&amp;">Original post</a></p>
+
+  <p>
+   If you're just missing TTFs, you don't need to build anything, you just
+   need to install the fonts -- here's a guide from a while back that shows
+   how to do that.</p>
+  <p>
+   Assuming you have a bunch of TTF font files (from wherever you got
+   them), it's pretty easy:</p>
+  <pre class="listing">
+   log in as root (or su or whatever)
+   cd directory-where-TTF-files-are
+   #   create the target directory if it doesn't already exist
+   mkdir -p /usr/X11R6/lib/X11/fonts/TTF
+
+   #   copy all the TTF files, changing the name to lower case as you go
+   for file in *.[Tt][Tt][Ff]
+   do
+     cp ${file} /usr/X11R6/lib/X11/fonts/TTF/`echo ${file} | tr [A-Z] [a-z]`
+   done
+
+   #   go to the directory you just copied all that stuff to
+   cd /usr/X11R6/lib/X11/fonts/TTF
+
+   #   if you got them from winders, change the mode of the files
+   chmod 644 *
+
+   #   create the fonts.dir and fonts.scale files you need
+   mkfontscale
+   mkfontdir</pre>
+
+  <p>
+   You should have files <tt class="verb">fonts.dir</tt> and <tt class="verb">fonts.scale</tt>,
+   look at 'em if you want</p>
+
+  <p>
+   Now you need to add the font path to <tt class="verb">/etc/X11/xorg.conf</tt>;
+   in the section
+   "Files," add this line:</p>
+
+  <pre class="listing">
+   FontPath     "/usr/X11R6/lib/X11/fonts/TTF/"</pre>
+
+  <p>
+   That section of my xorg.conf file looks like this:</p>
+
+  <pre class="listing">
+   Section "Files"
+           RgbPath      "/usr/X11R6/lib/X11/rgb"
+           ModulePath   "/usr/X11R6/lib/modules"
+           FontPath     "/usr/X11R6/lib/X11/fonts/misc/"
+           FontPath     "/usr/X11R6/lib/X11/fonts/TTF/"
+           FontPath     "/usr/X11R6/lib/X11/fonts/Type1/"
+   #       FontPath     "/usr/X11R6/lib/X11/fonts/CID/"
+           FontPath     "/usr/X11R6/lib/X11/fonts/75dpi/"
+           FontPath     "/usr/X11R6/lib/X11/fonts/100dpi/"
+   EndSection</pre>
+
+  <p>
+   You need to exit from X (if it's running) and execute</p>
+
+  <pre class="listing">
+   fc-cache /usr/X11R6/lib/X11/fonts/TTF</pre>
+
+  <p>
+   Then restart X.</p>
+
+  <p>
+   That's it.</p>
+
+  <p>
+   --<br>
+   <em>Everything works -- if you let it.</em><p>
+  <hr>
+
+  <p><em><b>Remark 1.</b></em></p>
+  <p>
+   There has been a <a href="http://groups.google.com/group/alt.os.linux.slackware/msg/ea567fb13a695464">fix</a>
+   to the post pointing that one should create <tt class="verb">/etc/fonts/local.conf</tt> looking
+   this way:</p>
+  <pre class="listing">
+   &lt;fontconfig&gt;
+    &lt;dir&gt;/usr/X11R6/lib/X11/fonts/TTF/&lt;/dir&gt;
+   &lt;/fontconfig&gt;</pre>
+  <p>
+   but Thomas Ronayne <a href="http://groups.google.com/group/alt.os.linux.slackware/msg/27c4a0224173d9c7">pointed out</a>
+   that this line is already present in <tt class="verb">/etc/fonts/fonts.conf</tt>.</p>
+
+  <p>
+
+   It is advised to create <tt class="verb">/etc/fonts/local.conf</tt> in case a directory
+   other than the ones listed in <tt class="verb">/etc/fonts/fonts.conf</tt> is used to add
+   fonts.  As it was <a href="http://groups.google.com/group/alt.os.linux.slackware/msg/ab976acf5434d08d">explained by Melissa Danford</a>,
+   "The motivation behind using <tt class="verb">local.conf</tt> is that <tt class="verb">local.conf</tt> will not be
+   overwritten by <b>fontconfig</b> while <tt class="verb">fonts.conf</tt> will be."</p>
+
+
+  <p><em><b>Remark 2.</b></em></p>
+  <p>
+   Running the command</p>
+  <pre class="listing">
+   fc-cache /usr/X11R6/lib/X11/fonts/TTF</pre>
+
+  <p>
+   may not be needed, at least in KDE 3.5, because
+   <tt class="verb">~/.fonts.cache-1</tt> file is automatically created when KDE is
+   started if  <tt class="verb">/usr/X11R6/lib/X11/fonts/TTF/fonts.cache-1</tt> is
+   outdated or missing.</p>
+
+  <hr>
+
+  <!-- 7 -->
+  <h3 id="stop_ssh">
+   How do I stop ssh tunneling?
+  </h3>
+  <p>Mikhail&nbsp;Zotov</p>
+
+  <p>
+   Suppose you have a multi-user Linux machine at the place you work, and
+   many of the users are students curious about computing, hacking, and all
+   that.  With the low prices on ADSL connections, many of them have home
+   machines with real IP addresses staying on-line 24/7.  Obviously, some of
+   them can come to an idea of establishing an <b>ssh</b> tunnel between a
+   workstation in the lab and their home PC.  Incoming connections to the
+   workstation are stopped by a firewall but numerous resources available in
+   the Net provide detailed tutorials on establishing remote port
+   forwarding (with the <tt class="verb">-R</tt> option of <b>ssh</b>).
+   Surprisingly, it is much more difficult to find a document explaining
+   how an administrator can prevent this.</p>
+
+  <p>
+   Let's consider a number of simple options.</p>
+
+  <p>
+   1. Don't allow students to use <b>ssh</b>:
+
+  <pre class="listing">
+   # chmod 0750 /usr/bin/ssh</pre>
+
+  <p>
+   and, optionally,</p>
+
+  <pre class="listing">
+   # chgrp ssh /usr/bin/ssh</pre>
+
+  <p>
+   This is not an option in our case because students need to connect to
+   a remote Linux cluster via <b>ssh</b> to perform calculations. 
+   Obviously, we can enable something like <tt class="verb">sudo ssh remote_host</tt>
+   but then we have to instruct them about using <b>sudo</b>, which is
+   boring.&nbsp;:-)</p>
+
+  <p>
+   2. Stop the <b>ssh</b> server running on the workstation. The point is
+   that remote port forwarding needs <b>ssh</b> servers to be running on both
+   ends of the tunnel.</p>
+
+  <p>
+   Again, this is not a good option in our case because it makes (lazy)
+   system administrators to log in the workstation via console (or a serial
+   line). They don't like the idea.&nbsp;:-)  Surely, the <b>ssh</b> server can be
+   started via <a href="http://en.wikipedia.org/wiki/Port_knocking">port knocking</a>
+   but this is not a completely secure solution, and this seems to be an overkill.</p>
+
+  <p>
+   3. <a href="http://www.net-security.org/review.php?id=41">"Linux System
+   Security: The Administrator's Guide to Open Source Security
+   Tools"</a> by Scott Mann, Mitchell Krell and Ellen Mitchell
+   suggests that one compiles openssh with the
+   <tt class="verb">--disable-client-port-forwarding</tt> option.
+   I tried to do this with openssh-4.3p2 but this didn't help.
+   Actually, <tt class="verb">configure --help</tt> didn't show this
+   as a supported option at all.</p>
+
+  <p>
+   4. Fortunately, there is a trivial solution to the problem. Add</p>
+
+  <pre class="listing">
+   AllowGroups admin</pre>
+
+  <p>
+   to <tt class="verb">/etc/ssh/sshd_config</tt>. This prevents all users that
+   don't belong to the <tt class="verb">admin</tt> group to log into the workstation
+   via <b>ssh</b>.  This doesn't stop them from guessing a password of
+   a member of the <tt class="verb">admin</tt> group though.  Well, this is also
+   a snap: just change the default setting</p>
+
+  <pre class="listing">
+   PasswordAuthentication yes</pre>
+
+  <p>in <tt class="verb">/etc/ssh/sshd_config</tt> to read</p>
+
+  <pre class="listing">
+   PasswordAuthentication no</pre>
+
+  <p>
+   and you are done. At least, I think so.&nbsp;:-)</p>
+
+  <p><em><b>Remark.</b></em> When the issue was ready, I found
+   another approach to the problem suggested in
+   <a href="http://www.insecuremagazine.com/INSECURE-Mag-8.pdf">Issue&nbsp;1.8</a>
+   (September 2006)
+   of <a href="http://www.insecuremag.com/">(IN)SECURE Magazine</a>.</p>
+
+
+  <!-- invariant part -->
+  <hr>
+
+  <address class="copyright">
+   Copyright &copy; 2005, 2006 by The Slack World, check
+   <a href="../license.html" title="Copyright info">here</a> for the
+   details.<br>
+   The individual articles and posts are copyrighted by their authors.
+  </address><br>
+
+ </div>
+
+  <p class="menu">
+    <a class="menu" href="toc.html" title="Table of contents"><b>ToC</b></a>
+    <a class="menu" href="wisdom.html" title="Slack Wisdom"><b>Wisdom</b></a>
+    <a class="menu" href="tips.html" title="Slack Tips"><b>Tips</b></a>
+    <a class="menu" href="grsec-basics.html" title="Slack Notes"><b>Notes</b></a>
+    <a class="menu" href="what.html" title="What?"><b>What</b></a>
+    <a class="menu" href="acks.html" title="Acknowledgements"><b>Acks</b></a>
+  </p>
+
+
+ <p class="center"><a href=
+  "http://developer.berlios.de/projects/slackworld/"><img src=
+  "http://developer.berlios.de/bslogo.php?group_id=3435&amp;type=1"
+  alt="BerliOS Logo"></a>
+ </p>
+</body>
+</html>
+
